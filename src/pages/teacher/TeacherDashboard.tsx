@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import { BookOpen, Users, PlusCircle, Eye, Edit, MoreHorizontal } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { BookOpen, Users, PlusCircle, Eye, Trophy, Settings, BarChart3, GraduationCap } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,16 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import { useI18n } from '@/contexts/I18nContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockCourses } from '@/services/mockData';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 export const TeacherDashboard = () => {
   const { t } = useI18n();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   // In real app, filter by teacher ID
   const myCourses = mockCourses.slice(0, 4);
@@ -39,11 +34,9 @@ export const TeacherDashboard = () => {
             </h1>
             <p className="text-muted-foreground">{t('teacher.title')}</p>
           </div>
-          <Button variant="hero" asChild>
-            <Link to="/teacher/courses/new">
-              <PlusCircle className="h-4 w-4 mr-2" />
-              {t('teacher.createCourse')}
-            </Link>
+          <Button variant="hero" onClick={() => navigate('/teacher/courses')}>
+            <PlusCircle className="h-4 w-4 mr-2" />
+            {t('teacher.createCourse')}
           </Button>
         </motion.div>
 
@@ -104,14 +97,17 @@ export const TeacherDashboard = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>{t('teacher.myCourses')}</CardTitle>
-              <Button variant="outline" size="sm">{t('common.viewAll')}</Button>
+              <Button variant="outline" size="sm" onClick={() => navigate('/teacher/courses')}>
+                {t('common.viewAll')}
+              </Button>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2">
                 {myCourses.map((course) => (
                   <div
                     key={course.id}
-                    className="flex gap-4 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors"
+                    className="flex gap-4 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => navigate('/teacher/courses')}
                   >
                     <div className="w-24 h-24 rounded-lg bg-muted overflow-hidden flex-shrink-0">
                       {course.thumbnail ? (
@@ -127,29 +123,10 @@ export const TeacherDashboard = () => {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="font-semibold text-foreground truncate">{course.title}</h3>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {course.lessons.length} lessons • {course.enrolledCount} students
-                          </p>
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="iconSm">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <Eye className="h-4 w-4 mr-2" /> View
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Edit className="h-4 w-4 mr-2" /> Edit
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
+                      <h3 className="font-semibold text-foreground truncate">{course.title}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {course.lessons.length} lessons • {course.enrolledCount} students
+                      </p>
                       <div className="flex items-center gap-2 mt-3">
                         <Badge variant={course.isPublished ? 'default' : 'secondary'}>
                           {course.isPublished ? 'Published' : 'Draft'}
@@ -160,6 +137,83 @@ export const TeacherDashboard = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Quick Actions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Button 
+                  variant="outline" 
+                  className="h-auto py-4 justify-start"
+                  onClick={() => navigate('/teacher/quizzes')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <Trophy className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold">Manage Quizzes</div>
+                      <div className="text-xs text-muted-foreground">Create and schedule quizzes</div>
+                    </div>
+                  </div>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-auto py-4 justify-start"
+                  onClick={() => navigate('/teacher/courses')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-secondary/10">
+                      <BookOpen className="h-5 w-5 text-secondary" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold">Manage Courses</div>
+                      <div className="text-xs text-muted-foreground">View and edit your courses</div>
+                    </div>
+                  </div>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-auto py-4 justify-start"
+                  onClick={() => navigate('/teacher/analytics')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-success/10">
+                      <BarChart3 className="h-5 w-5 text-success" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold">Analytics</div>
+                      <div className="text-xs text-muted-foreground">View teaching performance</div>
+                    </div>
+                  </div>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-auto py-4 justify-start"
+                  onClick={() => navigate('/teacher/learning')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-warning/10">
+                      <GraduationCap className="h-5 w-5 text-warning" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold">My Learning</div>
+                      <div className="text-xs text-muted-foreground">Courses you're taking</div>
+                    </div>
+                  </div>
+                </Button>
               </div>
             </CardContent>
           </Card>

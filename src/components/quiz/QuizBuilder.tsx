@@ -50,7 +50,6 @@ export const QuizBuilder = ({ initialQuiz, onSave, onCancel, onGenerateAI }: Qui
     language: 'en',
     questions: [],
     timeLimit: 15,
-    isMultiplayer: false,
     shuffleQuestions: false,
     shuffleOptions: true,
     showResults: true,
@@ -402,17 +401,6 @@ export const QuizBuilder = ({ initialQuiz, onSave, onCancel, onGenerateAI }: Qui
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Enable Multiplayer</Label>
-                    <p className="text-sm text-muted-foreground">Allow live quiz sessions with join code</p>
-                  </div>
-                  <Switch
-                    checked={quiz.isMultiplayer}
-                    onCheckedChange={(checked) => setQuiz(prev => ({ ...prev, isMultiplayer: checked }))}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
                     <Label>Shuffle Questions</Label>
                     <p className="text-sm text-muted-foreground">Randomize question order for each attempt</p>
                   </div>
@@ -482,7 +470,6 @@ export const QuizBuilder = ({ initialQuiz, onSave, onCancel, onGenerateAI }: Qui
                     <Badge>{quiz.questions?.length || 0} Questions</Badge>
                     <Badge>{totalPoints} Points</Badge>
                     {quiz.timeLimit && <Badge><Clock className="h-3 w-3 mr-1" />{quiz.timeLimit} min</Badge>}
-                    {quiz.isMultiplayer && <Badge variant="secondary">Multiplayer</Badge>}
                   </div>
                 </div>
 

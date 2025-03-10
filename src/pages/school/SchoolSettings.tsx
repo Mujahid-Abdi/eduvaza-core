@@ -9,8 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { toast } from 'sonner';
-import { Building2, Mail, Phone, MapPin, Globe, Save } from 'lucide-react';
+import { Building2, Mail, Phone, MapPin, Globe, Save, Lock, Bell } from 'lucide-react';
 
 export const SchoolSettings = () => {
   const { user } = useAuth();
@@ -53,22 +54,23 @@ export const SchoolSettings = () => {
           <p className="text-muted-foreground">Manage your school profile and preferences</p>
         </motion.div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* School Profile */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+        {/* Accordion Settings */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Accordion type="multiple" className="space-y-4">
+            {/* School Profile */}
+            <AccordionItem value="profile" className="border rounded-lg px-6">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center gap-2">
                   <Building2 className="h-5 w-5" />
-                  School Profile
-                </CardTitle>
-                <CardDescription>Update your school information</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+                  <span className="font-semibold">School Profile</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-4 pt-4">
+                <p className="text-sm text-muted-foreground mb-4">Update your school information</p>
                 <div className="space-y-2">
                   <Label htmlFor="name">School Name</Label>
                   <Input
@@ -145,24 +147,19 @@ export const SchoolSettings = () => {
                     rows={4}
                   />
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+              </AccordionContent>
+            </AccordionItem>
 
-          {/* Preferences */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="space-y-6"
-          >
             {/* Language Settings */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Language Preferences</CardTitle>
-                <CardDescription>Choose your preferred language</CardDescription>
-              </CardHeader>
-              <CardContent>
+            <AccordionItem value="language" className="border rounded-lg px-6">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center gap-2">
+                  <Globe className="h-5 w-5" />
+                  <span className="font-semibold">Language Preferences</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-4 pt-4">
+                <p className="text-sm text-muted-foreground mb-4">Choose your preferred language</p>
                 <div className="space-y-2">
                   <Label htmlFor="language">Interface Language</Label>
                   <Select value={locale} onValueChange={(value: any) => setLocale(value)}>
@@ -177,38 +174,57 @@ export const SchoolSettings = () => {
                     </SelectContent>
                   </Select>
                 </div>
-              </CardContent>
-            </Card>
+              </AccordionContent>
+            </AccordionItem>
 
             {/* Account Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Account Information</CardTitle>
-                <CardDescription>Your account details</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
+            <AccordionItem value="account" className="border rounded-lg px-6">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center gap-2">
+                  <Lock className="h-5 w-5" />
+                  <span className="font-semibold">Account Information</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-4 pt-4">
+                <p className="text-sm text-muted-foreground mb-4">Your account details</p>
                 <div>
                   <Label className="text-sm text-muted-foreground">Account Type</Label>
                   <p className="font-medium">School Administrator</p>
                 </div>
                 <div>
-                  <Label className="text-sm text-muted-foreground">User ID</Label>
-                  <p className="font-mono text-sm">{user?.id}</p>
+                  <Label className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Mail className="h-4 w-4" />
+                    Email Address
+                  </Label>
+                  <p className="font-medium">{user?.email || 'No email set'}</p>
                 </div>
                 <div>
                   <Label className="text-sm text-muted-foreground">Status</Label>
                   <p className="font-medium text-green-600">Active</p>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="space-y-2 pt-2">
+                  <Button variant="outline" className="w-full">
+                    <Mail className="h-4 w-4 mr-2" />
+                    Change Email
+                  </Button>
+                  <Button variant="outline" className="w-full">
+                    <Lock className="h-4 w-4 mr-2" />
+                    Change Password
+                  </Button>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
             {/* Notifications */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Notification Preferences</CardTitle>
-                <CardDescription>Manage how you receive notifications</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
+            <AccordionItem value="notifications" className="border rounded-lg px-6">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center gap-2">
+                  <Bell className="h-5 w-5" />
+                  <span className="font-semibold">Notification Preferences</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-4 pt-4">
+                <p className="text-sm text-muted-foreground mb-4">Manage how you receive notifications</p>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Email Notifications</p>
@@ -223,10 +239,10 @@ export const SchoolSettings = () => {
                   </div>
                   <Button variant="outline" size="sm">Configure</Button>
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </motion.div>
 
         {/* Save Button */}
         <motion.div

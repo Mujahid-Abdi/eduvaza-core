@@ -33,12 +33,12 @@ const allAvailableBadges: Omit<Badge, 'earnedAt'>[] = [
   { id: 'badge-lesson-50', name: 'Knowledge Seeker', description: 'Complete 50 lessons', icon: '🎓', color: '#35FF6B', category: 'learning' },
   
   // Social badges
-  { id: 'badge-5', name: 'Team Player', description: 'Participate in 10 multiplayer quizzes', icon: '🤝', color: '#35B5FF', category: 'social' },
-  { id: 'badge-podium', name: 'Podium Finisher', description: 'Finish in top 3 of a live quiz', icon: '🥇', color: '#FFD700', category: 'social' },
-  { id: 'badge-winner', name: 'Quiz Champion', description: 'Win a multiplayer quiz', icon: '👑', color: '#FF6B35', category: 'social' },
+  { id: 'badge-5', name: 'Team Player', description: 'Participate in 10 group activities', icon: '🤝', color: '#35B5FF', category: 'social' },
+  { id: 'badge-podium', name: 'Podium Finisher', description: 'Finish in top 3 of a quiz', icon: '🥇', color: '#FFD700', category: 'social' },
+  { id: 'badge-winner', name: 'Quiz Champion', description: 'Win a quiz competition', icon: '👑', color: '#FF6B35', category: 'social' },
   
   // Special badges
-  { id: 'badge-6', name: 'Early Bird', description: 'Join a live quiz before it starts', icon: '🐦', color: '#35FF6B', category: 'special' },
+  { id: 'badge-6', name: 'Early Bird', description: 'Join a quiz before it starts', icon: '🐦', color: '#35FF6B', category: 'special' },
   { id: 'badge-night', name: 'Night Owl', description: 'Complete a quiz after 10 PM', icon: '🦉', color: '#6B35FF', category: 'special' },
   { id: 'badge-first', name: 'Pioneer', description: 'Be among the first 100 users', icon: '🚀', color: '#FF35B5', category: 'special' },
 ];

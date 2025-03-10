@@ -16,6 +16,7 @@ interface QuizEditDialogProps {
     course: string;
     startTime: string;
     endTime: string;
+    status?: 'draft' | 'scheduled' | 'published' | 'completed';
   };
   onQuizUpdated?: () => void;
 }
@@ -40,6 +41,7 @@ export const QuizEditDialog = ({ open, onOpenChange, quiz, onQuizUpdated }: Quiz
     startTime: startDateTime.time,
     endDate: endDateTime.date,
     endTime: endDateTime.time,
+    status: quiz.status || 'draft',
   });
 
   useEffect(() => {
@@ -52,6 +54,7 @@ export const QuizEditDialog = ({ open, onOpenChange, quiz, onQuizUpdated }: Quiz
       startTime: start.time,
       endDate: end.date,
       endTime: end.time,
+      status: quiz.status || 'draft',
     });
   }, [quiz]);
 
@@ -176,6 +179,30 @@ export const QuizEditDialog = ({ open, onOpenChange, quiz, onQuizUpdated }: Quiz
                 required
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="status">Quiz Status *</Label>
+            <Select
+              value={formData.status}
+              onValueChange={(value: any) => setFormData({ ...formData, status: value })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="scheduled">Scheduled</SelectItem>
+                <SelectItem value="published">Published</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {formData.status === 'draft' && 'Quiz is not visible to students'}
+              {formData.status === 'scheduled' && 'Quiz will be available at the scheduled time'}
+              {formData.status === 'published' && 'Quiz is currently active and visible'}
+              {formData.status === 'completed' && 'Quiz has ended and is archived'}
+            </p>
           </div>
 
           <div className="flex justify-end gap-2 pt-4">

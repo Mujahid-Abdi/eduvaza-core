@@ -19,6 +19,7 @@ import {
   Calendar,
   Zap,
   Trophy,
+  MessageSquare,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -53,6 +54,7 @@ const getNavItems = (role: UserRole, t: (key: string) => string): NavItem[] => {
         ...baseItems,
         { icon: <BookOpen className="h-5 w-5" />, label: 'Courses', href: '?tab=courses' },
         { icon: <FileQuestion className="h-5 w-5" />, label: 'Quizzes', href: '?tab=quizzes' },
+        { icon: <MessageSquare className="h-5 w-5" />, label: 'Student Questions', href: '/questions' },
         { icon: <BarChart3 className="h-5 w-5" />, label: 'Analytics', href: '/analytics' },
       ];
     case 'teacher':
@@ -60,8 +62,10 @@ const getNavItems = (role: UserRole, t: (key: string) => string): NavItem[] => {
         ...baseItems,
         { icon: <BookOpen className="h-5 w-5" />, label: t('teacher.myCourses'), href: '/courses' },
         { icon: <FileQuestion className="h-5 w-5" />, label: t('quiz.myQuizzes'), href: '/quizzes' },
+        { icon: <MessageSquare className="h-5 w-5" />, label: 'Student Questions', href: '/questions' },
         { icon: <Calendar className="h-5 w-5" />, label: t('quiz.schedule'), href: '/schedule' },
         { icon: <BarChart3 className="h-5 w-5" />, label: t('quiz.analytics'), href: '/analytics' },
+        { icon: <GraduationCap className="h-5 w-5" />, label: 'My Learning', href: '/learning' },
       ];
     case 'student':
       return [
