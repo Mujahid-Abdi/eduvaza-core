@@ -58,62 +58,109 @@ export const StudentQuizPage = () => {
         {view === 'list' && (
           <>
             <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-              <GamificationCard profile={mockGamificationProfile} compact onViewLeaderboard={() => setView('leaderboard')} />
+              <GamificationCard profile={mockGamificationProfile} compact />
             </motion.div>
 
-            <div className="flex gap-4">
-              <Button variant="outline" onClick={() => setView('calendar')}>
-                <CalendarIcon className="h-4 w-4 mr-2" />
-                {t('quiz.calendar')}
-              </Button>
-              <Button variant="outline" onClick={() => setView('leaderboard')}>
-                <Trophy className="h-4 w-4 mr-2" />
-                {t('gamification.leaderboard')}
-              </Button>
-            </div>
+            <Tabs defaultValue="available">
+              <TabsList>
+                <TabsTrigger value="available">Available Quizzes</TabsTrigger>
+                <TabsTrigger value="completed">Completed ({completedQuizzes.length})</TabsTrigger>
+              </TabsList>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Available Quizzes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {mockQuizzes.filter(q => q.isPublished).map((quiz) => (
-                    <div key={quiz.id} className="p-4 rounded-lg border hover:bg-muted/50 transition-colors">
-                      <h3 className="font-semibold">{quiz.title}</h3>
-                      <p className="text-sm text-muted-foreground mt-1">{quiz.description}</p>
-                      <div className="flex gap-2 mt-3">
-                        <Badge>{quiz.questions.length} Q</Badge>
-                        <Badge variant="outline">{quiz.totalPoints} pts</Badge>
-                        {quiz.timeLimit && <Badge variant="secondary">{quiz.timeLimit} min</Badge>}
+              {/* Available Quizzes */}
+              <TabsContent value="available" className="mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Available Quizzes</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {availableQuizzes.length > 0 ? (
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {availableQuizzes.map((quiz) => (
+                          <div key={quiz.id} className="p-4 rounded-lg border hover:bg-muted/50 transition-colors">
+                            <h3 className="font-semibold">{quiz.title}</h3>
+                            <p className="text-sm text-muted-foreground mt-1">{quiz.description}</p>
+                            <div className="flex gap-2 mt-3">
+                              <Badge>{quiz.questions.length} Questions</Badge>
+                              <Badge variant="outline">{quiz.totalPoints} Points</Badge>
+                              {quiz.timeLimit && <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />{quiz.timeLimit} min</Badge>}
+                            </div>
+                            <Button size="sm" className="mt-4 w-full" onClick={() => handleStartQuiz(quiz)}>
+                              <Play className="h-4 w-4 mr-2" /> Start Quiz
+                            </Button>
+                          </div>
+                        ))}
                       </div>
-                      <Button size="sm" className="mt-4 w-full" onClick={() => handleStartQuiz(quiz)}>
-                        <Play className="h-4 w-4 mr-2" /> Start Quiz
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    ) : (
+                      <div className="text-center py-12">
+                        <CheckCircle className="h-12 w-12 mx-auto mb-4 text-success" />
+                        <p className="text-muted-foreground">You've completed all available quizzes!</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Completed Quizzes */}
+              <TabsContent value="completed" className="mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Completed Quizzes</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {completedQuizzes.length > 0 ? (
+                      <div className="space-y-4">
+                        {completedQuizzes.map((attempt) => (
+                          <div key={attempt.id} className="p-4 rounded-lg border">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h3 className="font-semibold">{attempt.quiz?.title}</h3>
+                                  <CheckCircle className="h-4 w-4 text-success" />
+                                </div>
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                  <Badge variant="outline">
+                                    Score: {attempt.score}/{attempt.quiz?.totalPoints}
+                                  </Badge>
+                                  <Badge variant="secondary">
+                                    {Math.round((attempt.score / (attempt.quiz?.totalPoints || 1)) * 100)}%
+                                  </Badge>
+                                  {attempt.timeTaken && (
+                                    <Badge variant="outline">
+                                      <Clock className="h-3 w-3 mr-1" />
+                                      {Math.floor(attempt.timeTaken / 60)}:{(attempt.timeTaken % 60).toString().padStart(2, '0')}
+                                    </Badge>
+                                  )}
+                                  {getRankBadge(attempt.rank || 0)}
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  Completed on {new Date(attempt.completedAt!).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <Trophy className="h-8 w-8 text-primary mx-auto mb-1" />
+                                <p className="text-xs text-muted-foreground">Rank</p>
+                                <p className="text-lg font-bold">#{attempt.rank}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <Play className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                        <p className="text-muted-foreground">No completed quizzes yet. Start taking quizzes!</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </>
         )}
 
         {view === 'play' && activeQuiz && (
           <QuizPlayer quiz={activeQuiz} onComplete={handleCompleteQuiz} onExit={() => setView('list')} />
-        )}
-
-        {view === 'calendar' && (
-          <div className="space-y-4">
-            <Button variant="outline" onClick={() => setView('list')}>← Back</Button>
-            <QuizCalendar scheduledQuizzes={mockScheduledQuizzes} />
-          </div>
-        )}
-
-        {view === 'leaderboard' && (
-          <div className="space-y-4">
-            <Button variant="outline" onClick={() => setView('list')}>← Back</Button>
-            <Leaderboard entries={mockLeaderboard} currentUserId="student-1" />
-          </div>
         )}
       </div>
     </DashboardLayout>

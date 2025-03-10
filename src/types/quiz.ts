@@ -76,7 +76,8 @@ export interface QuizAttempt {
   timeTaken: number; // seconds
   startedAt: Date;
   completedAt?: Date;
-  isCompleted: boolean;
+  status: 'in_progress' | 'completed' | 'abandoned';
+  rank?: number; // Student's rank in this quiz
 }
 
 export interface QuizAnswer {
@@ -163,13 +164,18 @@ export interface Achievement {
 export interface LeaderboardEntry {
   rank: number;
   userId: string;
+  studentId?: string;
+  studentName?: string;
   userName: string;
   avatar?: string;
   points: number;
+  totalPoints?: number;
   level: number;
   badges: number;
   schoolId?: string;
   schoolName?: string;
+  quizzesCompleted?: number;
+  averageScore?: number;
 }
 
 // Analytics
