@@ -15,6 +15,10 @@ import {
   BarChart3,
   Layers,
   PlusCircle,
+  FileQuestion,
+  Calendar,
+  Zap,
+  Trophy,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -57,13 +61,17 @@ const getNavItems = (role: UserRole, t: (key: string) => string): NavItem[] => {
       return [
         ...baseItems,
         { icon: <BookOpen className="h-5 w-5" />, label: t('teacher.myCourses'), href: '/courses' },
-        { icon: <PlusCircle className="h-5 w-5" />, label: t('teacher.createCourse'), href: '/courses/new' },
+        { icon: <FileQuestion className="h-5 w-5" />, label: t('quiz.myQuizzes'), href: '/quizzes' },
+        { icon: <Calendar className="h-5 w-5" />, label: t('quiz.schedule'), href: '/schedule' },
+        { icon: <BarChart3 className="h-5 w-5" />, label: t('quiz.analytics'), href: '/analytics' },
       ];
     case 'student':
       return [
         ...baseItems,
         { icon: <BookOpen className="h-5 w-5" />, label: t('student.myCourses'), href: '/my-courses' },
-        { icon: <Layers className="h-5 w-5" />, label: t('student.browseCourses'), href: '/browse' },
+        { icon: <FileQuestion className="h-5 w-5" />, label: t('quiz.quizzes'), href: '/quizzes' },
+        { icon: <Calendar className="h-5 w-5" />, label: t('quiz.calendar'), href: '/calendar' },
+        { icon: <Trophy className="h-5 w-5" />, label: t('gamification.leaderboard'), href: '/leaderboard' },
         { icon: <BarChart3 className="h-5 w-5" />, label: t('student.trackProgress'), href: '/progress' },
       ];
     default:
