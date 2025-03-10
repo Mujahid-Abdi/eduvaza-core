@@ -1,73 +1,102 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import type { User, UserRole, AuthContextType, RegisterData } from '@/types';
-import { mockUsers, mockSchools } from '@/services/mockData';
+import { authService } from '@/services/auth';
+import { LoadingScreen } from '@/components/ui/loading-screen';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [initializationError, setInitializationError] = useState<string | null>(null);
 
-  const login = useCallback(async (email: string, _password: string) => {
+  // Initialize auth state
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        setInitializationError(null);
+        const currentUser = await authService.getCurrentUser();
+        setUser(currentUser);
+      } catch (error: any) {
+        console.error('Error initializing auth:', error);
+        setInitializationError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initAuth();
+
+    // Listen to auth state changes
+    const unsubscribe = authService.onAuthStateChanged((user) => {
+      setUser(user);
+      if (isLoading) {
+        setIsLoading(false);
+      }
+    });
+
+    return unsubscribe;
+  }, [isLoading]);
+
+  const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const foundUser = mockUsers.find(u => u.email === email);
-    if (foundUser) {
-      setUser(foundUser);
-    } else {
-      // Create mock user for demo
-      const demoUser: User = {
-        id: 'demo-user',
-        email,
-        name: email.split('@')[0],
-        role: 'student',
-        createdAt: new Date(),
-        isActive: true,
-      };
-      setUser(demoUser);
+    try {
+      const loggedInUser = await authService.loginWithEmail(email, password);
+      setUser(loggedInUser);
+    } catch (error: any) {
+      console.error('Login error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
-  const loginWithPhone = useCallback(async (phone: string, _code: string) => {
+  const loginWithPhone = useCallback(async (phone: string, code: string) => {
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const demoUser: User = {
-      id: 'phone-user',
-      email: '',
-      phone,
-      name: 'Phone User',
-      role: 'student',
-      createdAt: new Date(),
-      isActive: true,
-    };
-    setUser(demoUser);
-    setIsLoading(false);
+    try {
+      const loggedInUser = await authService.loginWithPhone(phone, code);
+      setUser(loggedInUser);
+    } catch (error: any) {
+      console.error('Phone login error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const sendPhoneCode = useCallback(async (phone: string) => {
+    try {
+      return await authService.sendPhoneCode(phone);
+    } catch (error: any) {
+      console.error('Send phone code error:', error);
+      throw error;
+    }
   }, []);
 
   const register = useCallback(async (data: RegisterData) => {
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const newUser: User = {
-      id: `user-${Date.now()}`,
-      email: data.email,
-      name: data.name,
-      phone: data.phone,
-      role: data.role,
-      schoolId: data.schoolId,
-      createdAt: new Date(),
-      isActive: true,
-    };
-    setUser(newUser);
-    setIsLoading(false);
+    try {
+      const newUser = await authService.register(data);
+      setUser(newUser);
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  const logout = useCallback(() => {
-    setUser(null);
+  const logout = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      await authService.logout();
+      setUser(null);
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const selectRole = useCallback((role: UserRole) => {
@@ -82,6 +111,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [user]);
 
+  // Show loading screen during initial Firebase setup
+  if (isLoading && !user) {
+    return (
+      <LoadingScreen 
+        message="Initializing EduVaza"
+        submessage={initializationError ? 
+          "Having trouble connecting to Firebase. Please check your setup." : 
+          "Setting up your learning environment..."
+        }
+      />
+    );
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -90,6 +132,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isLoading,
         login,
         loginWithPhone,
+        sendPhoneCode,
         register,
         logout,
         selectRole,

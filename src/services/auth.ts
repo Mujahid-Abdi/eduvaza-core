@@ -1,72 +1,233 @@
-// Mock Auth Service - simulates Firebase Auth
+// Firebase Auth Service
+import { 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  User as FirebaseUser,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  ConfirmationResult,
+  updateProfile
+} from 'firebase/auth';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
 import type { User, UserRole, RegisterData } from '@/types';
-import { mockUsers } from './mockData';
+
+// Store phone confirmation result
+let confirmationResult: ConfirmationResult | null = null;
 
 export const authService = {
   async loginWithEmail(email: string, password: string): Promise<User> {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    const user = mockUsers.find(u => u.email === email);
-    if (user) {
-      return user;
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
+      
+      // Get user data from Firestore
+      const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+      
+      if (userDoc.exists()) {
+        return {
+          id: firebaseUser.uid,
+          ...userDoc.data()
+        } as User;
+      } else {
+        // Create basic user profile if doesn't exist
+        const userData: User = {
+          id: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          name: firebaseUser.displayName || email.split('@')[0],
+          role: 'student',
+          createdAt: new Date(),
+          isActive: true,
+        };
+        
+        await setDoc(doc(db, 'users', firebaseUser.uid), userData);
+        return userData;
+      }
+    } catch (error: any) {
+      console.error('Login error:', error);
+      
+      // Provide user-friendly error messages
+      if (error.code === 'auth/operation-not-allowed') {
+        throw new Error('Email/password authentication is not enabled. Please contact support.');
+      } else if (error.code === 'auth/user-not-found') {
+        throw new Error('No account found with this email address.');
+      } else if (error.code === 'auth/wrong-password') {
+        throw new Error('Incorrect password. Please try again.');
+      } else if (error.code === 'auth/invalid-email') {
+        throw new Error('Please enter a valid email address.');
+      } else if (error.code === 'auth/too-many-requests') {
+        throw new Error('Too many failed attempts. Please try again later.');
+      } else if (error.message.includes('Missing or insufficient permissions')) {
+        throw new Error('Database permissions not configured. Please contact support.');
+      }
+      
+      throw new Error(error.message || 'Login failed. Please try again.');
     }
-    
-    // For demo, create a new user
-    return {
-      id: `user-${Date.now()}`,
-      email,
-      name: email.split('@')[0],
-      role: 'student',
-      createdAt: new Date(),
-      isActive: true,
-    };
   },
 
   async loginWithPhone(phone: string, code: string): Promise<User> {
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    return {
-      id: `phone-${Date.now()}`,
-      email: '',
-      phone,
-      name: 'Phone User',
-      role: 'student',
-      createdAt: new Date(),
-      isActive: true,
-    };
+    try {
+      if (!confirmationResult) {
+        throw new Error('Please request a verification code first');
+      }
+      
+      const userCredential = await confirmationResult.confirm(code);
+      const firebaseUser = userCredential.user;
+      
+      // Get or create user data
+      const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+      
+      if (userDoc.exists()) {
+        return {
+          id: firebaseUser.uid,
+          ...userDoc.data()
+        } as User;
+      } else {
+        const userData: User = {
+          id: firebaseUser.uid,
+          email: '',
+          phone: firebaseUser.phoneNumber || phone,
+          name: 'Phone User',
+          role: 'student',
+          createdAt: new Date(),
+          isActive: true,
+        };
+        
+        await setDoc(doc(db, 'users', firebaseUser.uid), userData);
+        return userData;
+      }
+    } catch (error: any) {
+      throw new Error(error.message || 'Phone verification failed');
+    }
   },
 
   async sendPhoneCode(phone: string): Promise<boolean> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return true;
+    try {
+      // Initialize reCAPTCHA verifier
+      const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'invisible',
+        callback: () => {
+          // reCAPTCHA solved
+        }
+      });
+      
+      confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
+      return true;
+    } catch (error: any) {
+      console.error('SMS sending failed:', error);
+      throw new Error(error.message || 'Failed to send verification code');
+    }
   },
 
   async register(data: RegisterData): Promise<User> {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    return {
-      id: `user-${Date.now()}`,
-      email: data.email,
-      name: data.name,
-      phone: data.phone,
-      role: data.role,
-      schoolId: data.schoolId,
-      createdAt: new Date(),
-      isActive: true,
-    };
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      const firebaseUser = userCredential.user;
+      
+      // Update display name
+      await updateProfile(firebaseUser, {
+        displayName: data.name
+      });
+      
+      // Create user document in Firestore (only include schoolId if it exists)
+      const userData: any = {
+        id: firebaseUser.uid,
+        email: data.email,
+        name: data.name,
+        role: data.role,
+        createdAt: new Date(),
+        isActive: true,
+      };
+
+      // Only add optional fields if they exist
+      if (data.phone) {
+        userData.phone = data.phone;
+      }
+      
+      if (data.schoolId) {
+        userData.schoolId = data.schoolId;
+      }
+      
+      await setDoc(doc(db, 'users', firebaseUser.uid), userData);
+      return userData as User;
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      
+      // Provide user-friendly error messages
+      if (error.code === 'auth/operation-not-allowed') {
+        throw new Error('Email/password authentication is not enabled. Please contact support.');
+      } else if (error.code === 'auth/weak-password') {
+        throw new Error('Password should be at least 6 characters long.');
+      } else if (error.code === 'auth/email-already-in-use') {
+        throw new Error('An account with this email already exists.');
+      } else if (error.code === 'auth/invalid-email') {
+        throw new Error('Please enter a valid email address.');
+      } else if (error.message.includes('Missing or insufficient permissions')) {
+        throw new Error('Database permissions not configured. Please contact support.');
+      }
+      
+      throw new Error(error.message || 'Registration failed. Please try again.');
+    }
   },
 
   async logout(): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 300));
+    try {
+      await signOut(auth);
+    } catch (error: any) {
+      throw new Error(error.message || 'Logout failed');
+    }
   },
 
   async getCurrentUser(): Promise<User | null> {
-    // Check localStorage for persisted session
-    const stored = localStorage.getItem('eduvaza_user');
-    if (stored) {
-      return JSON.parse(stored);
-    }
-    return null;
+    return new Promise((resolve) => {
+      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+        unsubscribe();
+        
+        if (firebaseUser) {
+          try {
+            const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+            if (userDoc.exists()) {
+              resolve({
+                id: firebaseUser.uid,
+                ...userDoc.data()
+              } as User);
+            } else {
+              resolve(null);
+            }
+          } catch (error) {
+            console.error('Error fetching user data:', error);
+            resolve(null);
+          }
+        } else {
+          resolve(null);
+        }
+      });
+    });
   },
+
+  // Listen to auth state changes
+  onAuthStateChanged: (callback: (user: User | null) => void) => {
+    return onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+      if (firebaseUser) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          if (userDoc.exists()) {
+            callback({
+              id: firebaseUser.uid,
+              ...userDoc.data()
+            } as User);
+          } else {
+            callback(null);
+          }
+        } catch (error) {
+          console.error('Error in auth state change:', error);
+          callback(null);
+        }
+      } else {
+        callback(null);
+      }
+    });
+  }
 };
