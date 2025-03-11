@@ -119,9 +119,9 @@ export const mockCourses: Course[] = [
     curriculum: 'Cambridge IGCSE',
     level: 'beginner',
     lessons: [
-      { id: 'l1', courseId: 'course-1', title: 'What is Algebra?', content: 'Introduction to algebraic concepts...', contentType: 'text', order: 1, duration: 15 },
-      { id: 'l2', courseId: 'course-1', title: 'Variables and Constants', content: 'Understanding the building blocks...', contentType: 'text', order: 2, duration: 20 },
-      { id: 'l3', courseId: 'course-1', title: 'Simple Equations', content: 'Solving your first equations...', contentType: 'text', order: 3, duration: 25 },
+      { id: 'l1', courseId: 'course-1', title: 'What is Algebra?', content: '<h2>Introduction to Algebra</h2><p>Algebra is a branch of mathematics dealing with symbols and the rules for manipulating those symbols. In elementary algebra, those symbols represent quantities without fixed values, known as variables.</p><p>The purpose of algebra is to make it easy to state a mathematical relationship and its equation by using letters of the alphabet or other symbols to represent entities as a form of shorthand.</p>', contentType: 'text', order: 1, duration: 15 },
+      { id: 'l2', courseId: 'course-1', title: 'Variables and Constants', content: '', contentType: 'pdf', pdfUrl: 'https://www.africau.edu/images/default/sample.pdf', order: 2, duration: 20 },
+      { id: 'l3', courseId: 'course-1', title: 'Simple Equations Video', content: 'Learn to solve simple algebraic equations step by step.', contentType: 'video', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', order: 3, duration: 25 },
     ],
     enrolledCount: 234,
     isPublished: true,
@@ -141,8 +141,8 @@ export const mockCourses: Course[] = [
     curriculum: 'African Curriculum',
     level: 'beginner',
     lessons: [
-      { id: 'l4', courseId: 'course-2', title: 'Understanding Ecosystems', content: 'What makes up an ecosystem...', contentType: 'text', order: 1, duration: 20 },
-      { id: 'l5', courseId: 'course-2', title: 'Weather and Climate', content: 'The difference between weather and climate...', contentType: 'text', order: 2, duration: 25 },
+      { id: 'l4', courseId: 'course-2', title: 'Understanding Ecosystems', content: '', contentType: 'video', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4', order: 1, duration: 20 },
+      { id: 'l5', courseId: 'course-2', title: 'Weather and Climate', content: '', contentType: 'pdf', pdfUrl: 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/img/table-word.pdf', order: 2, duration: 25 },
     ],
     enrolledCount: 456,
     isPublished: true,
