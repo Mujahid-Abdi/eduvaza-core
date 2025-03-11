@@ -50,7 +50,7 @@ export const AskQuestionDialog = ({
     setLoading(true);
     try {
       await submitQuestion({
-        studentId: user.uid,
+        studentId: user.id,
         studentName: user.name || 'Anonymous',
         teacherId,
         teacherName,
