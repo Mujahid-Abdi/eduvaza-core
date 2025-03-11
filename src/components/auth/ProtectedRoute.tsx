@@ -24,6 +24,12 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
+  // Debug logging
+  console.log('ProtectedRoute - User:', user);
+  console.log('ProtectedRoute - User Role:', user?.role);
+  console.log('ProtectedRoute - Allowed Roles:', allowedRoles);
+  console.log('ProtectedRoute - Role Check:', allowedRoles && user && !allowedRoles.includes(user.role));
+
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
     // Redirect to appropriate dashboard based on role
     const dashboardPaths: Record<UserRole, string> = {
@@ -32,6 +38,8 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
       teacher: '/teacher',
       student: '/student',
     };
+    
+    console.log('ProtectedRoute - Redirecting to:', dashboardPaths[user.role]);
     return <Navigate to={dashboardPaths[user.role]} replace />;
   }
 

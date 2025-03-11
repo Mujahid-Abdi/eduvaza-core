@@ -13,12 +13,47 @@ import {
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import type { User, UserRole, RegisterData } from '@/types';
+import { mockUsers } from './mockData';
+
+// Development mode flag - set to true to use mock authentication
+const DEV_MODE = import.meta.env.VITE_USE_MOCK_AUTH === 'true' || false;
 
 // Store phone confirmation result
 let confirmationResult: ConfirmationResult | null = null;
 
+// Mock auth helpers for development
+const mockAuthHelpers = {
+  findUserByEmail: (email: string): User | undefined => {
+    return mockUsers.find(u => u.email === email);
+  },
+  
+  validatePassword: (password: string): boolean => {
+    // In dev mode, accept any password that's at least 6 characters
+    return password.length >= 6;
+  }
+};
+
 export const authService = {
   async loginWithEmail(email: string, password: string): Promise<User> {
+    // Development mode - use mock authentication
+    if (DEV_MODE) {
+      console.log('🔧 DEV MODE: Using mock authentication');
+      const user = mockAuthHelpers.findUserByEmail(email);
+      
+      if (!user) {
+        throw new Error('No account found with this email address.');
+      }
+      
+      if (!mockAuthHelpers.validatePassword(password)) {
+        throw new Error('Password must be at least 6 characters.');
+      }
+      
+      // Store in localStorage for persistence
+      localStorage.setItem('mockUser', JSON.stringify(user));
+      return user;
+    }
+
+    // Production mode - use Firebase
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
@@ -27,10 +62,15 @@ export const authService = {
       const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
       
       if (userDoc.exists()) {
-        return {
+        const userData = {
           id: firebaseUser.uid,
           ...userDoc.data()
         } as User;
+        
+        console.log('🔥 Firebase User Data:', userData);
+        console.log('🔥 User Role:', userData.role);
+        
+        return userData;
       } else {
         // Create basic user profile if doesn't exist
         const userData: User = {
@@ -173,6 +213,12 @@ export const authService = {
   },
 
   async logout(): Promise<void> {
+    if (DEV_MODE) {
+      console.log('🔧 DEV MODE: Logging out (clearing mock user)');
+      localStorage.removeItem('mockUser');
+      return;
+    }
+    
     try {
       await signOut(auth);
     } catch (error: any) {
@@ -181,6 +227,11 @@ export const authService = {
   },
 
   async getCurrentUser(): Promise<User | null> {
+    if (DEV_MODE) {
+      const mockUser = localStorage.getItem('mockUser');
+      return mockUser ? JSON.parse(mockUser) : null;
+    }
+    
     return new Promise((resolve) => {
       const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
         unsubscribe();
@@ -209,6 +260,25 @@ export const authService = {
 
   // Listen to auth state changes
   onAuthStateChanged: (callback: (user: User | null) => void) => {
+    if (DEV_MODE) {
+      // In dev mode, check localStorage periodically
+      const checkAuth = () => {
+        const mockUser = localStorage.getItem('mockUser');
+        callback(mockUser ? JSON.parse(mockUser) : null);
+      };
+      
+      // Initial check
+      checkAuth();
+      
+      // Listen for storage changes
+      window.addEventListener('storage', checkAuth);
+      
+      // Return cleanup function
+      return () => {
+        window.removeEventListener('storage', checkAuth);
+      };
+    }
+    
     return onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
         try {
