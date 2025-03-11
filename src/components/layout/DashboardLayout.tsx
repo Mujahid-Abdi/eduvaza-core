@@ -16,11 +16,11 @@ import {
   Layers,
   PlusCircle,
   FileQuestion,
-  Calendar,
   Zap,
   Trophy,
   MessageSquare,
   Flag,
+  Download,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -68,9 +68,9 @@ const getNavItems = (role: UserRole, t: (key: string) => string): NavItem[] => {
         { icon: <BookOpen className="h-5 w-5" />, label: t('teacher.myCourses'), href: '/courses' },
         { icon: <FileQuestion className="h-5 w-5" />, label: t('quiz.myQuizzes'), href: '/quizzes' },
         { icon: <MessageSquare className="h-5 w-5" />, label: 'Student Questions', href: '/questions' },
-        { icon: <Calendar className="h-5 w-5" />, label: t('quiz.schedule'), href: '/schedule' },
         { icon: <BarChart3 className="h-5 w-5" />, label: t('quiz.analytics'), href: '/analytics' },
         { icon: <GraduationCap className="h-5 w-5" />, label: 'My Learning', href: '/learning' },
+        { icon: <Download className="h-5 w-5" />, label: 'My Downloads', href: '/downloads' },
       ];
     case 'student':
       return [
