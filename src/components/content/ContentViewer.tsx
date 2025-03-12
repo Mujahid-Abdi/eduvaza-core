@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { PDFViewer } from './PDFViewer';
 import { VideoPlayer } from './VideoPlayer';
 import { cn } from '@/lib/utils';
+import { getAuthenticatedRawUrlFromCloudinaryUrl } from '@/lib/cloudinary';
 import type { Lesson } from '@/types';
 
 interface ContentViewerProps {
@@ -42,6 +43,14 @@ export const ContentViewer = ({
 
   const handleVideoComplete = () => {
     onComplete?.(lesson.id);
+  };
+
+  const getDownloadUrl = () => {
+    if (lesson.contentType === 'pdf' && lesson.pdfUrl) {
+      return getAuthenticatedRawUrlFromCloudinaryUrl(lesson.pdfUrl) || lesson.pdfUrl;
+    }
+
+    return lesson.videoUrl || lesson.pdfUrl || '';
   };
 
   const renderContent = () => {
@@ -123,7 +132,7 @@ export const ContentViewer = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => window.open(lesson.pdfUrl || lesson.videoUrl, '_blank')}
+            onClick={() => window.open(getDownloadUrl(), '_blank')}
           >
             <Download className="h-4 w-4 mr-2" />
             Download
