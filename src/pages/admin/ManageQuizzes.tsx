@@ -8,30 +8,31 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { QuizBuilder } from '@/components/quiz/QuizBuilder';
+import { quizService } from '@/services/quizzes';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import type { Quiz } from '@/types/quiz';
 
 export const ManageQuizzes = () => {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [view, setView] = useState<'list' | 'create'>('list');
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch all quizzes
+  // Fetch all quizzes from Firebase
   useEffect(() => {
     const fetchQuizzes = async () => {
       setLoading(true);
       try {
-        // TODO: Implement Firebase quiz fetching
-        // const allQuizzes = await quizzesService.getAllQuizzes();
-        // setQuizzes(allQuizzes);
-        
-        // For now, using mock data
-        const { mockQuizzes } = await import('@/services/mockQuizData');
-        setQuizzes(mockQuizzes);
+        console.log('🔍 Admin fetching all quizzes from Firebase...');
+        const allQuizzes = await quizService.getAllQuizzes();
+        console.log('✅ Fetched', allQuizzes.length, 'quizzes');
+        setQuizzes(allQuizzes);
       } catch (error) {
-        console.error('Error fetching quizzes:', error);
+        console.error('❌ Error fetching quizzes:', error);
         toast.error('Failed to load quizzes');
+        setQuizzes([]);
       } finally {
         setLoading(false);
       }
@@ -45,18 +46,44 @@ export const ManageQuizzes = () => {
     quiz.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleSaveQuiz = (quiz: Partial<Quiz>) => {
-    console.log('Saving quiz:', quiz);
-    toast.success('Quiz created successfully!');
-    setView('list');
-    // Refresh quizzes list
-    // fetchQuizzes();
+  const handleSaveQuiz = async (quiz: Partial<Quiz>) => {
+    if (!user?.id) {
+      toast.error('Please wait for authentication to complete');
+      return;
+    }
+
+    try {
+      const quizData = {
+        ...quiz,
+        teacherId: user.id,
+        teacherName: user.name || user.email || 'Admin',
+        isPublished: quiz.isPublished ?? false,
+      };
+
+      console.log('📝 Admin creating quiz:', quizData);
+      await quizService.createQuiz(quizData);
+      toast.success('Quiz created successfully!');
+      setView('list');
+      
+      // Refresh quizzes list
+      const allQuizzes = await quizService.getAllQuizzes();
+      setQuizzes(allQuizzes);
+    } catch (error) {
+      console.error('❌ Error saving quiz:', error);
+      toast.error('Failed to save quiz');
+    }
   };
 
-  const handleDeleteQuiz = (quizId: string, title: string) => {
-    // TODO: Implement Firebase quiz deletion
-    toast.success(`${title} has been deleted`);
-    setQuizzes(quizzes.filter(q => q.id !== quizId));
+  const handleDeleteQuiz = async (quizId: string, title: string) => {
+    try {
+      console.log('🗑️ Deleting quiz:', quizId);
+      await quizService.deleteQuiz(quizId);
+      toast.success(`${title} has been deleted`);
+      setQuizzes(quizzes.filter(q => q.id !== quizId));
+    } catch (error) {
+      console.error('❌ Error deleting quiz:', error);
+      toast.error('Failed to delete quiz');
+    }
   };
 
   const stats = {

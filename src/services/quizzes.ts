@@ -149,6 +149,31 @@ export const quizService = {
 
   async createQuiz(data: Partial<Quiz>): Promise<string> {
     try {
+      // Clean questions data - remove undefined values
+      const cleanQuestions = (data.questions || []).map(q => {
+        const cleanQuestion: any = {
+          id: q.id,
+          quizId: q.quizId || '',
+          type: q.type,
+          question: q.question,
+          points: q.points,
+          timeLimit: q.timeLimit,
+          order: q.order,
+        };
+
+        // Only add options if they exist and are not undefined
+        if (q.options && q.options.length > 0) {
+          cleanQuestion.options = q.options.filter(opt => opt !== undefined);
+        }
+
+        // Only add correctAnswer if it exists
+        if (q.correctAnswer !== undefined) {
+          cleanQuestion.correctAnswer = q.correctAnswer;
+        }
+
+        return cleanQuestion;
+      });
+
       const quizData = {
         title: data.title || '',
         description: data.description || '',
@@ -158,19 +183,22 @@ export const quizService = {
         teacherId: data.teacherId || '',
         teacherName: data.teacherName || '',
         language: data.language || 'en',
-        questions: data.questions || [],
-        totalPoints: data.questions?.reduce((sum, q) => sum + q.points, 0) || 0,
+        questions: cleanQuestions,
+        totalPoints: cleanQuestions.reduce((sum, q) => sum + q.points, 0) || 0,
         timeLimit: data.timeLimit || null,
         difficulty: data.difficulty || 'medium',
         isPublished: data.isPublished ?? false,
         isMultiplayer: data.isMultiplayer ?? false,
-        shuffleQuestions: data.shuffleQuestions || false,
-        shuffleOptions: data.shuffleOptions || true,
+        shuffleQuestions: data.shuffleQuestions ?? false,
+        shuffleOptions: data.shuffleOptions ?? true,
         showResults: data.showResults ?? true,
         passingScore: data.passingScore || 60,
+        quizType: data.quizType || 'practice',
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
       };
+
+      console.log('📦 Cleaned quiz data before saving:', quizData);
 
       const docRef = await addDoc(collection(db, 'quizzes'), quizData);
       return docRef.id;

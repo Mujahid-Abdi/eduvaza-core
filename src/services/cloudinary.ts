@@ -40,8 +40,41 @@ class CloudinaryService {
     return `https://api.cloudinary.com/v1_1/${this.cloudName}/${resourceType}/upload`;
   }
 
-  // Upload file to Cloudinary using unsigned upload
+  // Upload file to Cloudinary with retry logic
   async uploadFile(
+    file: File, 
+    options: UploadOptions = {}
+  ): Promise<CloudinaryUploadResult> {
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await this.uploadFileAttempt(file, options);
+      } catch (error) {
+        lastError = error as Error;
+        
+        // Check if it's a network error that we should retry
+        const isNetworkError = lastError.message.includes('network error') || 
+                               lastError.message.includes('ERR_NETWORK_CHANGED');
+        
+        if (isNetworkError && attempt < maxRetries) {
+          console.log(`Upload attempt ${attempt} failed, retrying...`);
+          // Wait before retrying (exponential backoff)
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          continue;
+        }
+        
+        // If it's not a network error or we've exhausted retries, throw
+        throw lastError;
+      }
+    }
+
+    throw lastError || new Error('Upload failed after retries');
+  }
+
+  // Single upload attempt
+  private uploadFileAttempt(
     file: File, 
     options: UploadOptions = {}
   ): Promise<CloudinaryUploadResult> {
@@ -56,15 +89,11 @@ class CloudinaryService {
       formData.append('file', file);
       formData.append('upload_preset', this.uploadPreset);
       formData.append('folder', folder);
-      
-      // For raw files (PDFs), try to set public access
-      // Note: This may be ignored by unsigned presets
-      if (resourceType === 'raw') {
-        formData.append('type', 'upload');
-        formData.append('access_mode', 'public');
-      }
 
       const xhr = new XMLHttpRequest();
+      
+      // Set timeout to 5 minutes for large files
+      xhr.timeout = 300000;
 
       // Track upload progress
       if (onProgress) {
@@ -89,7 +118,6 @@ class CloudinaryService {
             reject(new Error('Failed to parse upload response'));
           }
         } else {
-          // Try to get error message from response
           let errorMessage = `Upload failed with status: ${xhr.status}`;
           try {
             const errorResponse = JSON.parse(xhr.responseText);
@@ -104,7 +132,15 @@ class CloudinaryService {
       });
 
       xhr.addEventListener('error', () => {
-        reject(new Error('Upload failed due to network error'));
+        reject(new Error('Upload failed due to network error. Please check your connection and try again.'));
+      });
+
+      xhr.addEventListener('timeout', () => {
+        reject(new Error('Upload timed out. Please try again with a smaller file or better connection.'));
+      });
+
+      xhr.addEventListener('abort', () => {
+        reject(new Error('Upload was cancelled.'));
       });
 
       const uploadUrl = this.getUploadUrl(resourceType);

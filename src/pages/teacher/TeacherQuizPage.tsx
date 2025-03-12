@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, FileQuestion, Calendar, Play, BarChart3, Trophy, Medal } from 'lucide-react';
+import { Plus, FileQuestion, Calendar, Play, BarChart3, Trophy, Medal, Edit } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,14 +11,47 @@ import { QuizScheduler } from '@/components/quiz/QuizScheduler';
 import { AnalyticsDashboard } from '@/components/analytics/AnalyticsDashboard';
 import { AIDraftGenerator } from '@/components/ai/AIDraftGenerator';
 import { useI18n } from '@/contexts/I18nContext';
-import { mockQuizzes, mockScheduledQuizzes, mockQuizAnalytics } from '@/services/mockQuizData';
+import { mockScheduledQuizzes, mockQuizAnalytics } from '@/services/mockQuizData';
 import { mockClasses } from '@/services/mockData';
+import { quizService } from '@/services/quizzes';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 import type { Quiz } from '@/types/quiz';
 
 export const TeacherQuizPage = () => {
   const { t } = useI18n();
+  const { user } = useAuth();
   const [view, setView] = useState<'list' | 'create' | 'schedule' | 'analytics' | 'leaderboard'>('list');
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch teacher's quizzes from Firebase
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      if (!user?.id) {
+        console.log('⚠️ No user ID, skipping quiz fetch');
+        setLoading(false);
+        return;
+      }
+      
+      setLoading(true);
+      try {
+        console.log('🔍 Fetching teacher quizzes for user:', user.id);
+        const fetchedQuizzes = await quizService.getQuizzesByTeacher(user.id);
+        console.log('✅ Fetched', fetchedQuizzes.length, 'teacher quizzes:', fetchedQuizzes);
+        setQuizzes(fetchedQuizzes);
+      } catch (error) {
+        console.error('❌ Error fetching quizzes:', error);
+        toast.error('Failed to load quizzes');
+        setQuizzes([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuizzes();
+  }, [user]);
 
   // Mock top students data - will be fetched from Firebase
   const topStudents = [
@@ -62,9 +95,37 @@ export const TeacherQuizPage = () => {
     return quizStudents;
   };
 
-  const handleSaveQuiz = (quiz: Partial<Quiz>) => {
-    console.log('Saving quiz:', quiz);
-    setView('list');
+  const handleSaveQuiz = async (quiz: Partial<Quiz>) => {
+    console.log('🔍 Attempting to save quiz, user:', user);
+    
+    if (!user?.id) {
+      console.error('❌ No user ID available');
+      toast.error('Please wait for authentication to complete');
+      return;
+    }
+
+    try {
+      console.log('✅ User authenticated:', user.id);
+      const quizData = {
+        ...quiz,
+        teacherId: user.id,
+        teacherName: user.name || user.email || 'Unknown Teacher',
+        isPublished: quiz.isPublished ?? false,
+      };
+
+      console.log('📝 Creating quiz with data:', quizData);
+      const quizId = await quizService.createQuiz(quizData);
+      console.log('✅ Quiz created with ID:', quizId);
+      toast.success('Quiz created successfully!');
+      setView('list');
+      
+      // Refresh quizzes list
+      const fetchedQuizzes = await quizService.getQuizzesByTeacher(user.id);
+      setQuizzes(fetchedQuizzes);
+    } catch (error) {
+      console.error('❌ Error saving quiz:', error);
+      toast.error('Failed to save quiz');
+    }
   };
 
   return (
@@ -97,8 +158,25 @@ export const TeacherQuizPage = () => {
               </TabsList>
 
               <TabsContent value="all" className="mt-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  {mockQuizzes.map((quiz) => (
+                {loading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+                    <p className="text-muted-foreground mt-4">Loading quizzes...</p>
+                  </div>
+                ) : quizzes.length === 0 ? (
+                  <Card className="border-dashed">
+                    <CardContent className="py-12 text-center">
+                      <FileQuestion className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                      <p className="text-muted-foreground mb-4">No quizzes yet. Create your first quiz!</p>
+                      <Button onClick={() => setView('create')}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Quiz
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {quizzes.map((quiz) => (
                     <motion.div
                       key={quiz.id}
                       initial={{ opacity: 0, y: 20 }}
@@ -135,66 +213,157 @@ export const TeacherQuizPage = () => {
                         </CardContent>
                       </Card>
                     </motion.div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="published" className="mt-4">
+                {loading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {quizzes.filter(q => q.isPublished).map((quiz) => (
+                      <motion.div
+                        key={quiz.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                      >
+                        <Card className="hover:shadow-lg transition-shadow">
+                          <CardContent className="p-6">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <h3 className="font-semibold text-lg">{quiz.title}</h3>
+                                <p className="text-sm text-muted-foreground mt-1">{quiz.description}</p>
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                  <Badge>{quiz.questions.length} questions</Badge>
+                                  <Badge variant="outline">{quiz.totalPoints} pts</Badge>
+                                  {quiz.isMultiplayer && <Badge variant="secondary">Multiplayer</Badge>}
+                                  <Badge variant="default">Published</Badge>
+                                </div>
+                              </div>
+                              <FileQuestion className="h-8 w-8 text-primary/50" />
+                            </div>
+                            <div className="flex gap-2 mt-4">
+                              <Button size="sm" variant="outline" onClick={() => { setSelectedQuiz(quiz); setView('schedule'); }}>
+                                <Calendar className="h-4 w-4 mr-1" /> Schedule
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => setView('analytics')}>
+                                <BarChart3 className="h-4 w-4 mr-1" /> Analytics
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="drafts" className="mt-4">
+                {loading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {quizzes.filter(q => !q.isPublished).map((quiz) => (
+                      <motion.div
+                        key={quiz.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                      >
+                        <Card className="hover:shadow-lg transition-shadow">
+                          <CardContent className="p-6">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <h3 className="font-semibold text-lg">{quiz.title}</h3>
+                                <p className="text-sm text-muted-foreground mt-1">{quiz.description}</p>
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                  <Badge>{quiz.questions.length} questions</Badge>
+                                  <Badge variant="outline">{quiz.totalPoints} pts</Badge>
+                                  <Badge variant="secondary">Draft</Badge>
+                                </div>
+                              </div>
+                              <FileQuestion className="h-8 w-8 text-primary/50" />
+                            </div>
+                            <div className="flex gap-2 mt-4">
+                              <Button size="sm" variant="outline">
+                                <Edit className="h-4 w-4 mr-1" /> Edit
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="completed" className="mt-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  {mockQuizzes.filter(q => q.isPublished).map((quiz) => (
-                    <motion.div
-                      key={quiz.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                    >
-                      <Card className="hover:shadow-lg transition-shadow">
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <h3 className="font-semibold text-lg">{quiz.title}</h3>
-                                <Badge variant="outline" className="text-xs">Completed</Badge>
-                              </div>
-                              <p className="text-sm text-muted-foreground mb-3">{quiz.description}</p>
-                              <div className="flex flex-wrap gap-2">
-                                <Badge variant="secondary">{quiz.questions.length} questions</Badge>
-                                <Badge variant="secondary">{quiz.totalPoints} pts</Badge>
-                                <Badge variant="secondary">45 participants</Badge>
-                              </div>
-                              <div className="mt-4 pt-4 border-t">
-                                <div className="flex items-center justify-between text-sm mb-2">
-                                  <span className="text-muted-foreground">Average Score:</span>
-                                  <span className="font-bold text-primary">85%</span>
+                {loading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {quizzes.filter(q => q.isPublished).map((quiz) => (
+                      <motion.div
+                        key={quiz.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                      >
+                        <Card className="hover:shadow-lg transition-shadow">
+                          <CardContent className="p-6">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h3 className="font-semibold text-lg">{quiz.title}</h3>
+                                  <Badge variant="outline" className="text-xs">Completed</Badge>
                                 </div>
-                                <div className="flex items-center justify-between text-sm">
-                                  <span className="text-muted-foreground">Pass Rate:</span>
-                                  <span className="font-bold text-green-600">89%</span>
+                                <p className="text-sm text-muted-foreground mb-3">{quiz.description}</p>
+                                <div className="flex flex-wrap gap-2">
+                                  <Badge variant="secondary">{quiz.questions.length} questions</Badge>
+                                  <Badge variant="secondary">{quiz.totalPoints} pts</Badge>
+                                  <Badge variant="secondary">45 participants</Badge>
+                                </div>
+                                <div className="mt-4 pt-4 border-t">
+                                  <div className="flex items-center justify-between text-sm mb-2">
+                                    <span className="text-muted-foreground">Average Score:</span>
+                                    <span className="font-bold text-primary">85%</span>
+                                  </div>
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span className="text-muted-foreground">Pass Rate:</span>
+                                    <span className="font-bold text-green-600">89%</span>
+                                  </div>
                                 </div>
                               </div>
+                              <Trophy className="h-8 w-8 text-yellow-500 flex-shrink-0 ml-4" />
                             </div>
-                            <Trophy className="h-8 w-8 text-yellow-500 flex-shrink-0 ml-4" />
-                          </div>
-                          <div className="flex gap-2 mt-4">
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="flex-1"
-                              onClick={() => {
-                                setSelectedQuiz(quiz);
-                                setView('leaderboard');
-                              }}
-                            >
-                              <Trophy className="h-4 w-4 mr-1" /> View Top Scorers
-                            </Button>
-                            <Button size="sm" variant="outline" onClick={() => setView('analytics')}>
-                              <BarChart3 className="h-4 w-4 mr-1" /> Analytics
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </div>
+                            <div className="flex gap-2 mt-4">
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="flex-1"
+                                onClick={() => {
+                                  setSelectedQuiz(quiz);
+                                  setView('leaderboard');
+                                }}
+                              >
+                                <Trophy className="h-4 w-4 mr-1" /> View Top Scorers
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => setView('analytics')}>
+                                <BarChart3 className="h-4 w-4 mr-1" /> Analytics
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           </>
