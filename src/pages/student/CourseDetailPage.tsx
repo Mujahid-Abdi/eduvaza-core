@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Clock, Users, Globe, Award, Mail, Phone, MapPin, Play, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, Clock, Users, Globe, Award, Mail, Phone, MapPin, Play, CheckCircle2, Loader2 } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,14 +9,47 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { mockCourses } from '@/services/mockData';
+import { coursesService } from '@/services/courses';
+import { toast } from 'sonner';
+import type { Course } from '@/types';
 
 export const CourseDetailPage = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
   
-  // Find course by ID
-  const course = mockCourses.find(c => c.id === courseId);
+  // State
+  const [course, setCourse] = useState<Course | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  // Fetch course from Firebase
+  useEffect(() => {
+    const fetchCourse = async () => {
+      if (!courseId) return;
+      
+      setLoading(true);
+      try {
+        const fetchedCourse = await coursesService.getCourseById(courseId);
+        setCourse(fetchedCourse || null);
+      } catch (error) {
+        console.error('Error fetching course:', error);
+        toast.error('Failed to load course');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourse();
+  }, [courseId]);
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
   
   if (!course) {
     return (

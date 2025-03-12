@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -272,7 +272,7 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
         pdfUrl = uploadResult.secure_url;
       }
 
-      // Upload course parts to Cloudinary (if exist)
+      // Upload course parts to Cloudinary
       const uploadedParts = [];
       for (let i = 0; i < courseParts.length; i++) {
         const part = courseParts[i];
@@ -340,7 +340,7 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
       });
 
       // Save course data to Firebase
-      const courseData: Omit<Course, 'id'> = {
+      const courseData: any = {
         title: formData.title,
         description: formData.description,
         category: formData.category,
@@ -350,14 +350,25 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
         teacherId: user?.role === 'school' ? `manual-${Date.now()}` : (user?.id || ''),
         teacherName: user?.role === 'school' ? teacherInfo.name : (user?.name || 'Unknown Teacher'),
         teacherEmail: user?.role === 'school' ? teacherInfo.email : user?.email,
-        teacherEducationLevel: user?.role === 'school' ? teacherInfo.educationLevel : undefined,
-        schoolId: user?.schoolId,
+        schoolId: user?.role === 'school' ? user?.id : user?.schoolId,
         lessons,
         enrolledCount: 0,
         isPublished: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
+
+      // Add teacherEducationLevel only if it exists (for school users)
+      if (user?.role === 'school' && teacherInfo.educationLevel) {
+        courseData.teacherEducationLevel = teacherInfo.educationLevel;
+      }
+
+      // Remove any undefined fields to prevent Firebase errors
+      Object.keys(courseData).forEach(key => {
+        if (courseData[key] === undefined) {
+          delete courseData[key];
+        }
+      });
 
       console.log('Saving course to Firebase:', courseData);
       await coursesService.createCourse(courseData);
@@ -405,6 +416,9 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Upload New Course</DialogTitle>
+          <DialogDescription>
+            Fill in the course details and upload content to create a new course.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6 pb-4">
           <div className="space-y-2">

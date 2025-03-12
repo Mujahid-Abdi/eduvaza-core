@@ -67,16 +67,15 @@ export const firebaseService = {
   },
 
   async getSchools(): Promise<School[]> {
-    const schoolsQuery = query(
-      collection(db, 'schools'),
-      orderBy('createdAt', 'desc')
-    );
-    const snapshot = await getDocs(schoolsQuery);
-    return snapshot.docs.map(doc => ({
+    const snapshot = await getDocs(collection(db, 'schools'));
+    const schools = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt.toDate()
     })) as School[];
+    
+    // Sort by createdAt in memory
+    return schools.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   },
 
   async updateSchool(schoolId: string, updates: Partial<School>): Promise<void> {
@@ -108,34 +107,47 @@ export const firebaseService = {
   },
 
   async getCoursesByTeacher(teacherId: string): Promise<Course[]> {
-    const coursesQuery = query(
-      collection(db, 'courses'),
-      where('teacherId', '==', teacherId),
-      orderBy('createdAt', 'desc')
-    );
-    const snapshot = await getDocs(coursesQuery);
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt.toDate(),
-      updatedAt: doc.data().updatedAt.toDate()
-    })) as Course[];
+    try {
+      const coursesQuery = query(
+        collection(db, 'courses'),
+        where('teacherId', '==', teacherId)
+      );
+      const snapshot = await getDocs(coursesQuery);
+      const courses = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt.toDate(),
+        updatedAt: doc.data().updatedAt.toDate()
+      })) as Course[];
+      
+      // Sort by createdAt in memory (descending - newest first)
+      return courses.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    } catch (error) {
+      console.error('Error fetching teacher courses:', error);
+      throw error;
+    }
   },
 
   async getCoursesBySchool(schoolId: string): Promise<Course[]> {
-    const coursesQuery = query(
-      collection(db, 'courses'),
-      where('schoolId', '==', schoolId),
-      where('isPublished', '==', true),
-      orderBy('createdAt', 'desc')
-    );
-    const snapshot = await getDocs(coursesQuery);
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt.toDate(),
-      updatedAt: doc.data().updatedAt.toDate()
-    })) as Course[];
+    try {
+      const coursesQuery = query(
+        collection(db, 'courses'),
+        where('schoolId', '==', schoolId)
+      );
+      const snapshot = await getDocs(coursesQuery);
+      const courses = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt.toDate(),
+        updatedAt: doc.data().updatedAt.toDate()
+      })) as Course[];
+      
+      // Sort by createdAt in memory (descending - newest first)
+      return courses.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    } catch (error) {
+      console.error('Error fetching school courses:', error);
+      throw error;
+    }
   },
 
   async updateCourse(courseId: string, updates: Partial<Course>): Promise<void> {
@@ -177,16 +189,18 @@ export const firebaseService = {
   async getQuizzesByTeacher(teacherId: string): Promise<any[]> {
     const quizzesQuery = query(
       collection(db, 'quizzes'),
-      where('teacherId', '==', teacherId),
-      orderBy('createdAt', 'desc')
+      where('teacherId', '==', teacherId)
     );
     const snapshot = await getDocs(quizzesQuery);
-    return snapshot.docs.map(doc => ({
+    const quizzes = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt.toDate(),
       updatedAt: doc.data().updatedAt.toDate()
     }));
+    
+    // Sort by createdAt in memory
+    return quizzes.sort((a: any, b: any) => b.createdAt.getTime() - a.createdAt.getTime());
   },
 
   async updateQuiz(quizId: string, updates: any): Promise<void> {
@@ -214,16 +228,18 @@ export const firebaseService = {
   async getEnrollmentsByStudent(studentId: string): Promise<any[]> {
     const enrollmentsQuery = query(
       collection(db, 'enrollments'),
-      where('studentId', '==', studentId),
-      orderBy('enrolledAt', 'desc')
+      where('studentId', '==', studentId)
     );
     const snapshot = await getDocs(enrollmentsQuery);
-    return snapshot.docs.map(doc => ({
+    const enrollments = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
       enrolledAt: doc.data().enrolledAt.toDate(),
-      lastAccessedAt: doc.data().lastAccessedAt.toDate()
+      lastAccessedAt: doc.data().lastAccessedAt?.toDate()
     }));
+    
+    // Sort by enrolledAt in memory
+    return enrollments.sort((a: any, b: any) => b.enrolledAt.getTime() - a.enrolledAt.getTime());
   },
 
   // Generic CRUD operations

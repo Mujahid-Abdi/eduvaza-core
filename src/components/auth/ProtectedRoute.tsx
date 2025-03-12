@@ -24,23 +24,23 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
-  // Debug logging
-  console.log('ProtectedRoute - User:', user);
-  console.log('ProtectedRoute - User Role:', user?.role);
-  console.log('ProtectedRoute - Allowed Roles:', allowedRoles);
-  console.log('ProtectedRoute - Role Check:', allowedRoles && user && !allowedRoles.includes(user.role));
-
+  // Check if user has required role
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
     // Redirect to appropriate dashboard based on role
     const dashboardPaths: Record<UserRole, string> = {
-      super_admin: '/admin',
-      school: '/school',
-      teacher: '/teacher',
-      student: '/student',
+      super_admin: '/admin/dashboard',
+      school: '/school/dashboard',
+      teacher: '/teacher/dashboard',
+      student: '/student/dashboard',
     };
     
-    console.log('ProtectedRoute - Redirecting to:', dashboardPaths[user.role]);
-    return <Navigate to={dashboardPaths[user.role]} replace />;
+    const redirectPath = dashboardPaths[user.role];
+    
+    // Prevent redirect loop - don't redirect if already on a page for this role
+    const roleBasePath = redirectPath.split('/dashboard')[0];
+    if (!location.pathname.startsWith(roleBasePath)) {
+      return <Navigate to={redirectPath} replace />;
+    }
   }
 
   return <>{children}</>;

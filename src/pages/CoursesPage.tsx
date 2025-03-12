@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect, useMemo } from 'react';
-import { Link, Navigate } from 'react-router-dom';
-import { Search, Filter, BookOpen, Users, Clock, Star, X } from 'lucide-react';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Search, Filter, BookOpen, Users, Clock, Star, X, CheckCircle } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { mockCategories } from '@/services/mockData';
 import { coursesService } from '@/services/courses';
 import { useI18n } from '@/contexts/I18nContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/components/ui/use-toast';
 import type { Course } from '@/types';
 import {
   Select,
@@ -24,25 +25,34 @@ import {
 const CoursesPage = () => {
   const { t } = useI18n();
   const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>([]);
+  const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null);
 
   // Only redirect admin to dashboard, other users can see public pages
   if (isAuthenticated && user?.role === 'super_admin') {
     return <Navigate to="/admin" replace />;
   }
 
-  // Fetch courses from Firebase
+  // Fetch courses and enrollments from Firebase
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
         const fetchedCourses = await coursesService.getCourses();
         setCourses(fetchedCourses);
+
+        // Fetch user's enrollments if authenticated
+        if (isAuthenticated && user && (user.role === 'student' || user.role === 'teacher')) {
+          const enrollments = await coursesService.getEnrollments(user.id);
+          setEnrolledCourseIds(enrollments.map(e => e.courseId));
+        }
       } catch (error) {
         console.error('Error fetching courses:', error);
       } finally {
@@ -50,8 +60,58 @@ const CoursesPage = () => {
       }
     };
 
-    fetchCourses();
-  }, []);
+    fetchData();
+  }, [isAuthenticated, user]);
+
+  const handleEnroll = async (courseId: string) => {
+    if (!isAuthenticated || !user) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please login to enroll in courses',
+        variant: 'destructive',
+      });
+      navigate('/login');
+      return;
+    }
+
+    if (user.role !== 'student' && user.role !== 'teacher') {
+      toast({
+        title: 'Access Denied',
+        description: 'Only students and teachers can enroll in courses',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setEnrollingCourseId(courseId);
+    try {
+      await coursesService.enrollStudent(user.id, courseId);
+      setEnrolledCourseIds([...enrolledCourseIds, courseId]);
+      
+      toast({
+        title: 'Successfully Enrolled!',
+        description: 'You can now access this course from your dashboard',
+      });
+
+      // Navigate to appropriate dashboard
+      if (user.role === 'student') {
+        navigate('/student/dashboard');
+      } else if (user.role === 'teacher') {
+        navigate('/teacher/my-learning');
+      }
+    } catch (error) {
+      console.error('Error enrolling:', error);
+      toast({
+        title: 'Enrollment Failed',
+        description: 'Failed to enroll in course. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setEnrollingCourseId(null);
+    }
+  };
+
+  const isEnrolled = (courseId: string) => enrolledCourseIds.includes(courseId);
 
   const filteredCourses = useMemo(() => {
     return courses.filter(course => {
@@ -210,8 +270,6 @@ const CoursesPage = () => {
             </div>
 
             <TabsContent value="all">
-
-            <TabsContent value="all">
               {loading ? (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -289,9 +347,27 @@ const CoursesPage = () => {
                               <span>{course.lessons.reduce((sum, l) => sum + (l.duration || 0), 0)}m</span>
                             </div>
                           </div>
-                          <Button className="w-full mt-4" variant="outline">
-                            View Course
-                          </Button>
+                          {isEnrolled(course.id) ? (
+                            <Button 
+                              className="w-full mt-4" 
+                              variant="default"
+                              asChild
+                            >
+                              <Link to={user?.role === 'student' ? '/student/dashboard' : '/teacher/my-learning'}>
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Enrolled
+                              </Link>
+                            </Button>
+                          ) : (
+                            <Button 
+                              className="w-full mt-4" 
+                              variant="outline"
+                              onClick={() => handleEnroll(course.id)}
+                              disabled={enrollingCourseId === course.id}
+                            >
+                              {enrollingCourseId === course.id ? 'Enrolling...' : 'Enroll Now'}
+                            </Button>
+                          )}
                         </CardContent>
                       </Card>
                     </motion.div>
@@ -345,9 +421,27 @@ const CoursesPage = () => {
                         <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                           {course.description}
                         </p>
-                        <Button className="w-full" variant="outline">
-                          View Course
-                        </Button>
+                        {isEnrolled(course.id) ? (
+                          <Button 
+                            className="w-full" 
+                            variant="default"
+                            asChild
+                          >
+                            <Link to={user?.role === 'student' ? '/student/dashboard' : '/teacher/my-learning'}>
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                              Enrolled
+                            </Link>
+                          </Button>
+                        ) : (
+                          <Button 
+                            className="w-full" 
+                            variant="outline"
+                            onClick={() => handleEnroll(course.id)}
+                            disabled={enrollingCourseId === course.id}
+                          >
+                            {enrollingCourseId === course.id ? 'Enrolling...' : 'Enroll Now'}
+                          </Button>
+                        )}
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -415,8 +509,6 @@ const CoursesPage = () => {
               </Button>
             ))}
           </div>
-        </div>
-      </section>
         </div>
       </section>
 

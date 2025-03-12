@@ -25,11 +25,22 @@ export const SchoolCoursePage = () => {
   // Fetch school's courses
   useEffect(() => {
     const fetchCourses = async () => {
-      if (!user?.schoolId) return;
+      if (!user) return;
+      
+      // For school users, schoolId is their own user ID
+      const schoolId = user.role === 'school' ? user.id : user.schoolId;
+      
+      if (!schoolId) {
+        console.error('No schoolId found for user:', user);
+        setLoading(false);
+        return;
+      }
       
       setLoading(true);
       try {
-        const courses = await coursesService.getCoursesBySchool(user.schoolId);
+        console.log('Fetching courses for schoolId:', schoolId);
+        const courses = await coursesService.getCoursesBySchool(schoolId);
+        console.log('Fetched courses:', courses);
         setMyCourses(courses);
       } catch (error) {
         console.error('Error fetching courses:', error);
@@ -40,12 +51,15 @@ export const SchoolCoursePage = () => {
     };
 
     fetchCourses();
-  }, [user?.schoolId]);
+  }, [user]);
 
   const handleCourseCreated = () => {
     // Refresh courses list
-    if (user?.schoolId) {
-      coursesService.getCoursesBySchool(user.schoolId).then(setMyCourses);
+    if (user) {
+      const schoolId = user.role === 'school' ? user.id : user.schoolId;
+      if (schoolId) {
+        coursesService.getCoursesBySchool(schoolId).then(setMyCourses);
+      }
     }
   };
 
