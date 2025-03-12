@@ -69,6 +69,8 @@ export interface Course {
   thumbnail?: string;
   teacherId: string;
   teacherName: string;
+  teacherEmail?: string;
+  teacherEducationLevel?: string;
   schoolId?: string;
   language: Language;
   category: string;

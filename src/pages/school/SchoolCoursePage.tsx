@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, BookOpen, Eye, Edit, Trash2, Users } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -10,44 +10,49 @@ import { CourseUploadDialog } from '@/components/school/CourseUploadDialog';
 import { CourseEditDialog } from '@/components/school/CourseEditDialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useI18n } from '@/contexts/I18nContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { coursesService } from '@/services/courses';
 import { toast } from 'sonner';
+import type { Course } from '@/types';
 
 export const SchoolCoursePage = () => {
   const { t } = useI18n();
+  const { user } = useAuth();
   const [editingCourse, setEditingCourse] = useState<any>(null);
+  const [myCourses, setMyCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - will be replaced with real Firebase data
-  const myCourses = [
-    { 
-      id: '1', 
-      title: 'Mathematics 101', 
-      description: 'Introduction to basic mathematics concepts',
-      category: 'Mathematics',
-      level: 'beginner' as const,
-      language: 'en',
-      enrolledStudents: 45,
-      isPublished: true,
-      lessons: 12,
-      teacher: 'John Doe'
-    },
-    { 
-      id: '2', 
-      title: 'Physics Basics', 
-      description: 'Fundamental physics principles',
-      category: 'Physics',
-      level: 'intermediate' as const,
-      language: 'en',
-      enrolledStudents: 32,
-      isPublished: false,
-      lessons: 8,
-      teacher: 'Jane Smith'
-    },
-  ];
+  // Fetch school's courses
+  useEffect(() => {
+    const fetchCourses = async () => {
+      if (!user?.schoolId) return;
+      
+      setLoading(true);
+      try {
+        const courses = await coursesService.getCoursesBySchool(user.schoolId);
+        setMyCourses(courses);
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+        toast.error('Failed to load courses');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, [user?.schoolId]);
+
+  const handleCourseCreated = () => {
+    // Refresh courses list
+    if (user?.schoolId) {
+      coursesService.getCoursesBySchool(user.schoolId).then(setMyCourses);
+    }
+  };
 
   const handleDeleteCourse = async (courseId: string) => {
     try {
-      // TODO: Implement Firebase course deletion
-      // await coursesService.deleteCourse(courseId);
+      await coursesService.deleteCourse(courseId);
+      setMyCourses(myCourses.filter(c => c.id !== courseId));
       toast.success('Course deleted successfully');
     } catch (error: any) {
       toast.error(error.message || 'Failed to delete course');
@@ -66,12 +71,10 @@ export const SchoolCoursePage = () => {
           className="flex items-center justify-between"
         >
           <div>
-            <h1 className="text-3xl font-bold">My Courses</h1>
+            <h1 className="text-3xl font-bold">School Courses</h1>
             <p className="text-muted-foreground">Create and manage your school's courses</p>
           </div>
-          <CourseUploadDialog onCourseCreated={() => {
-            // TODO: Refresh courses list
-          }} />
+          <CourseUploadDialog onCourseCreated={handleCourseCreated} />
         </motion.div>
 
         {/* Stats */}
@@ -86,7 +89,9 @@ export const SchoolCoursePage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Courses</p>
-                  <p className="text-3xl font-bold text-foreground mt-1">{myCourses.length}</p>
+                  <p className="text-3xl font-bold text-foreground mt-1">
+                    {loading ? '...' : myCourses.length}
+                  </p>
                 </div>
                 <div className="p-3 rounded-xl bg-primary/10">
                   <BookOpen className="h-6 w-6 text-primary" />
@@ -99,7 +104,9 @@ export const SchoolCoursePage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Published</p>
-                  <p className="text-3xl font-bold text-foreground mt-1">{publishedCourses.length}</p>
+                  <p className="text-3xl font-bold text-foreground mt-1">
+                    {loading ? '...' : publishedCourses.length}
+                  </p>
                 </div>
                 <div className="p-3 rounded-xl bg-success/10">
                   <Eye className="h-6 w-6 text-success" />
@@ -111,9 +118,9 @@ export const SchoolCoursePage = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Enrollments</p>
+                  <p className="text-sm text-muted-foreground">Total Students</p>
                   <p className="text-3xl font-bold text-foreground mt-1">
-                    {myCourses.reduce((sum, c) => sum + c.enrolledStudents, 0)}
+                    {loading ? '...' : myCourses.reduce((sum, c) => sum + c.enrolledCount, 0)}
                   </p>
                 </div>
                 <div className="p-3 rounded-xl bg-secondary/10">
@@ -138,88 +145,97 @@ export const SchoolCoursePage = () => {
             </TabsList>
 
             <TabsContent value="all" className="mt-4">
-              <div className="grid gap-4">
-                {myCourses.map((course) => (
-                  <motion.div
-                    key={course.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    <Card className="hover:shadow-lg transition-shadow">
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-start gap-4">
-                              <div className="w-20 h-20 rounded-lg bg-muted flex items-center justify-center text-3xl flex-shrink-0">
-                                📚
-                              </div>
-                              <div className="flex-1">
-                                <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
-                                <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
-                                <div className="flex flex-wrap gap-2">
-                                  <Badge variant={course.isPublished ? 'default' : 'secondary'}>
-                                    {course.isPublished ? 'Published' : 'Draft'}
-                                  </Badge>
-                                  <Badge variant="outline">{course.level}</Badge>
-                                  <Badge variant="outline">{course.category}</Badge>
-                                  <Badge variant="outline">{course.language.toUpperCase()}</Badge>
+              {loading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+                  <p className="text-muted-foreground mt-4">Loading courses...</p>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {myCourses.map((course) => (
+                    <motion.div
+                      key={course.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      <Card className="hover:shadow-lg transition-shadow">
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-start gap-4">
+                                <div className="w-20 h-20 rounded-lg bg-muted flex items-center justify-center text-3xl flex-shrink-0">
+                                  📚
                                 </div>
-                                <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-                                  <span>Teacher: {course.teacher}</span>
-                                  <span>•</span>
-                                  <span>{course.enrolledStudents} students</span>
+                                <div className="flex-1">
+                                  <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
+                                  <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    <Badge variant={course.isPublished ? 'default' : 'secondary'}>
+                                      {course.isPublished ? 'Published' : 'Draft'}
+                                    </Badge>
+                                    <Badge variant="outline">{course.level}</Badge>
+                                    <Badge variant="outline">{course.category}</Badge>
+                                    <Badge variant="outline">{course.language.toUpperCase()}</Badge>
+                                  </div>
+                                  <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+                                    <span>{course.lessons.length} lessons</span>
+                                    <span>•</span>
+                                    <span>{course.enrolledCount} students</span>
+                                    <span>•</span>
+                                    <span>By: {course.teacherName}</span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => setEditingCourse(course)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="outline" size="sm" className="text-destructive">
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Course</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete "{course.title}"? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      onClick={() => handleDeleteCourse(course.id)} 
+                                      className="bg-destructive text-destructive-foreground"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
                           </div>
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => setEditingCourse(course)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="outline" size="sm" className="text-destructive">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Course</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete "{course.title}"? This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction 
-                                    onClick={() => handleDeleteCourse(course.id)} 
-                                    className="bg-destructive text-destructive-foreground"
-                                  >
-                                    Delete
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+
+                  {myCourses.length === 0 && (
+                    <Card>
+                      <CardContent className="p-12 text-center">
+                        <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                        <p className="text-muted-foreground">No courses yet. Upload your first course!</p>
                       </CardContent>
                     </Card>
-                  </motion.div>
-                ))}
-
-                {myCourses.length === 0 && (
-                  <Card>
-                    <CardContent className="p-12 text-center">
-                      <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      <p className="text-muted-foreground">No courses yet. Upload your first course!</p>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="published" className="mt-4">
@@ -247,9 +263,11 @@ export const SchoolCoursePage = () => {
                                   <Badge variant="outline">{course.category}</Badge>
                                 </div>
                                 <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-                                  <span>Teacher: {course.teacher}</span>
+                                  <span>{course.lessons.length} lessons</span>
                                   <span>•</span>
-                                  <span>{course.enrolledStudents} students</span>
+                                  <span>{course.enrolledCount} students</span>
+                                  <span>•</span>
+                                  <span>By: {course.teacherName}</span>
                                 </div>
                               </div>
                             </div>
@@ -329,9 +347,11 @@ export const SchoolCoursePage = () => {
                                   <Badge variant="outline">{course.category}</Badge>
                                 </div>
                                 <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-                                  <span>Teacher: {course.teacher}</span>
+                                  <span>{course.lessons.length} lessons</span>
                                   <span>•</span>
-                                  <span>{course.enrolledStudents} students</span>
+                                  <span>{course.enrolledCount} students</span>
+                                  <span>•</span>
+                                  <span>By: {course.teacherName}</span>
                                 </div>
                               </div>
                             </div>
@@ -395,7 +415,7 @@ export const SchoolCoursePage = () => {
             onOpenChange={(open) => !open && setEditingCourse(null)}
             course={editingCourse}
             onCourseUpdated={() => {
-              // TODO: Refresh courses list
+              handleCourseCreated();
               setEditingCourse(null);
             }}
           />

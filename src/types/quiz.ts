@@ -5,6 +5,11 @@ import type { Language } from './index';
 // Question Types
 export type QuestionType = 'mcq' | 'true_false' | 'short_answer';
 
+// Quiz Types
+export type QuizType = 'scheduled' | 'practice';
+// 'scheduled' - Time-based multiplayer quiz with start/end times
+// 'practice' - Anytime practice quiz for self-assessment
+
 export interface QuestionOption {
   id: string;
   text: string;
@@ -27,6 +32,7 @@ export interface Quiz {
   id: string;
   title: string;
   description: string;
+  quizType: QuizType; // Type of quiz: scheduled or practice
   courseId?: string;
   classId?: string;
   schoolId?: string;
@@ -37,7 +43,7 @@ export interface Quiz {
   totalPoints: number;
   timeLimit?: number; // Total time in minutes
   isPublished: boolean;
-  isMultiplayer?: boolean; // Whether it's a multiplayer quiz
+  isMultiplayer?: boolean; // Whether it's a multiplayer quiz (only for scheduled type)
   difficulty?: 'easy' | 'medium' | 'hard'; // Quiz difficulty level
   shuffleQuestions: boolean;
   shuffleOptions: boolean;
@@ -45,6 +51,7 @@ export interface Quiz {
   passingScore: number; // Percentage
   createdAt: Date;
   updatedAt: Date;
+  postedAt?: Date; // When the quiz was made available (for practice quizzes)
 }
 
 // Quiz Scheduling

@@ -60,8 +60,8 @@ const getNavItems = (role: UserRole, t: (key: string) => string): NavItem[] => {
     case 'school':
       return [
         ...baseItems,
-        { icon: <BookOpen className="h-5 w-5" />, label: 'Courses', href: '?tab=courses' },
-        { icon: <FileQuestion className="h-5 w-5" />, label: 'Quizzes', href: '?tab=quizzes' },
+        { icon: <BookOpen className="h-5 w-5" />, label: 'Courses', href: '/courses' },
+        { icon: <FileQuestion className="h-5 w-5" />, label: 'Quizzes', href: '/quizzes' },
         { icon: <MessageSquare className="h-5 w-5" />, label: 'Student Questions', href: '/questions' },
         { icon: <BarChart3 className="h-5 w-5" />, label: 'Analytics', href: '/analytics' },
       ];

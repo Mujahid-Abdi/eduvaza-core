@@ -33,7 +33,12 @@ export interface UploadOptions {
 
 class CloudinaryService {
   private cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-  private uploadUrl = `https://api.cloudinary.com/v1_1/${this.cloudName}/upload`;
+  private uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'eduvaza_uploads';
+
+  // Get upload URL based on resource type
+  private getUploadUrl(resourceType: 'image' | 'video' | 'raw' | 'auto' = 'auto'): string {
+    return `https://api.cloudinary.com/v1_1/${this.cloudName}/${resourceType}/upload`;
+  }
 
   // Upload file to Cloudinary using unsigned upload
   async uploadFile(
@@ -49,9 +54,8 @@ class CloudinaryService {
     return new Promise((resolve, reject) => {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('upload_preset', 'eduvaza_unsigned'); // You'll need to create this preset
+      formData.append('upload_preset', this.uploadPreset);
       formData.append('folder', folder);
-      formData.append('resource_type', resourceType);
 
       const xhr = new XMLHttpRequest();
 
@@ -78,7 +82,17 @@ class CloudinaryService {
             reject(new Error('Failed to parse upload response'));
           }
         } else {
-          reject(new Error(`Upload failed with status: ${xhr.status}`));
+          // Try to get error message from response
+          let errorMessage = `Upload failed with status: ${xhr.status}`;
+          try {
+            const errorResponse = JSON.parse(xhr.responseText);
+            if (errorResponse.error && errorResponse.error.message) {
+              errorMessage = errorResponse.error.message;
+            }
+          } catch (e) {
+            // Use default error message
+          }
+          reject(new Error(errorMessage));
         }
       });
 
@@ -86,7 +100,8 @@ class CloudinaryService {
         reject(new Error('Upload failed due to network error'));
       });
 
-      xhr.open('POST', this.uploadUrl);
+      const uploadUrl = this.getUploadUrl(resourceType);
+      xhr.open('POST', uploadUrl);
       xhr.send(formData);
     });
   }
