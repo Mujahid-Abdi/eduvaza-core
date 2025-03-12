@@ -21,10 +21,13 @@ import {
   MessageSquare,
   Flag,
   Download,
+  Moon,
+  Sun,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/contexts/I18nContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import type { UserRole } from '@/types';
 
 interface DashboardLayoutProps {
@@ -108,6 +111,7 @@ const getRoleTitle = (role: UserRole, t: (key: string) => string): string => {
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { user, logout } = useAuth();
   const { t } = useI18n();
+  const { resolvedTheme, toggleTheme } = useTheme();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -183,6 +187,22 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
         {/* Bottom Actions */}
         <div className="p-2 border-t border-sidebar-border space-y-1">
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent transition-colors"
+          >
+            {resolvedTheme === 'dark' ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
+            {!collapsed && (
+              <span className="text-sm font-medium">
+                {resolvedTheme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+              </span>
+            )}
+          </button>
           <Link
             to={`${basePath}/settings`}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent transition-colors"
