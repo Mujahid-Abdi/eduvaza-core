@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { PDFViewer } from './PDFViewer';
 import { VideoPlayer } from './VideoPlayer';
 import { cn } from '@/lib/utils';
-import { getAuthenticatedRawUrlFromCloudinaryUrl } from '@/lib/cloudinary';
+import { getAccessibleRawUrl } from '@/lib/cloudinary';
 import type { Lesson } from '@/types';
 
 interface ContentViewerProps {
@@ -47,7 +47,7 @@ export const ContentViewer = ({
 
   const getDownloadUrl = () => {
     if (lesson.contentType === 'pdf' && lesson.pdfUrl) {
-      return getAuthenticatedRawUrlFromCloudinaryUrl(lesson.pdfUrl) || lesson.pdfUrl;
+      return getAccessibleRawUrl(lesson.pdfUrl);
     }
 
     return lesson.videoUrl || lesson.pdfUrl || '';
