@@ -14,7 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ai_results: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          result_type: string
+          source_filename: string | null
+          user_id: string
+          user_role: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          result_type: string
+          source_filename?: string | null
+          user_id: string
+          user_role: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          result_type?: string
+          source_filename?: string | null
+          user_id?: string
+          user_role?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
