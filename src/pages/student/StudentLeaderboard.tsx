@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Trophy, Medal, ChevronDown, ChevronUp, Calendar, TrendingUp, Award, Target } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -8,29 +8,62 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Separator } from '@/components/ui/separator';
-import { mockQuizzes, mockLeaderboard, mockQuizAttempts } from '@/services/mockQuizData';
+import { quizService } from '@/services/quizzes';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/contexts/I18nContext';
+import { toast } from 'sonner';
+import type { Quiz, QuizAttempt } from '@/types/quiz';
+
+interface LeaderboardEntry {
+  studentId: string;
+  studentName: string;
+  score: number;
+  percentage: number;
+  timeTaken: number;
+  completedAt: Date;
+  rank: number;
+}
 
 export const StudentLeaderboard = () => {
   const { user } = useAuth();
   const { t } = useI18n();
   const [timeFilter, setTimeFilter] = useState<'week' | 'month' | 'all'>('all');
   const [expandedQuiz, setExpandedQuiz] = useState<string | null>(null);
-  
-  // Always use 'student-1' for demo purposes since that's what the mock data uses
-  const currentStudentId = 'student-1';
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [attempts, setAttempts] = useState<QuizAttempt[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [quizLeaderboards, setQuizLeaderboards] = useState<Record<string, LeaderboardEntry[]>>({});
 
-  console.log('Current User:', user);
-  console.log('Using Student ID:', currentStudentId);
-  console.log('All Quiz Attempts:', mockQuizAttempts);
-  console.log('Filtered Attempts:', mockQuizAttempts.filter(a => a.studentId === currentStudentId));
+  // Fetch data
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user?.id) return;
+
+      setLoading(true);
+      try {
+        const [fetchedQuizzes, fetchedAttempts] = await Promise.all([
+          quizService.getQuizzes(),
+          quizService.getAttemptsByStudent(user.id),
+        ]);
+
+        setQuizzes(fetchedQuizzes);
+        setAttempts(fetchedAttempts);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        toast.error('Failed to load leaderboard data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user]);
 
   // Get quizzes the student has participated in
-  const studentQuizzes = mockQuizAttempts
-    .filter(attempt => attempt.studentId === currentStudentId && attempt.status === 'completed')
+  const studentQuizzes = attempts
+    .filter(attempt => attempt.status === 'completed')
     .map(attempt => {
-      const quiz = mockQuizzes.find(q => q.id === attempt.quizId);
+      const quiz = quizzes.find(q => q.id === attempt.quizId);
       if (!quiz) return null;
       return {
         ...quiz,
@@ -50,7 +83,7 @@ export const StudentLeaderboard = () => {
     return studentQuizzes.filter(quiz => {
       if (!quiz.attempt.completedAt) return false;
       const completedDate = new Date(quiz.attempt.completedAt);
-      
+
       if (timeFilter === 'week') {
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         return completedDate >= weekAgo;
@@ -64,19 +97,48 @@ export const StudentLeaderboard = () => {
 
   const filteredQuizzes = getFilteredQuizzes();
 
-  console.log('Student Quizzes:', studentQuizzes);
-  console.log('Filtered Quizzes:', filteredQuizzes);
-  console.log('Time Filter:', timeFilter);
+  // Fetch leaderboard for a specific quiz
+  const fetchQuizLeaderboard = async (quizId: string) => {
+    if (quizLeaderboards[quizId]) return; // Already fetched
 
-  // Mock function to get leaderboard for a specific quiz
-  const getQuizLeaderboard = (quizId: string) => {
-    return mockLeaderboard.map((entry, index) => ({
-      ...entry,
-      rank: index + 1,
-      totalPoints: Math.floor(Math.random() * 50) + 50,
-      averageScore: Math.floor(Math.random() * 30) + 70,
-    }));
+    try {
+      const allAttempts = await quizService.getAttemptsByQuiz(quizId);
+      
+      // Get only completed attempts and sort by score
+      const completedAttempts = allAttempts
+        .filter(attempt => attempt.status === 'completed')
+        .sort((a, b) => {
+          // Sort by score (descending), then by time taken (ascending)
+          if (b.score !== a.score) return b.score - a.score;
+          return a.timeTaken - b.timeTaken;
+        });
+
+      // Create leaderboard entries with ranks
+      const leaderboard: LeaderboardEntry[] = completedAttempts.map((attempt, index) => ({
+        studentId: attempt.studentId,
+        studentName: attempt.studentName,
+        score: attempt.score,
+        percentage: attempt.percentage,
+        timeTaken: attempt.timeTaken,
+        completedAt: attempt.completedAt || new Date(),
+        rank: index + 1,
+      }));
+
+      setQuizLeaderboards(prev => ({
+        ...prev,
+        [quizId]: leaderboard,
+      }));
+    } catch (error) {
+      console.error('Error fetching quiz leaderboard:', error);
+    }
   };
+
+  // Fetch leaderboard when quiz is expanded
+  useEffect(() => {
+    if (expandedQuiz) {
+      fetchQuizLeaderboard(expandedQuiz);
+    }
+  }, [expandedQuiz]);
 
   const getRankColor = (rank: number) => {
     if (rank === 1) return 'text-yellow-500';
@@ -90,7 +152,7 @@ export const StudentLeaderboard = () => {
     return <span className="text-sm font-bold text-muted-foreground">#{rank}</span>;
   };
 
-  const LeaderboardEntry = ({ entry, isCurrentUser = false }: { entry: typeof mockLeaderboard[0], isCurrentUser?: boolean }) => (
+  const LeaderboardEntry = ({ entry, isCurrentUser = false }: { entry: LeaderboardEntry, isCurrentUser?: boolean }) => (
     <div className={`flex items-center gap-4 p-3 rounded-lg ${isCurrentUser ? 'bg-primary/10 border-2 border-primary' : 'bg-muted/30'}`}>
       <div className="w-10 flex items-center justify-center">
         {getRankIcon(entry.rank)}
@@ -100,16 +162,18 @@ export const StudentLeaderboard = () => {
       </Avatar>
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-sm truncate">
-          {entry.studentName || entry.userName} {isCurrentUser && <Badge variant="secondary" className="ml-2">You</Badge>}
+          {entry.studentName} {isCurrentUser && <Badge variant="secondary" className="ml-2">You</Badge>}
         </p>
-        <p className="text-xs text-muted-foreground">{entry.quizzesCompleted} quizzes</p>
+        <p className="text-xs text-muted-foreground">
+          {Math.floor(entry.timeTaken / 60)}:{(entry.timeTaken % 60).toString().padStart(2, '0')} time
+        </p>
       </div>
       <div className="text-right">
-        <p className="text-sm font-bold">{entry.totalPoints}</p>
+        <p className="text-sm font-bold">{entry.score}</p>
         <p className="text-xs text-muted-foreground">points</p>
       </div>
       <div className="text-right">
-        <p className="text-sm font-bold">{entry.averageScore}%</p>
+        <p className="text-sm font-bold">{entry.percentage}%</p>
         <p className="text-xs text-muted-foreground">score</p>
       </div>
     </div>
@@ -117,10 +181,26 @@ export const StudentLeaderboard = () => {
 
   // Calculate overall stats
   const totalQuizzes = filteredQuizzes.length;
-  const averageScore = totalQuizzes > 0 
+  const averageScore = totalQuizzes > 0
     ? Math.round(filteredQuizzes.reduce((sum, q) => sum + q.attempt.percentage, 0) / totalQuizzes)
     : 0;
-  const topRanks = filteredQuizzes.filter(q => q.attempt.rank && q.attempt.rank <= 3).length;
+
+  // Calculate top ranks by fetching leaderboards
+  const calculateTopRanks = () => {
+    let topRanksCount = 0;
+    filteredQuizzes.forEach(quiz => {
+      const leaderboard = quizLeaderboards[quiz.id!];
+      if (leaderboard) {
+        const userEntry = leaderboard.find(entry => entry.studentId === user?.id);
+        if (userEntry && userEntry.rank <= 3) {
+          topRanksCount++;
+        }
+      }
+    });
+    return topRanksCount;
+  };
+
+  const topRanks = calculateTopRanks();
 
   return (
     <DashboardLayout>
@@ -219,17 +299,27 @@ export const StudentLeaderboard = () => {
             </div>
 
             <TabsContent value={timeFilter} className="mt-0">
-              {filteredQuizzes.length > 0 ? (
+              {loading ? (
+                <Card>
+                  <CardContent className="p-12 text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+                    <p className="text-muted-foreground">Loading leaderboard...</p>
+                  </CardContent>
+                </Card>
+              ) : filteredQuizzes.length > 0 ? (
                 <div className="space-y-3">
                   {filteredQuizzes.map((quiz, index) => {
                     if (!quiz || !quiz.id) return null;
-                    
-                    const quizLeaderboard = getQuizLeaderboard(quiz.id);
-                    const currentUserEntry = quizLeaderboard.find(entry => entry.studentId === currentStudentId);
+
+                    const quizLeaderboard = quizLeaderboards[quiz.id] || [];
+                    const currentUserEntry = quizLeaderboard.find(entry => entry.studentId === user?.id);
                     const isExpanded = expandedQuiz === quiz.id;
-                    const completedDate = quiz.attempt.completedAt 
+                    const completedDate = quiz.attempt.completedAt
                       ? new Date(quiz.attempt.completedAt).toLocaleDateString()
                       : 'N/A';
+
+                    // Calculate rank from leaderboard if available
+                    const displayRank = currentUserEntry?.rank || quiz.attempt.rank || 0;
 
                     return (
                       <Card key={`quiz-${quiz.id}-${index}`} className={isExpanded ? 'ring-2 ring-primary' : ''}>
@@ -243,23 +333,23 @@ export const StudentLeaderboard = () => {
                                 <div className="flex items-center gap-4 flex-1">
                                   {/* Rank Badge */}
                                   <div className={`p-4 rounded-lg ${
-                                    quiz.attempt.rank === 1 ? 'bg-yellow-500/20' :
-                                    quiz.attempt.rank === 2 ? 'bg-gray-400/20' :
-                                    quiz.attempt.rank === 3 ? 'bg-amber-600/20' :
+                                    displayRank === 1 ? 'bg-yellow-500/20' :
+                                    displayRank === 2 ? 'bg-gray-400/20' :
+                                    displayRank === 3 ? 'bg-amber-600/20' :
                                     'bg-primary/10'
                                   }`}>
                                     <div className="flex flex-col items-center">
-                                      {quiz.attempt.rank && quiz.attempt.rank <= 3 ? (
-                                        <Medal className={`h-8 w-8 ${getRankColor(quiz.attempt.rank)}`} />
+                                      {displayRank && displayRank <= 3 ? (
+                                        <Medal className={`h-8 w-8 ${getRankColor(displayRank)}`} />
                                       ) : (
                                         <Trophy className="h-8 w-8 text-primary" />
                                       )}
-                                      <p className={`text-xl font-bold mt-1 ${getRankColor(quiz.attempt.rank || 0)}`}>
-                                        #{quiz.attempt.rank || 'N/A'}
+                                      <p className={`text-xl font-bold mt-1 ${getRankColor(displayRank || 0)}`}>
+                                        {displayRank ? `#${displayRank}` : 'N/A'}
                                       </p>
                                     </div>
                                   </div>
-                                  
+
                                   {/* Quiz Info */}
                                   <div className="text-left flex-1">
                                     <CardTitle className="text-lg">{quiz.title}</CardTitle>
@@ -278,7 +368,7 @@ export const StudentLeaderboard = () => {
                                       }>
                                         {quiz.attempt.percentage}%
                                       </Badge>
-                                      {quiz.attempt.rank && quiz.attempt.rank <= 10 && (
+                                      {displayRank && displayRank <= 10 && (
                                         <Badge variant="outline" className="border-primary text-primary">
                                           Top 10
                                         </Badge>
@@ -286,7 +376,7 @@ export const StudentLeaderboard = () => {
                                     </div>
                                   </div>
                                 </div>
-                                
+
                                 {/* Expand Icon */}
                                 <div className="flex items-center gap-2 ml-4">
                                   {isExpanded ? (
@@ -301,44 +391,51 @@ export const StudentLeaderboard = () => {
 
                           <CollapsibleContent>
                             <CardContent className="pt-0 pb-6">
-                              <div className="space-y-3">
-                                {/* Your Rank Highlight */}
-                                {currentUserEntry && (
-                                  <div className="mb-4">
-                                    <div className="flex items-center justify-between mb-2">
-                                      <h3 className="font-semibold text-sm flex items-center gap-2">
-                                        <Trophy className="h-4 w-4 text-primary" />
-                                        Your Position
-                                      </h3>
+                              {quizLeaderboard.length > 0 ? (
+                                <div className="space-y-3">
+                                  {/* Your Rank Highlight */}
+                                  {currentUserEntry && (
+                                    <div className="mb-4">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <h3 className="font-semibold text-sm flex items-center gap-2">
+                                          <Trophy className="h-4 w-4 text-primary" />
+                                          Your Position
+                                        </h3>
+                                      </div>
+                                      <LeaderboardEntry entry={currentUserEntry} isCurrentUser />
                                     </div>
-                                    <LeaderboardEntry entry={currentUserEntry} isCurrentUser />
+                                  )}
+
+                                  <Separator />
+
+                                  <div className="flex items-center justify-between mt-4 mb-3">
+                                    <h3 className="font-semibold text-sm">Quiz Leaderboard</h3>
+                                    <Badge variant="outline">{quizLeaderboard.length} participants</Badge>
                                   </div>
-                                )}
 
-                                <Separator />
+                                  {/* Top 20 Leaderboard */}
+                                  <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
+                                    {quizLeaderboard.slice(0, 20).map((entry) => (
+                                      <LeaderboardEntry
+                                        key={`${entry.studentId}-${entry.rank}`}
+                                        entry={entry}
+                                        isCurrentUser={entry.studentId === user?.id}
+                                      />
+                                    ))}
+                                  </div>
 
-                                <div className="flex items-center justify-between mt-4 mb-3">
-                                  <h3 className="font-semibold text-sm">Quiz Leaderboard</h3>
-                                  <Badge variant="outline">{quizLeaderboard.length} participants</Badge>
+                                  {quizLeaderboard.length > 20 && (
+                                    <p className="text-xs text-center text-muted-foreground mt-3">
+                                      Showing top 20 of {quizLeaderboard.length} participants
+                                    </p>
+                                  )}
                                 </div>
-
-                                {/* Top 20 Leaderboard */}
-                                <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
-                                  {quizLeaderboard.slice(0, 20).map((entry) => (
-                                    <LeaderboardEntry
-                                      key={`${entry.studentId}-${entry.rank}`}
-                                      entry={entry}
-                                      isCurrentUser={entry.studentId === currentStudentId}
-                                    />
-                                  ))}
+                              ) : (
+                                <div className="text-center py-8">
+                                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
+                                  <p className="text-sm text-muted-foreground">Loading leaderboard...</p>
                                 </div>
-
-                                {quizLeaderboard.length > 20 && (
-                                  <p className="text-xs text-center text-muted-foreground mt-3">
-                                    Showing top 20 of {quizLeaderboard.length} participants
-                                  </p>
-                                )}
-                              </div>
+                              )}
                             </CardContent>
                           </CollapsibleContent>
                         </Collapsible>
@@ -352,7 +449,7 @@ export const StudentLeaderboard = () => {
                     <Trophy className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
                     <h3 className="text-lg font-semibold mb-2">No Quizzes Yet</h3>
                     <p className="text-muted-foreground">
-                      {timeFilter === 'week' 
+                      {timeFilter === 'week'
                         ? "You haven't completed any quizzes this week"
                         : timeFilter === 'month'
                         ? "You haven't completed any quizzes this month"

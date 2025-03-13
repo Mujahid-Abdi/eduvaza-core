@@ -446,6 +446,28 @@ export const QuizBuilder = ({ initialQuiz, onSave, onCancel, onGenerateAI }: Qui
                     max={100}
                   />
                 </div>
+
+                <div className="flex items-center justify-between pt-4 border-t">
+                  <div>
+                    <Label className="text-base">Publish Quiz</Label>
+                    <p className="text-sm text-muted-foreground">Make this quiz visible to students on the public quiz page</p>
+                  </div>
+                  <Switch
+                    checked={quiz.isPublished}
+                    onCheckedChange={(checked) => setQuiz(prev => ({ ...prev, isPublished: checked }))}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Multiplayer Mode</Label>
+                    <p className="text-sm text-muted-foreground">Enable competitive multiplayer features</p>
+                  </div>
+                  <Switch
+                    checked={quiz.isMultiplayer}
+                    onCheckedChange={(checked) => setQuiz(prev => ({ ...prev, isMultiplayer: checked }))}
+                  />
+                </div>
               </CardContent>
             </Card>
           </motion.div>

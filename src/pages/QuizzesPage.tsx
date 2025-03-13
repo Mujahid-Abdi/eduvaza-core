@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect, useMemo } from 'react';
-import { Link, Navigate } from 'react-router-dom';
-import { Search, Filter, FileQuestion, Users, Clock, Star, X, Trophy } from 'lucide-react';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Search, Filter, FileQuestion, Users, Clock, Star, X, Trophy, Bookmark, BookmarkCheck, CheckCircle } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { quizService } from '@/services/quizzes';
 import { useI18n } from '@/contexts/I18nContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 import type { Quiz } from '@/types/quiz';
 import {
   Select,
@@ -23,11 +24,14 @@ import {
 const QuizzesPage = () => {
   const { t } = useI18n();
   const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [savedQuizIds, setSavedQuizIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [savingQuiz, setSavingQuiz] = useState<string | null>(null);
 
   // Only redirect admin to dashboard, other users can see public pages
   if (isAuthenticated && user?.role === 'super_admin') {
@@ -43,6 +47,12 @@ const QuizzesPage = () => {
         const fetchedQuizzes = await quizService.getQuizzes();
         console.log('✅ Fetched', fetchedQuizzes.length, 'published quizzes');
         setQuizzes(fetchedQuizzes);
+        
+        // Fetch saved quizzes if user is logged in
+        if (user?.id) {
+          const fetchedSavedQuizIds = await quizService.getSavedQuizzes(user.id);
+          setSavedQuizIds(fetchedSavedQuizIds);
+        }
       } catch (error) {
         console.error('❌ Error fetching quizzes:', error);
         setQuizzes([]);
@@ -52,7 +62,37 @@ const QuizzesPage = () => {
     };
 
     fetchQuizzes();
-  }, []);
+  }, [user]);
+
+  const handleToggleSaveQuiz = async (quizId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!user?.id) {
+      toast.error('Please login to save quizzes');
+      navigate('/auth/login');
+      return;
+    }
+
+    setSavingQuiz(quizId);
+    try {
+      const isSaved = savedQuizIds.includes(quizId);
+      
+      if (isSaved) {
+        await quizService.unsaveQuiz(user.id, quizId);
+        setSavedQuizIds(prev => prev.filter(id => id !== quizId));
+        toast.success('Quiz removed from saved');
+      } else {
+        await quizService.saveQuizForLater(user.id, quizId);
+        setSavedQuizIds(prev => [...prev, quizId]);
+        toast.success('Quiz saved for later');
+      }
+    } catch (error) {
+      console.error('Error toggling save quiz:', error);
+      toast.error('Failed to save quiz');
+    } finally {
+      setSavingQuiz(null);
+    }
+  };
 
   const filteredQuizzes = useMemo(() => {
     return quizzes.filter(quiz => {
@@ -233,6 +273,23 @@ const QuizzesPage = () => {
                               </Badge>
                             </div>
                           )}
+                          {isAuthenticated && (
+                            <div className="absolute bottom-3 right-3">
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={(e) => handleToggleSaveQuiz(quiz.id!, e)}
+                                disabled={savingQuiz === quiz.id}
+                                className="h-8 w-8 p-0"
+                              >
+                                {savedQuizIds.includes(quiz.id!) ? (
+                                  <BookmarkCheck className="h-4 w-4" />
+                                ) : (
+                                  <Bookmark className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
+                          )}
                         </div>
                         <CardContent className="p-5">
                           <div className="flex items-center gap-2 mb-3">
@@ -273,7 +330,11 @@ const QuizzesPage = () => {
                               <span>By {quiz.teacherName}</span>
                             </div>
                           </div>
-                          <Button className="w-full mt-4" variant="outline">
+                          <Button 
+                            className="w-full mt-4" 
+                            variant="outline" 
+                            onClick={() => navigate(`/quiz/${quiz.id}`)}
+                          >
                             Start Quiz
                           </Button>
                         </CardContent>
@@ -319,7 +380,7 @@ const QuizzesPage = () => {
                         <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                           {quiz.description}
                         </p>
-                        <Button className="w-full" variant="outline">
+                        <Button className="w-full" variant="outline" onClick={() => navigate(`/quiz/${quiz.id}`)}>
                           Start Quiz
                         </Button>
                       </CardContent>

@@ -237,4 +237,66 @@ export const coursesService = {
       throw error;
     }
   },
+
+  // Downloads tracking
+  async trackDownload(userId: string, lessonId: string, courseId: string, lessonTitle: string, contentType: 'video' | 'document', fileUrl: string, fileSize: string): Promise<string> {
+    try {
+      const downloadData = {
+        userId,
+        lessonId,
+        courseId,
+        lessonTitle,
+        contentType,
+        fileUrl,
+        fileSize,
+        downloadedAt: new Date(),
+      };
+      
+      const downloadId = await firebaseService.create('downloads', downloadData);
+      return downloadId;
+    } catch (error) {
+      console.error('Error tracking download:', error);
+      throw error;
+    }
+  },
+
+  async getDownloads(userId: string): Promise<any[]> {
+    try {
+      const downloadsQuery = query(
+        collection(db, 'downloads'),
+        where('userId', '==', userId),
+        orderBy('downloadedAt', 'desc')
+      );
+      const snapshot = await getDocs(downloadsQuery);
+      
+      // Fetch course details for each download
+      const downloads = await Promise.all(
+        snapshot.docs.map(async (doc) => {
+          const data = doc.data();
+          const course = await this.getCourseById(data.courseId);
+          
+          return {
+            id: doc.id,
+            ...data,
+            courseName: course?.title || 'Unknown Course',
+            downloadedAt: data.downloadedAt.toDate(),
+          };
+        })
+      );
+      
+      return downloads;
+    } catch (error) {
+      console.error('Error fetching downloads:', error);
+      return [];
+    }
+  },
+
+  async deleteDownload(downloadId: string): Promise<void> {
+    try {
+      await firebaseService.delete('downloads', downloadId);
+    } catch (error) {
+      console.error('Error deleting download:', error);
+      throw error;
+    }
+  },
 };

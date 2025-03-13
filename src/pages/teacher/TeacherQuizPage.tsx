@@ -128,6 +128,22 @@ export const TeacherQuizPage = () => {
     }
   };
 
+  const handleTogglePublish = async (quizId: string, currentStatus: boolean) => {
+    try {
+      await quizService.updateQuiz(quizId, { isPublished: !currentStatus });
+      toast.success(!currentStatus ? 'Quiz published successfully!' : 'Quiz unpublished');
+      
+      // Refresh quizzes list
+      if (user?.id) {
+        const fetchedQuizzes = await quizService.getQuizzesByTeacher(user.id);
+        setQuizzes(fetchedQuizzes);
+      }
+    } catch (error) {
+      console.error('❌ Error toggling publish status:', error);
+      toast.error('Failed to update quiz');
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -200,6 +216,13 @@ export const TeacherQuizPage = () => {
                             <FileQuestion className="h-8 w-8 text-primary/50" />
                           </div>
                           <div className="flex gap-2 mt-4">
+                            <Button 
+                              size="sm" 
+                              variant={quiz.isPublished ? 'outline' : 'default'}
+                              onClick={() => handleTogglePublish(quiz.id!, quiz.isPublished)}
+                            >
+                              {quiz.isPublished ? 'Unpublish' : 'Publish'}
+                            </Button>
                             <Button size="sm" variant="outline" onClick={() => { setSelectedQuiz(quiz); setView('schedule'); }}>
                               <Calendar className="h-4 w-4 mr-1" /> Schedule
                             </Button>
@@ -247,6 +270,13 @@ export const TeacherQuizPage = () => {
                               <FileQuestion className="h-8 w-8 text-primary/50" />
                             </div>
                             <div className="flex gap-2 mt-4">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleTogglePublish(quiz.id!, quiz.isPublished)}
+                              >
+                                Unpublish
+                              </Button>
                               <Button size="sm" variant="outline" onClick={() => { setSelectedQuiz(quiz); setView('schedule'); }}>
                                 <Calendar className="h-4 w-4 mr-1" /> Schedule
                               </Button>
@@ -290,6 +320,12 @@ export const TeacherQuizPage = () => {
                               <FileQuestion className="h-8 w-8 text-primary/50" />
                             </div>
                             <div className="flex gap-2 mt-4">
+                              <Button 
+                                size="sm"
+                                onClick={() => handleTogglePublish(quiz.id!, quiz.isPublished)}
+                              >
+                                Publish
+                              </Button>
                               <Button size="sm" variant="outline">
                                 <Edit className="h-4 w-4 mr-1" /> Edit
                               </Button>

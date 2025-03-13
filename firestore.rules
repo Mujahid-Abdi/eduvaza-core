@@ -27,8 +27,14 @@ service cloud.firestore {
     }
     
     // Quiz attempts - allow read/write for authenticated users
-    match /quiz_attempts/{attemptId} {
+    match /quizAttempts/{attemptId} {
       allow read, write: if request.auth != null;
+    }
+    
+    // Saved quizzes - users can only read/write their own saved quizzes
+    match /savedQuizzes/{savedQuizId} {
+      allow read: if request.auth != null && savedQuizId.matches(request.auth.uid + '_.*');
+      allow write: if request.auth != null && savedQuizId.matches(request.auth.uid + '_.*');
     }
     
     // Enrollments - allow read/write for authenticated users

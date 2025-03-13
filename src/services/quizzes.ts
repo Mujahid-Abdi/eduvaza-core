@@ -306,7 +306,24 @@ export const quizService = {
       if (!attemptDoc.exists()) throw new Error('Attempt not found');
 
       const attempt = attemptDoc.data() as QuizAttempt;
-      const updatedAnswers = [...attempt.answers, answer];
+      
+      // Clean answer data - remove undefined fields
+      const cleanAnswer: any = {
+        questionId: answer.questionId,
+        isCorrect: answer.isCorrect,
+        pointsEarned: answer.pointsEarned,
+        timeTaken: answer.timeTaken,
+      };
+      
+      // Only add optional fields if they exist
+      if (answer.selectedOptionId !== undefined) {
+        cleanAnswer.selectedOptionId = answer.selectedOptionId;
+      }
+      if (answer.textAnswer !== undefined) {
+        cleanAnswer.textAnswer = answer.textAnswer;
+      }
+      
+      const updatedAnswers = [...attempt.answers, cleanAnswer];
       const score = updatedAnswers.reduce((sum, a) => sum + (a.isCorrect ? a.pointsEarned : 0), 0);
 
       await updateDoc(doc(db, 'quizAttempts', attemptId), {
@@ -396,6 +413,67 @@ export const quizService = {
     } catch (error) {
       console.error('Error fetching quiz attempts:', error);
       return [];
+    }
+  },
+
+  // Saved Quizzes
+  async saveQuizForLater(userId: string, quizId: string): Promise<void> {
+    try {
+      const savedQuizRef = doc(db, 'savedQuizzes', `${userId}_${quizId}`);
+      await setDoc(savedQuizRef, {
+        userId,
+        quizId,
+        savedAt: Timestamp.now(),
+      });
+    } catch (error) {
+      console.error('Error saving quiz:', error);
+      throw error;
+    }
+  },
+
+  async unsaveQuiz(userId: string, quizId: string): Promise<void> {
+    try {
+      const savedQuizRef = doc(db, 'savedQuizzes', `${userId}_${quizId}`);
+      await deleteDoc(savedQuizRef);
+    } catch (error) {
+      console.error('Error unsaving quiz:', error);
+      throw error;
+    }
+  },
+
+  async getSavedQuizzes(userId: string): Promise<string[]> {
+    try {
+      const savedQuery = query(
+        collection(db, 'savedQuizzes'),
+        where('userId', '==', userId),
+        orderBy('savedAt', 'desc')
+      );
+      const snapshot = await getDocs(savedQuery);
+      return snapshot.docs.map(doc => doc.data().quizId);
+    } catch (error) {
+      console.error('Error fetching saved quizzes:', error);
+      return [];
+    }
+  },
+
+  async isQuizSaved(userId: string, quizId: string): Promise<boolean> {
+    try {
+      const savedQuizRef = doc(db, 'savedQuizzes', `${userId}_${quizId}`);
+      const savedDoc = await getDoc(savedQuizRef);
+      return savedDoc.exists();
+    } catch (error) {
+      console.error('Error checking if quiz is saved:', error);
+      return false;
+    }
+  },
+
+  // Delete quiz attempt
+  async deleteAttempt(attemptId: string): Promise<void> {
+    try {
+      await deleteDoc(doc(db, 'quizAttempts', attemptId));
+    } catch (error) {
+      console.error('Error deleting attempt:', error);
+      throw error;
     }
   },
 

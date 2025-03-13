@@ -10,25 +10,30 @@ import { Badge } from '@/components/ui/badge';
 import { useI18n } from '@/contexts/I18nContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { coursesService } from '@/services/courses';
-import { mockQuizzes, mockQuizAttempts } from '@/services/mockQuizData';
+import { quizService } from '@/services/quizzes';
 import type { Course, Enrollment } from '@/types';
+import type { Quiz, QuizAttempt } from '@/types/quiz';
 
 export const StudentDashboard = () => {
   const { t } = useI18n();
   const { user } = useAuth();
-  const currentStudentId = user?.id || 'student-1';
   
   const [enrolledCourses, setEnrolledCourses] = useState<Array<Course & { progress: number; lastLesson: string; enrollmentId: string }>>([]);
   const [recommendedCourses, setRecommendedCourses] = useState<Course[]>([]);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
 
-  // Fetch enrolled courses
+  // Fetch enrolled courses and quiz data
   useEffect(() => {
-    const fetchEnrolledCourses = async () => {
+    const fetchData = async () => {
       if (!user?.id) return;
       
       setLoading(true);
+      setStatsLoading(true);
       try {
+        // Fetch enrollments and courses
         const enrollments = await coursesService.getEnrollments(user.id);
         
         // Fetch course details for each enrollment
@@ -59,19 +64,29 @@ export const StudentDashboard = () => {
         const enrolledIds = enrollments.map(e => e.courseId);
         const recommended = allCourses.filter(c => !enrolledIds.includes(c.id)).slice(0, 6);
         setRecommendedCourses(recommended);
+
+        // Fetch quiz data
+        const [fetchedQuizzes, fetchedAttempts] = await Promise.all([
+          quizService.getQuizzes(),
+          quizService.getAttemptsByStudent(user.id),
+        ]);
+        
+        setQuizzes(fetchedQuizzes);
+        setQuizAttempts(fetchedAttempts);
       } catch (error) {
-        console.error('Error fetching enrolled courses:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
+        setStatsLoading(false);
       }
     };
 
-    fetchEnrolledCourses();
+    fetchData();
   }, [user?.id]);
 
   // Get recent completed quizzes with rankings
-  const recentQuizAttempts = mockQuizAttempts
-    .filter(attempt => attempt.studentId === currentStudentId && attempt.status === 'completed')
+  const recentQuizAttempts = quizAttempts
+    .filter(attempt => attempt.status === 'completed')
     .sort((a, b) => {
       const dateA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
       const dateB = b.completedAt ? new Date(b.completedAt).getTime() : 0;
@@ -79,9 +94,20 @@ export const StudentDashboard = () => {
     })
     .slice(0, 5)
     .map(attempt => {
-      const quiz = mockQuizzes.find(q => q.id === attempt.quizId);
+      const quiz = quizzes.find(q => q.id === attempt.quizId);
       return { ...attempt, quizTitle: quiz?.title || 'Unknown Quiz' };
     });
+
+  // Calculate stats
+  const totalHoursLearned = Math.round(
+    quizAttempts
+      .filter(a => a.status === 'completed')
+      .reduce((sum, a) => sum + (a.timeTaken || 0), 0) / 3600
+  );
+
+  const averageProgress = enrolledCourses.length > 0
+    ? Math.round(enrolledCourses.reduce((sum, c) => sum + c.progress, 0) / enrolledCourses.length)
+    : 0;
 
   const getRankColor = (rank: number) => {
     if (rank === 1) return 'text-yellow-500';
@@ -140,7 +166,11 @@ export const StudentDashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Enrolled Courses</p>
-                  <p className="text-3xl font-bold text-foreground mt-1">{enrolledCourses.length}</p>
+                  {statsLoading ? (
+                    <div className="h-9 w-12 bg-muted rounded animate-pulse mt-1" />
+                  ) : (
+                    <p className="text-3xl font-bold text-foreground mt-1">{enrolledCourses.length}</p>
+                  )}
                 </div>
                 <div className="p-3 rounded-xl bg-primary/10">
                   <BookOpen className="h-6 w-6 text-primary" />
@@ -153,7 +183,11 @@ export const StudentDashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Hours Learned</p>
-                  <p className="text-3xl font-bold text-foreground mt-1">24</p>
+                  {statsLoading ? (
+                    <div className="h-9 w-12 bg-muted rounded animate-pulse mt-1" />
+                  ) : (
+                    <p className="text-3xl font-bold text-foreground mt-1">{totalHoursLearned}</p>
+                  )}
                 </div>
                 <div className="p-3 rounded-xl bg-secondary/10">
                   <Clock className="h-6 w-6 text-secondary" />
@@ -166,7 +200,11 @@ export const StudentDashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Avg. Progress</p>
-                  <p className="text-3xl font-bold text-foreground mt-1">35%</p>
+                  {statsLoading ? (
+                    <div className="h-9 w-16 bg-muted rounded animate-pulse mt-1" />
+                  ) : (
+                    <p className="text-3xl font-bold text-foreground mt-1">{averageProgress}%</p>
+                  )}
                 </div>
                 <div className="p-3 rounded-xl bg-accent/10">
                   <TrendingUp className="h-6 w-6 text-accent" />
