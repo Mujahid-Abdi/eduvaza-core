@@ -1,5 +1,6 @@
-// Cloudinary Configuration
+// Cloudinary Configuration - Fixed for authenticated raw file access
 import { Cloudinary } from 'cloudinary-core';
+import CryptoJS from 'crypto-js';
 
 // Initialize Cloudinary
 export const cloudinary = new Cloudinary({
@@ -56,12 +57,15 @@ export const getAvatarUrl = (publicId: string, size: number = 150) => {
   });
 };
 
-const getCloudinaryRawPublicId = (url: string) => {
+// Extract public ID and metadata from Cloudinary URL
+export const getCloudinaryRawPublicId = (url: string) => {
   if (!url.includes('res.cloudinary.com')) return null;
 
   const cloudName = cloudinaryConfig.cloudName;
+  
+  // Match both /raw/upload/ and /raw/authenticated/ patterns
   const rawMatch = url.match(
-    new RegExp(`https://res\\.cloudinary\\.com/${cloudName}/raw/upload/(v\\d+/)?(.+)$`)
+    new RegExp(`https://res\\.cloudinary\\.com/${cloudName}/raw/(?:upload|authenticated)/(v\\d+/)?(.+)$`)
   );
 
   if (!rawMatch) return null;
@@ -76,24 +80,73 @@ const getCloudinaryRawPublicId = (url: string) => {
   return { publicId, version, format };
 };
 
-export const getAuthenticatedRawUrlFromCloudinaryUrl = (url: string) => {
-  if (!cloudinaryConfig.apiSecret || !cloudinaryConfig.apiKey) {
-    return null;
-  }
+// Generate a signed URL for authenticated Cloudinary resources
+export const generateSignedUrl = (publicId: string, options: {
+  resourceType?: string;
+  version?: number;
+  format?: string;
+}) => {
+  const apiSecret = cloudinaryConfig.apiSecret;
+  if (!apiSecret) return null;
 
-  if (url.includes('/raw/authenticated/')) {
+  const cloudName = cloudinaryConfig.cloudName;
+  const timestamp = Math.floor(Date.now() / 1000);
+  const expiresAt = timestamp + 3600; // 1 hour expiry
+  
+  const resourceType = options.resourceType || 'raw';
+  const versionStr = options.version ? `v${options.version}` : '';
+  const formatStr = options.format ? `.${options.format}` : '';
+  
+  // Build the string to sign
+  const toSign = `${publicId}${formatStr}${expiresAt}${apiSecret}`;
+  const signature = CryptoJS.SHA1(toSign).toString(CryptoJS.enc.Hex).substring(0, 8);
+  
+  // Build the signed URL
+  const baseUrl = `https://res.cloudinary.com/${cloudName}/${resourceType}/authenticated`;
+  const path = versionStr ? `${versionStr}/${publicId}${formatStr}` : `${publicId}${formatStr}`;
+  
+  return `${baseUrl}/s--${signature}--/${path}?_a=${expiresAt}`;
+};
+
+// Get accessible URL for Cloudinary raw files (PDFs, documents)
+export const getAccessibleRawUrl = (url: string): string => {
+  if (!url) return url;
+  
+  // If it's not a Cloudinary URL, return as-is
+  if (!url.includes('res.cloudinary.com')) {
     return url;
   }
-
+  
+  // If it's a public upload URL, return as-is
+  if (url.includes('/raw/upload/') && !url.includes('/authenticated/')) {
+    return url;
+  }
+  
+  // Extract info from the URL
   const rawInfo = getCloudinaryRawPublicId(url);
-  if (!rawInfo) return null;
-
-  return cloudinary.url(rawInfo.publicId, {
-    resource_type: 'raw',
-    type: 'authenticated',
-    sign_url: true,
-    secure: true,
+  if (!rawInfo) return url;
+  
+  // Try to generate a signed URL
+  const signedUrl = generateSignedUrl(rawInfo.publicId, {
+    resourceType: 'raw',
     version: rawInfo.version,
     format: rawInfo.format
   });
+  
+  if (signedUrl) {
+    return signedUrl;
+  }
+  
+  // Fallback: try converting to public upload URL
+  const cloudName = cloudinaryConfig.cloudName;
+  const versionStr = rawInfo.version ? `v${rawInfo.version}/` : '';
+  const formatStr = rawInfo.format ? `.${rawInfo.format}` : '';
+  
+  return `https://res.cloudinary.com/${cloudName}/raw/upload/${versionStr}${rawInfo.publicId}${formatStr}`;
+};
+
+// Legacy function - now redirects to getAccessibleRawUrl
+export const getAuthenticatedRawUrlFromCloudinaryUrl = (url: string): string | null => {
+  const accessibleUrl = getAccessibleRawUrl(url);
+  return accessibleUrl !== url ? accessibleUrl : null;
 };
