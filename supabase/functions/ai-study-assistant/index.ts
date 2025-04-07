@@ -107,64 +107,117 @@ serve(async (req) => {
      let prompt = "";
      let resultType = "";
  
-     if (action === "summarize") {
-       resultType = "summary";
-       prompt = `You are an expert educational content summarizer. 
- 
- Summarize the following educational content in a clear, structured way that helps students learn and retain information.
- 
- Guidelines:
- - Create a concise summary with key points
- - Use bullet points for main ideas
- - Highlight important terms and concepts
- - Keep the summary focused and actionable for learning
- - Include any formulas, definitions, or key facts
- 
- Content to summarize:
- ${truncatedText}
- 
- Provide a well-organized summary:`;
-     } else if (action === "generate_questions") {
-       resultType = "questions";
-       const qType = questionType || "multiple_choice";
-       const diff = difficulty || "medium";
-       const count = Math.min(questionCount || 5, 10); // Max 10 questions
- 
-       const questionTypeLabels: Record<string, string> = {
-         multiple_choice: "multiple choice questions with 4 options (A, B, C, D)",
-         true_false: "true/false questions",
-         short_answer: "short answer questions",
-         fill_blank: "fill-in-the-blank questions"
-       };
- 
-       const difficultyDescriptions: Record<string, string> = {
-         easy: "basic understanding and recall",
-         medium: "application and analysis",
-         hard: "critical thinking and synthesis"
-       };
- 
-       prompt = `You are an experienced teacher creating assessment questions.
- 
- Create ${count} ${questionTypeLabels[qType] || "multiple choice questions"} based on the following content.
- 
- Difficulty Level: ${diff.toUpperCase()} - Focus on ${difficultyDescriptions[diff] || "application and analysis"}
- 
- Guidelines:
- - Create clear, unambiguous questions
- - For multiple choice: provide 4 options with only one correct answer
- - Include the correct answer after each question
- - Questions should test understanding, not just memorization
- - Vary the cognitive level of questions
- 
- Content:
- ${truncatedText}
- 
- Format each question as:
- Q[number]: [Question text]
- ${qType === "multiple_choice" ? "A) [Option A]\nB) [Option B]\nC) [Option C]\nD) [Option D]" : ""}
- Answer: [Correct answer with brief explanation]
- 
- Create the questions now:`;
+    if (action === "summarize") {
+      resultType = "summary";
+      prompt = `You are an expert educational content summarizer creating modern, visually appealing study notes.
+
+Create a comprehensive yet easy-to-read summary of the following content using this EXACT format:
+
+# 📚 Study Summary: [Topic Title]
+
+Brief overview paragraph (2-3 sentences max).
+
+---
+
+## 🎯 Key Learning Objectives
+• [Objective 1]
+• [Objective 2]
+• [Objective 3]
+
+---
+
+## 📖 Main Concepts
+
+### 1. [First Major Concept]
+**Definition:** [Clear definition]
+
+**Key Points:**
+- Point 1
+- Point 2
+
+💡 **Pro Tip:** [Helpful insight or memory trick]
+
+### 2. [Second Major Concept]
+(Follow same pattern)
+
+---
+
+## 📊 Quick Reference Table
+| Term | Definition |
+|------|------------|
+| [Term 1] | [Brief definition] |
+| [Term 2] | [Brief definition] |
+
+---
+
+## ✅ Summary Checklist
+- [ ] I understand [concept 1]
+- [ ] I can explain [concept 2]
+- [ ] I know how to apply [concept 3]
+
+---
+
+## 🔑 Key Takeaways
+1. [Most important point]
+2. [Second most important point]
+3. [Third most important point]
+
+Content to summarize:
+${truncatedText}`;
+    } else if (action === "generate_questions") {
+      resultType = "questions";
+      const qType = questionType || "multiple_choice";
+      const diff = difficulty || "medium";
+      const count = Math.min(questionCount || 5, 10);
+
+      const questionTypeLabels: Record<string, string> = {
+        multiple_choice: "multiple choice questions with 4 options (A, B, C, D)",
+        true_false: "true/false questions",
+        short_answer: "short answer questions",
+        fill_blank: "fill-in-the-blank questions"
+      };
+
+      const difficultyDescriptions: Record<string, string> = {
+        easy: "basic understanding and recall",
+        medium: "application and analysis",
+        hard: "critical thinking and synthesis"
+      };
+
+      prompt = `You are an experienced teacher creating professional assessment questions.
+
+Create EXACTLY ${count} ${questionTypeLabels[qType] || "multiple choice questions"} based on the content below.
+
+Difficulty: ${diff.toUpperCase()} (${difficultyDescriptions[diff] || "application and analysis"})
+
+IMPORTANT: You MUST use this EXACT JSON format for your response:
+
+{
+  "questions": [
+    {
+      "id": 1,
+      "question": "What is the main purpose of software engineering?",
+      "type": "${qType}",
+      "difficulty": "${diff}",
+      "options": ${qType === "multiple_choice" ? '["A) Option text", "B) Option text", "C) Option text", "D) Option text"]' : qType === "true_false" ? '["True", "False"]' : "null"},
+      "correctAnswer": "A",
+      "explanation": "Brief explanation of why this is correct"
+    }
+  ]
+}
+
+Rules:
+- For multiple_choice: exactly 4 options labeled A, B, C, D
+- For true_false: options should be ["True", "False"], correctAnswer is "True" or "False"
+- For short_answer: options is null, correctAnswer is the expected answer text
+- For fill_blank: question should have _____ for the blank, options is null
+- Each question must have an explanation
+- Questions must be clear and unambiguous
+- Test understanding, not just memorization
+
+Content:
+${truncatedText}
+
+Return ONLY valid JSON, no other text:`;
      } else {
        return new Response(
          JSON.stringify({ error: "Invalid action. Use 'summarize' or 'generate_questions'" }),
