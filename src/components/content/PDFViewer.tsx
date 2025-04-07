@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as pdfjsLib from 'pdfjs-dist';
+import { getAccessibleRawUrl } from '@/lib/cloudinary';
 import {
   ZoomIn,
   ZoomOut,
@@ -21,7 +22,6 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { getAuthenticatedRawUrlFromCloudinaryUrl } from '@/lib/cloudinary';
 
 // Set up PDF.js worker - use unpkg for better compatibility
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
@@ -80,33 +80,26 @@ export const PDFViewer = ({
         setIsLoading(true);
         setError(null);
 
-        const loadWithSource = async (source: string) => {
-          const loadingTask = pdfjsLib.getDocument(source);
-          return loadingTask.promise;
-        };
-
-        try {
-          const pdf = await loadWithSource(src);
-          setResolvedSrc(src);
-          setPdfDoc(pdf);
-          setNumPages(pdf.numPages);
-          setCurrentPage(1);
-          return;
-        } catch (err) {
-          const authenticatedUrl = getAuthenticatedRawUrlFromCloudinaryUrl(src);
-          if (authenticatedUrl && authenticatedUrl !== src) {
-            const pdf = await loadWithSource(authenticatedUrl);
-            setResolvedSrc(authenticatedUrl);
-            setPdfDoc(pdf);
-            setNumPages(pdf.numPages);
-            setCurrentPage(1);
-            return;
-          }
-          throw err;
-        }
+        // Get accessible URL (handles Cloudinary authenticated URLs)
+        const accessibleSrc = getAccessibleRawUrl(src);
+        console.log('Loading PDF from:', accessibleSrc);
+        
+        const loadingTask = pdfjsLib.getDocument(accessibleSrc);
+        const pdf = await loadingTask.promise;
+        
+        setResolvedSrc(accessibleSrc);
+        setPdfDoc(pdf);
+        setNumPages(pdf.numPages);
+        setCurrentPage(1);
       } catch (err: any) {
         console.error('Error loading PDF:', err);
-        setError(err.message || 'Failed to load PDF');
+        
+        // Provide helpful error message for 401 errors
+        if (err.message?.includes('401')) {
+          setError('PDF access denied. The file may require re-uploading with public access. Please contact your administrator.');
+        } else {
+          setError(err.message || 'Failed to load PDF');
+        }
       } finally {
         setIsLoading(false);
       }

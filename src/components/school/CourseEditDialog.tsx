@@ -10,21 +10,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Trash2, FileVideo, FileText, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import type { Course, Language, Lesson } from '@/types';
 
 interface CourseEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  course: {
-    id: string;
-    title: string;
-    description: string;
-    category: string;
-    level: 'beginner' | 'intermediate' | 'advanced';
-    language: string;
-    teacher: string;
-    isPublished?: boolean;
-    parts?: CoursePart[];
-  };
+  course: Course;
   onCourseUpdated?: () => void;
 }
 
@@ -50,11 +41,26 @@ export const CourseEditDialog = ({ open, onOpenChange, course, onCourseUpdated }
     description: course.description,
     category: course.category,
     level: course.level,
-    language: course.language,
-    assignedTeacher: course.teacher,
+    language: course.language as string,
+    assignedTeacher: course.teacherId || course.teacherName || '',
     isPublished: course.isPublished ?? true,
   });
-  const [courseParts, setCourseParts] = useState<CoursePart[]>(course.parts || []);
+  
+  // Convert lessons to parts for editing
+  const lessonsToPartsInitial = (): CoursePart[] => {
+    if (!course.lessons || course.lessons.length === 0) return [];
+    return course.lessons.map((lesson, index) => ({
+      id: lesson.id,
+      partNumber: lesson.order || index + 1,
+      title: lesson.title,
+      description: lesson.content || '',
+      contentType: lesson.contentType === 'video' ? 'video' : 'document',
+      fileUrl: lesson.videoUrl || lesson.pdfUrl,
+      uploadProgress: 100,
+    }));
+  };
+  
+  const [courseParts, setCourseParts] = useState<CoursePart[]>(lessonsToPartsInitial());
 
   useEffect(() => {
     setFormData({
@@ -62,11 +68,11 @@ export const CourseEditDialog = ({ open, onOpenChange, course, onCourseUpdated }
       description: course.description,
       category: course.category,
       level: course.level,
-      language: course.language,
-      assignedTeacher: course.teacher,
+      language: course.language as string,
+      assignedTeacher: course.teacherId || course.teacherName || '',
       isPublished: course.isPublished ?? true,
     });
-    setCourseParts(course.parts || []);
+    setCourseParts(lessonsToPartsInitial());
   }, [course]);
 
   // Mock registered teachers - will be fetched from Firebase
@@ -230,7 +236,7 @@ export const CourseEditDialog = ({ open, onOpenChange, course, onCourseUpdated }
               <Label htmlFor="language">Language</Label>
               <Select
                 value={formData.language}
-                onValueChange={(value) => setFormData({ ...formData, language: value })}
+                onValueChange={(value) => setFormData({ ...formData, language: value as Language })}
               >
                 <SelectTrigger>
                   <SelectValue />
