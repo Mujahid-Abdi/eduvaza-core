@@ -14,9 +14,7 @@ import {
   UserCheck,
   BarChart3,
   Layers,
-  PlusCircle,
   FileQuestion,
-  Zap,
   Trophy,
   MessageSquare,
   Flag,
@@ -24,11 +22,14 @@ import {
   Moon,
   Sun,
   Sparkles,
+  Menu,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { MobileBottomNav } from './MobileBottomNav';
 import type { UserRole } from '@/types';
 
 interface DashboardLayoutProps {
@@ -119,6 +120,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { resolvedTheme, toggleTheme } = useTheme();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   if (!user) return null;
 
@@ -128,11 +130,99 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   return (
     <div className="min-h-screen flex bg-muted/30">
-      {/* Sidebar */}
+      {/* Mobile Header */}
+      <div className="fixed top-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-lg border-b border-border">
+        <div className="flex items-center justify-between h-14 px-4">
+          <Link to="/" className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-primary">
+              <span className="text-sm font-bold text-primary-foreground">E</span>
+            </div>
+            <span className="text-lg font-bold">EduVaza</span>
+          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors"
+            >
+              {resolvedTheme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors"
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Slide-out Menu */}
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="border-b border-border bg-background max-h-[60vh] overflow-y-auto"
+          >
+            {/* User Info */}
+            <div className="p-4 border-b border-border">
+              <p className="text-xs text-muted-foreground">{t('dashboard.welcome')}</p>
+              <p className="font-semibold truncate">{user.name}</p>
+              <p className="text-xs text-primary mt-0.5">{roleTitle}</p>
+            </div>
+
+            {/* Nav Items */}
+            <nav className="p-2 space-y-1">
+              {navItems.map((item) => {
+                const fullPath = `${basePath}${item.href}`;
+                const isActive = item.href === '' 
+                  ? location.pathname === basePath 
+                  : location.pathname === fullPath;
+
+                return (
+                  <Link
+                    key={item.href}
+                    to={fullPath}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                      isActive
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    {item.icon}
+                    <span className="text-sm font-medium">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Bottom Actions */}
+            <div className="p-2 border-t border-border space-y-1">
+              <Link
+                to={`${basePath}/settings`}
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-foreground hover:bg-muted transition-colors"
+              >
+                <Settings className="h-5 w-5" />
+                <span className="text-sm font-medium">Settings</span>
+              </Link>
+              <button
+                onClick={logout}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
+              >
+                <LogOut className="h-5 w-5" />
+                <span className="text-sm font-medium">{t('nav.logout')}</span>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </div>
+
+      {/* Desktop Sidebar */}
       <motion.aside
         initial={false}
         animate={{ width: collapsed ? 72 : 260 }}
-        className="fixed left-0 top-0 h-full bg-sidebar text-sidebar-foreground z-40 flex flex-col"
+        className="fixed left-0 top-0 h-full bg-sidebar text-sidebar-foreground z-40 hidden md:flex flex-col"
       >
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
@@ -226,14 +316,18 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       </motion.aside>
 
       {/* Main Content */}
-      <div
-        className="flex-1 transition-all duration-200"
-        style={{ marginLeft: collapsed ? 72 : 260 }}
+      <div 
+        className={`flex-1 transition-all duration-200 pt-14 pb-20 md:pt-0 md:pb-0 ${
+          collapsed ? 'md:ml-[72px]' : 'md:ml-[260px]'
+        }`}
       >
-        <div className="p-6">
+        <div className="p-4 md:p-6">
           {children}
         </div>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav />
     </div>
   );
 };
