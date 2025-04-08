@@ -160,7 +160,14 @@
     "multiplayer": "Wachezaji Wengi",
     "scheduled": "Imepangwa",
     "completed": "Imekamilika",
-    "results": "Matokeo"
+    "results": "Matokeo",
+    "exploreQuizzes": "Chunguza Majaribio",
+    "testKnowledge": "Jaribu maarifa yako na majaribio ya maingiliano. Jitahidi na ushindane na wengine.",
+    "selfPractice": "Mazoezi Binafsi",
+    "multiplayerMode": "Wachezaji Wengi",
+    "joinGame": "Jiunge na Mchezo",
+    "noQuizzesFound": "Hakuna majaribio yaliyopatikana",
+    "tryAdjusting": "Jaribu kubadilisha utafutaji au vichujio vyako"
   },
   "gamification": {
     "leaderboard": "Orodha ya Viongozi",

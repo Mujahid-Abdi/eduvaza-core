@@ -149,33 +149,33 @@ export const ManageSchools = () => {
               {filteredSchools.map((school) => (
                 <div
                   key={school.id}
-                  className="flex items-center justify-between p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors gap-4"
                 >
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-lg font-bold ${
+                  <div className="flex items-start sm:items-center gap-3 flex-1 min-w-0">
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-base sm:text-lg font-bold shrink-0 ${
                       school.status === 'approved' ? 'bg-green-100 text-green-600' :
                       school.status === 'pending' ? 'bg-yellow-100 text-yellow-600' :
                       'bg-red-100 text-red-600'
                     }`}>
                       {school.name[0]}
                     </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-foreground">{school.name}</p>
-                      <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Mail className="h-3 w-3" />
-                          {school.email}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-foreground truncate">{school.name}</p>
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-1 text-xs sm:text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1 truncate max-w-[150px] sm:max-w-none">
+                          <Mail className="h-3 w-3 shrink-0" />
+                          <span className="truncate">{school.email}</span>
                         </span>
-                        <span className="flex items-center gap-1">
-                          <Phone className="h-3 w-3" />
+                        <span className="hidden sm:flex items-center gap-1">
+                          <Phone className="h-3 w-3 shrink-0" />
                           {school.phone}
                         </span>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {school.address}
+                        <span className="flex items-center gap-1 truncate max-w-[100px] sm:max-w-none">
+                          <MapPin className="h-3 w-3 shrink-0" />
+                          <span className="truncate">{school.address}</span>
                         </span>
                       </div>
-                      <div className="flex items-center gap-4 mt-2">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2">
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <Users className="h-3 w-3" />
                           {school.teacherCount} teachers
@@ -187,30 +187,30 @@ export const ManageSchools = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3 self-end sm:self-center flex-wrap">
                     <Badge variant={
                       school.status === 'approved' ? 'default' :
                       school.status === 'pending' ? 'secondary' :
                       'destructive'
-                    }>
+                    } className="text-xs">
                       {school.status}
                     </Badge>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => handleViewDetails(school.name)}>
+                      <Button variant="ghost" size="sm" onClick={() => handleViewDetails(school.name)} className="h-8 w-8 p-0">
                         <Eye className="h-4 w-4" />
                       </Button>
                       {school.status === 'pending' && (
                         <>
-                          <Button variant="ghost" size="sm" onClick={() => handleApproveSchool(school.name)}>
+                          <Button variant="ghost" size="sm" onClick={() => handleApproveSchool(school.name)} className="h-8 w-8 p-0">
                             <CheckCircle className="h-4 w-4 text-green-600" />
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleRejectSchool(school.name)}>
+                          <Button variant="ghost" size="sm" onClick={() => handleRejectSchool(school.name)} className="h-8 w-8 p-0">
                             <XCircle className="h-4 w-4 text-red-600" />
                           </Button>
                         </>
                       )}
                       {school.status === 'approved' && (
-                        <Button variant="ghost" size="sm" onClick={() => handleSuspendSchool(school.name)}>
+                        <Button variant="ghost" size="sm" onClick={() => handleSuspendSchool(school.name)} className="h-8 w-8 p-0">
                           <Ban className="h-4 w-4 text-destructive" />
                         </Button>
                       )}

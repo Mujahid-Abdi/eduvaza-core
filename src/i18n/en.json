@@ -165,7 +165,14 @@
     "multiplayer": "Multiplayer",
     "scheduled": "Scheduled",
     "completed": "Completed",
-    "results": "Results"
+    "results": "Results",
+    "exploreQuizzes": "Explore Quizzes",
+    "testKnowledge": "Test your knowledge with interactive quizzes. Challenge yourself and compete with others.",
+    "selfPractice": "Self Practice",
+    "multiplayerMode": "Multiplayer",
+    "joinGame": "Join Game",
+    "noQuizzesFound": "No quizzes found",
+    "tryAdjusting": "Try adjusting your search or filters"
   },
   "gamification": {
     "leaderboard": "Leaderboard",

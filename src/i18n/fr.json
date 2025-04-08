@@ -165,7 +165,14 @@
     "multiplayer": "Multijoueur",
     "scheduled": "Programmé",
     "completed": "Terminé",
-    "results": "Résultats"
+    "results": "Résultats",
+    "exploreQuizzes": "Explorer les Quiz",
+    "testKnowledge": "Testez vos connaissances avec des quiz interactifs. Défiez-vous et affrontez les autres.",
+    "selfPractice": "Pratique Solo",
+    "multiplayerMode": "Multijoueur",
+    "joinGame": "Rejoindre le Jeu",
+    "noQuizzesFound": "Aucun quiz trouvé",
+    "tryAdjusting": "Essayez d'ajuster votre recherche ou vos filtres"
   },
   "gamification": {
     "leaderboard": "Classement",
