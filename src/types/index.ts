@@ -2,7 +2,7 @@
 
 export type UserRole = 'super_admin' | 'school' | 'teacher' | 'student';
 
-export type Language = 'en' | 'fr' | 'ar' | 'sw';
+export type Language = 'en' | 'fr' | 'ar' | 'sw' | 'am';
 
 export interface User {
   id: string;
