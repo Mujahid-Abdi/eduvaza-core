@@ -122,30 +122,30 @@ export const ManageQuizzes = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="grid gap-4 md:grid-cols-4"
+              className="grid gap-3 grid-cols-2 lg:grid-cols-4"
             >
               <Card>
-                <CardContent className="p-6">
-                  <div className="text-2xl font-bold">{stats.total}</div>
-                  <p className="text-sm text-muted-foreground">Total Quizzes</p>
+                <CardContent className="p-4">
+                  <div className="text-xl font-bold">{stats.total}</div>
+                  <p className="text-xs text-muted-foreground">Total Quizzes</p>
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-6">
-                  <div className="text-2xl font-bold text-blue-600">{stats.totalQuestions}</div>
-                  <p className="text-sm text-muted-foreground">Total Questions</p>
+                <CardContent className="p-4">
+                  <div className="text-xl font-bold text-blue-600">{stats.totalQuestions}</div>
+                  <p className="text-xs text-muted-foreground">Total Questions</p>
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-6">
-                  <div className="text-2xl font-bold text-purple-600">{stats.totalPoints}</div>
-                  <p className="text-sm text-muted-foreground">Total Points</p>
+                <CardContent className="p-4">
+                  <div className="text-xl font-bold text-purple-600">{stats.totalPoints}</div>
+                  <p className="text-xs text-muted-foreground">Total Points</p>
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-6">
-                  <div className="text-2xl font-bold text-green-600">{stats.avgQuestions}</div>
-                  <p className="text-sm text-muted-foreground">Avg Questions</p>
+                <CardContent className="p-4">
+                  <div className="text-xl font-bold text-green-600">{stats.avgQuestions}</div>
+                  <p className="text-xs text-muted-foreground">Avg Questions</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -184,44 +184,44 @@ export const ManageQuizzes = () => {
                     {filteredQuizzes.map((quiz) => (
                       <div
                         key={quiz.id}
-                        className="flex items-center justify-between p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors"
+                        className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors gap-3"
                       >
-                        <div className="flex items-center gap-4 flex-1">
-                          <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center text-3xl">
+                        <div className="flex items-start gap-3 flex-1 w-full min-w-0">
+                          <div className="w-12 h-12 flex-shrink-0 rounded-lg bg-primary/10 flex items-center justify-center text-2xl">
                             🎯
                           </div>
-                          <div className="flex-1">
-                            <p className="font-semibold text-foreground">{quiz.title}</p>
-                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{quiz.description}</p>
-                            <div className="flex items-center gap-3 mt-2">
-                              <Badge variant="outline">{quiz.questions.length} questions</Badge>
-                              <Badge variant="secondary">{quiz.totalPoints} points</Badge>
-                              <Badge variant={quiz.isPublished ? 'default' : 'secondary'}>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm text-foreground truncate">{quiz.title}</p>
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{quiz.description}</p>
+                            <div className="flex flex-wrap items-center gap-2 mt-2">
+                              <Badge variant="outline" className="text-xs">{quiz.questions.length} questions</Badge>
+                              <Badge variant="secondary" className="text-xs">{quiz.totalPoints} points</Badge>
+                              <Badge variant={quiz.isPublished ? 'default' : 'secondary'} className="text-xs">
                                 {quiz.isPublished ? 'Published' : 'Draft'}
                               </Badge>
-                              {quiz.isMultiplayer && <Badge variant="secondary">Multiplayer</Badge>}
+                              {quiz.isMultiplayer && <Badge variant="secondary" className="text-xs">Multiplayer</Badge>}
                               <span className="text-xs text-muted-foreground">
-                                {quiz.timeLimit} minutes
+                                {quiz.timeLimit} min
                               </span>
-                              <span className="text-xs text-muted-foreground">
-                                Difficulty: {quiz.difficulty}
+                              <span className="text-xs text-muted-foreground hidden sm:inline">
+                                {quiz.difficulty}
                               </span>
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                           <Button variant="ghost" size="sm">
-                            <BarChart3 className="h-4 w-4" />
+                            <BarChart3 className="h-3 w-3" />
                           </Button>
                           <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-3 w-3" />
                           </Button>
                           <Button 
                             variant="ghost" 
                             size="sm" 
                             onClick={() => handleDeleteQuiz(quiz.id, quiz.title)}
                           >
-                            <Trash2 className="h-4 w-4 text-destructive" />
+                            <Trash2 className="h-3 w-3 text-destructive" />
                           </Button>
                         </div>
                       </div>

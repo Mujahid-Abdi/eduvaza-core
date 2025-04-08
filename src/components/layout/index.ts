@@ -2,3 +2,4 @@ export { Navbar } from './Navbar';
 export { Footer } from './Footer';
 export { MainLayout } from './MainLayout';
 export { DashboardLayout } from './DashboardLayout';
+export { MobileBottomNav } from './MobileBottomNav';

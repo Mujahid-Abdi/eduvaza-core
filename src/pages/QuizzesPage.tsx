@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect, useMemo } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, Filter, FileQuestion, Users, Clock, Star, X, Trophy, Bookmark, BookmarkCheck, CheckCircle } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent } from '@/components/ui/card';
@@ -32,11 +32,6 @@ const QuizzesPage = () => {
   const [savedQuizIds, setSavedQuizIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingQuiz, setSavingQuiz] = useState<string | null>(null);
-
-  // Only redirect admin to dashboard, other users can see public pages
-  if (isAuthenticated && user?.role === 'super_admin') {
-    return <Navigate to="/admin" replace />;
-  }
 
   // Fetch quizzes from Firebase
   useEffect(() => {

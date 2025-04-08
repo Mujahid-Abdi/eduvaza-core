@@ -135,25 +135,25 @@ export const AdminDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+          className="grid gap-3 grid-cols-2 lg:grid-cols-4"
         >
           {statCards.map((stat) => (
             <Card key={stat.label} className="overflow-hidden">
-              <CardContent className="p-6">
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">{stat.label}</p>
-                    <p className="text-3xl font-bold text-foreground mt-1">
+                    <p className="text-xs text-muted-foreground">{stat.label}</p>
+                    <p className="text-2xl font-bold text-foreground mt-1">
                       {stat.value.toLocaleString()}
                     </p>
                   </div>
-                  <div className={`p-3 rounded-xl ${stat.bg}`}>
-                    <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                  <div className={`p-2 rounded-lg ${stat.bg}`}>
+                    <stat.icon className={`h-5 w-5 ${stat.color}`} />
                   </div>
                 </div>
-                <div className="flex items-center gap-1 mt-4 text-sm text-success">
-                  <TrendingUp className="h-4 w-4" />
-                  <span>+12% from last month</span>
+                <div className="flex items-center gap-1 mt-3 text-xs text-success">
+                  <TrendingUp className="h-3 w-3" />
+                  <span>+12%</span>
                 </div>
               </CardContent>
             </Card>
@@ -167,13 +167,13 @@ export const AdminDashboard = () => {
           transition={{ delay: 0.2 }}
         >
           <Tabs defaultValue="overview" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="schools">Schools</TabsTrigger>
-              <TabsTrigger value="users">Users</TabsTrigger>
-              <TabsTrigger value="courses">Courses</TabsTrigger>
-              <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
-              <TabsTrigger value="reports">Reports</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
+              <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+              <TabsTrigger value="schools" className="text-xs sm:text-sm">Schools</TabsTrigger>
+              <TabsTrigger value="users" className="text-xs sm:text-sm">Users</TabsTrigger>
+              <TabsTrigger value="courses" className="text-xs sm:text-sm">Courses</TabsTrigger>
+              <TabsTrigger value="quizzes" className="text-xs sm:text-sm">Quizzes</TabsTrigger>
+              <TabsTrigger value="reports" className="text-xs sm:text-sm">Reports</TabsTrigger>
             </TabsList>
 
             {/* Overview Tab */}
@@ -194,34 +194,36 @@ export const AdminDashboard = () => {
                       {pendingSchools.map((school) => (
                         <div
                           key={school.id}
-                          className="flex items-center justify-between p-4 rounded-xl border border-border"
+                          className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-lg border border-border gap-3"
                         >
-                          <div className="flex items-center gap-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-warning/10 text-warning font-bold">
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-warning/10 text-warning font-bold text-sm">
                               {school.name[0]}
                             </div>
-                            <div>
-                              <p className="font-semibold text-foreground">{school.name}</p>
-                              <p className="text-sm text-muted-foreground">{school.email}</p>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-semibold text-sm text-foreground truncate">{school.name}</p>
+                              <p className="text-xs text-muted-foreground truncate">{school.email}</p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Button variant="outline" size="sm">
-                              <Eye className="h-4 w-4 mr-1" />
-                              View
+                          <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
+                              <Eye className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">View</span>
                             </Button>
                             <Button 
                               variant="default" 
                               size="sm"
                               onClick={handleApproveSchool}
+                              className="flex-1 sm:flex-none"
                             >
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Approve
+                              <CheckCircle className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">Approve</span>
                             </Button>
                             <Button 
                               variant="destructive" 
                               size="sm"
                               onClick={handleRejectSchool}
+                              className="flex-1 sm:flex-none"
                             >
                               Reject
                             </Button>
@@ -284,32 +286,32 @@ export const AdminDashboard = () => {
                     {mockSchools.map((school) => (
                       <div
                         key={school.id}
-                        className="flex items-center justify-between p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors"
+                        className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors gap-3"
                       >
-                        <div className="flex items-center gap-4">
-                          <div className={`flex h-10 w-10 items-center justify-center rounded-lg font-bold ${
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className={`flex h-8 w-8 items-center justify-center rounded-lg font-bold text-sm ${
                             school.status === 'approved' ? 'bg-success/10 text-success' :
                             school.status === 'pending' ? 'bg-warning/10 text-warning' :
                             'bg-destructive/10 text-destructive'
                           }`}>
                             {school.name[0]}
                           </div>
-                          <div>
-                            <p className="font-medium text-foreground">{school.name}</p>
-                            <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
-                              <span className="flex items-center gap-1">
-                                <Mail className="h-3 w-3" />
-                                {school.email}
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-sm text-foreground truncate">{school.name}</p>
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-xs text-muted-foreground mt-1">
+                              <span className="flex items-center gap-1 truncate">
+                                <Mail className="h-3 w-3 flex-shrink-0" />
+                                <span className="truncate">{school.email}</span>
                               </span>
-                              <span className="flex items-center gap-1">
-                                <MapPin className="h-3 w-3" />
-                                {school.address}
+                              <span className="flex items-center gap-1 truncate">
+                                <MapPin className="h-3 w-3 flex-shrink-0" />
+                                <span className="truncate">{school.address}</span>
                               </span>
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <div className="text-right text-sm">
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                          <div className="text-right text-xs hidden sm:block">
                             <p className="text-muted-foreground">{school.teacherCount} teachers</p>
                             <p className="text-muted-foreground">{school.studentCount} students</p>
                           </div>
@@ -317,18 +319,18 @@ export const AdminDashboard = () => {
                             school.status === 'approved' ? 'default' :
                             school.status === 'pending' ? 'secondary' :
                             'destructive'
-                          }>
+                          } className="text-xs">
                             {school.status}
                           </Badge>
                           <div className="flex gap-1">
                             <Button variant="ghost" size="sm">
-                              <Eye className="h-4 w-4" />
+                              <Eye className="h-3 w-3" />
                             </Button>
                             <Button variant="ghost" size="sm">
-                              <Edit className="h-4 w-4" />
+                              <Edit className="h-3 w-3" />
                             </Button>
                             <Button variant="ghost" size="sm" className="text-destructive">
-                              <Ban className="h-4 w-4" />
+                              <Ban className="h-3 w-3" />
                             </Button>
                           </div>
                         </div>

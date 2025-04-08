@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect, useMemo } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, Filter, BookOpen, Users, Clock, Star, X, CheckCircle } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent } from '@/components/ui/card';
@@ -34,11 +34,6 @@ const CoursesPage = () => {
   const [loading, setLoading] = useState(true);
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>([]);
   const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null);
-
-  // Only redirect admin to dashboard, other users can see public pages
-  if (isAuthenticated && user?.role === 'super_admin') {
-    return <Navigate to="/admin" replace />;
-  }
 
   // Fetch courses and enrollments from Firebase
   useEffect(() => {

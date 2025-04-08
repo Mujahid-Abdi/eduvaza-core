@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { Mail, Phone, MapPin, Send, MessageSquare, Clock, Globe } from 'lucide-react';
-import { Navigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,21 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
 
 const ContactPage = () => {
-  const { isAuthenticated, user } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
     message: '',
   });
-
-  // Only redirect admin to dashboard, other users can see public pages
-  if (isAuthenticated && user?.role === 'super_admin') {
-    return <Navigate to="/admin" replace />;
-  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -7,7 +7,6 @@ import { I18nProvider } from "@/contexts/I18nContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { FirebaseStatus } from "@/components/dev/FirebaseStatus";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import CoursesPage from "./pages/CoursesPage";
@@ -122,8 +121,6 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
-          {/* Development helper - only shows in dev mode */}
-          <FirebaseStatus />
         </TooltipProvider>
       </AuthProvider>
     </I18nProvider>

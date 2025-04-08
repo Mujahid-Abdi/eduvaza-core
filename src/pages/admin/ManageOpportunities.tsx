@@ -156,11 +156,11 @@ const ManageOpportunities = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Manage Opportunities</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold">Manage Opportunities</h1>
+            <p className="text-sm text-muted-foreground mt-1">
               Create and manage global opportunities for students
             </p>
           </div>
@@ -307,88 +307,92 @@ const ManageOpportunities = () => {
               No opportunities yet. Create your first one!
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {opportunities.map((opportunity) => (
-                  <TableRow key={opportunity.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <img
-                          src={opportunity.coverImage}
-                          alt={opportunity.title}
-                          className="w-10 h-10 rounded object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = '/placeholder.svg';
-                          }}
-                        />
-                        <span className="line-clamp-1">{opportunity.title}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {getCategoryLabel(opportunity.category)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={opportunity.isActive ? 'default' : 'secondary'}>
-                        {opportunity.isActive ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(opportunity.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleToggleStatus(opportunity.id, opportunity.isActive)}
-                          title={opportunity.isActive ? 'Deactivate' : 'Activate'}
-                        >
-                          {opportunity.isActive ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => window.open(opportunity.link, '_blank')}
-                          title="View Link"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleEdit(opportunity)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDelete(opportunity.id)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="overflow-x-auto -mx-6 sm:mx-0">
+              <div className="inline-block min-w-full align-middle">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[200px]">Title</TableHead>
+                      <TableHead className="min-w-[100px]">Category</TableHead>
+                      <TableHead className="min-w-[80px]">Status</TableHead>
+                      <TableHead className="min-w-[100px]">Created</TableHead>
+                      <TableHead className="text-right min-w-[150px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {opportunities.map((opportunity) => (
+                      <TableRow key={opportunity.id}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            <img
+                              src={opportunity.coverImage}
+                              alt={opportunity.title}
+                              className="w-10 h-10 rounded object-cover flex-shrink-0"
+                              onError={(e) => {
+                                e.currentTarget.src = '/placeholder.svg';
+                              }}
+                            />
+                            <span className="line-clamp-2 text-sm">{opportunity.title}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs">
+                            {getCategoryLabel(opportunity.category)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={opportunity.isActive ? 'default' : 'secondary'} className="text-xs">
+                            {opportunity.isActive ? 'Active' : 'Inactive'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {new Date(opportunity.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleToggleStatus(opportunity.id, opportunity.isActive)}
+                              title={opportunity.isActive ? 'Deactivate' : 'Activate'}
+                            >
+                              {opportunity.isActive ? (
+                                <EyeOff className="h-3 w-3" />
+                              ) : (
+                                <Eye className="h-3 w-3" />
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => window.open(opportunity.link, '_blank')}
+                              title="View Link"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEdit(opportunity)}
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDelete(opportunity.id)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
