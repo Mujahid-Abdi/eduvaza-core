@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Link, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Users, GraduationCap, Globe, CheckCircle } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -12,10 +12,8 @@ const Index = () => {
   const { t } = useI18n();
   const { isAuthenticated, user } = useAuth();
 
-  // Only redirect admin to dashboard, other users can see public pages
-  if (isAuthenticated && user?.role === 'super_admin') {
-    return <Navigate to="/admin" replace />;
-  }
+  // Don't auto-redirect admins, let them see the public page
+  // Other roles can still access public pages too
 
   const featuredCourses = mockCourses.slice(0, 6);
 
