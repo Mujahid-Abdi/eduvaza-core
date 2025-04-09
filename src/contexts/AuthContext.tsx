@@ -115,7 +115,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   if (isLoading && !user) {
     return (
       <LoadingScreen 
-        message="Initializing EduVaza"
+        message="Initializing AfEdulight"
         submessage={initializationError ? 
           "Having trouble connecting to Firebase. Please check your setup." : 
           "Setting up your learning environment..."

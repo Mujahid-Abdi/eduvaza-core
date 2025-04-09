@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Course Upload - Cloudinary Connection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px 10px 0;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+            padding: 10px;
+            border: 2px dashed #ccc;
+            border-radius: 4px;
+            width: 100%;
+            cursor: pointer;
+        }
+        .progress {
+            width: 100%;
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background: #4CAF50;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .config-info {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .config-info code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Course Upload Test</h1>
+        <p class="subtitle">Test Cloudinary connection and file uploads</p>
+
+        <div class="config-info">
+            <strong>⚙️ Current Configuration:</strong><br>
+            Cloud Name: <code id="cloudName">Loading...</code><br>
+            Upload Preset: <code id="uploadPreset">Loading...</code><br>
+            <small>These values are loaded from your .env file</small>
+        </div>
+
+        <!-- Test 1: Configuration Check -->
+        <div class="test-section">
+            <h3>Test 1: Configuration Check</h3>
+            <p>Verify that Cloudinary credentials are properly configured.</p>
+            <button onclick="testConfiguration()">Run Configuration Test</button>
+            <div id="configResult"></div>
+        </div>
+
+        <!-- Test 2: Image Upload -->
+        <div class="test-section">
+            <h3>Test 2: Image Upload (Cover Image)</h3>
+            <p>Test uploading a small image file (like a course cover image).</p>
+            <input type="file" id="imageFile" accept="image/*">
+            <button onclick="testImageUpload()">Upload Test Image</button>
+            <div id="imageProgress"></div>
+            <div id="imageResult"></div>
+        </div>
+
+        <!-- Test 3: Video Upload -->
+        <div class="test-section">
+            <h3>Test 3: Video Upload (Course Lesson)</h3>
+            <p>Test uploading a video file (this may take longer).</p>
+            <input type="file" id="videoFile" accept="video/*">
+            <button onclick="testVideoUpload()">Upload Test Video</button>
+            <div id="videoProgress"></div>
+            <div id="videoResult"></div>
+        </div>
+
+        <!-- Test 4: Large File Upload -->
+        <div class="test-section">
+            <h3>Test 4: Network Stability</h3>
+            <p>Test upload retry mechanism with a larger file.</p>
+            <input type="file" id="largeFile" accept="video/*,image/*">
+            <button onclick="testLargeFileUpload()">Upload Large File</button>
+            <div id="largeProgress"></div>
+            <div id="largeResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 Console Logs</h3>
+            <p>Check browser console (F12) for detailed error messages.</p>
+            <pre id="logs"></pre>
+        </div>
+    </div>
+
+    <script>
+        // Load configuration from environment
+        const CLOUD_NAME = 'humsjis';
+        const UPLOAD_PRESET = 'eduvaza_uploads';
+
+        document.getElementById('cloudName').textContent = CLOUD_NAME;
+        document.getElementById('uploadPreset').textContent = UPLOAD_PRESET;
+
+        let logs = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}`;
+            logs.push(logMessage);
+            document.getElementById('logs').textContent = logs.join('\n');
+            console.log(logMessage);
+        }
+
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function showProgress(elementId, percentage) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `
+                <div class="progress">
+                    <div class="progress-bar" style="width: ${percentage}%">
+                        ${percentage}%
+                    </div>
+                </div>
+            `;
+        }
+
+        function testConfiguration() {
+            log('Testing configuration...');
+            showStatus('configResult', 'Checking configuration...', 'info');
+
+            if (!CLOUD_NAME || CLOUD_NAME === 'your_cloud_name') {
+                showStatus('configResult', '❌ Cloud name not configured!', 'error');
+                log('ERROR: Cloud name not configured', 'error');
+                return;
+            }
+
+            if (!UPLOAD_PRESET || UPLOAD_PRESET === 'your_upload_preset') {
+                showStatus('configResult', '❌ Upload preset not configured!', 'error');
+                log('ERROR: Upload preset not configured', 'error');
+                return;
+            }
+
+            showStatus('configResult', '✅ Configuration looks good!', 'success');
+            log('Configuration test passed');
+        }
+
+        function uploadFile(file, resourceType, progressElementId, resultElementId) {
+            return new Promise((resolve, reject) => {
+                log(`Starting ${resourceType} upload: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+                
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', UPLOAD_PRESET);
+                formData.append('folder', 'eduvaza/test');
+
+                const xhr = new XMLHttpRequest();
+                xhr.timeout = 300000; // 5 minutes
+
+                xhr.upload.addEventListener('progress', (event) => {
+                    if (event.lengthComputable) {
+                        const percentage = Math.round((event.loaded / event.total) * 100);
+                        showProgress(progressElementId, percentage);
+                        log(`Upload progress: ${percentage}%`);
+                    }
+                });
+
+                xhr.addEventListener('load', () => {
+                    if (xhr.status === 200) {
+                        try {
+                            const result = JSON.parse(xhr.responseText);
+                            log(`Upload successful! URL: ${result.secure_url}`);
+                            showStatus(resultElementId, 
+                                `✅ Upload successful!<br>
+                                URL: <a href="${result.secure_url}" target="_blank">${result.secure_url}</a><br>
+                                Size: ${(result.bytes / 1024 / 1024).toFixed(2)} MB<br>
+                                Format: ${result.format}`, 
+                                'success'
+                            );
+                            resolve(result);
+                        } catch (error) {
+                            log(`ERROR: Failed to parse response: ${error.message}`, 'error');
+                            showStatus(resultElementId, '❌ Failed to parse upload response', 'error');
+                            reject(error);
+                        }
+                    } else {
+                        let errorMessage = `Upload failed with status: ${xhr.status}`;
+                        try {
+                            const errorResponse = JSON.parse(xhr.responseText);
+                            if (errorResponse.error && errorResponse.error.message) {
+                                errorMessage = errorResponse.error.message;
+                            }
+                            log(`ERROR: ${errorMessage}`, 'error');
+                            log(`Response: ${xhr.responseText}`, 'error');
+                        } catch (e) {
+                            log(`ERROR: ${errorMessage}`, 'error');
+                        }
+                        showStatus(resultElementId, `❌ ${errorMessage}`, 'error');
+                        reject(new Error(errorMessage));
+                    }
+                });
+
+                xhr.addEventListener('error', () => {
+                    log('ERROR: Network error during upload', 'error');
+                    showStatus(resultElementId, '❌ Network error. Check your connection.', 'error');
+                    reject(new Error('Network error'));
+                });
+
+                xhr.addEventListener('timeout', () => {
+                    log('ERROR: Upload timed out', 'error');
+                    showStatus(resultElementId, '❌ Upload timed out. File may be too large.', 'error');
+                    reject(new Error('Timeout'));
+                });
+
+                const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`;
+                log(`Uploading to: ${uploadUrl}`);
+                xhr.open('POST', uploadUrl);
+                xhr.send(formData);
+            });
+        }
+
+        function testImageUpload() {
+            const fileInput = document.getElementById('imageFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showStatus('imageResult', '❌ Please select an image file first', 'error');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showStatus('imageResult', '❌ Image too large (max 5MB)', 'error');
+                return;
+            }
+
+            showStatus('imageResult', 'Uploading...', 'info');
+            uploadFile(file, 'image', 'imageProgress', 'imageResult');
+        }
+
+        function testVideoUpload() {
+            const fileInput = document.getElementById('videoFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showStatus('videoResult', '❌ Please select a video file first', 'error');
+                return;
+            }
+
+            if (file.size > 500 * 1024 * 1024) {
+                showStatus('videoResult', '❌ Video too large (max 500MB)', 'error');
+                return;
+            }
+
+            showStatus('videoResult', 'Uploading...', 'info');
+            uploadFile(file, 'video', 'videoProgress', 'videoResult');
+        }
+
+        function testLargeFileUpload() {
+            const fileInput = document.getElementById('largeFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showStatus('largeResult', '❌ Please select a file first', 'error');
+                return;
+            }
+
+            const resourceType = file.type.startsWith('video/') ? 'video' : 'image';
+            showStatus('largeResult', 'Uploading with retry mechanism...', 'info');
+            uploadFile(file, resourceType, 'largeProgress', 'largeResult');
+        }
+
+        // Run configuration test on load
+        window.onload = () => {
+            testConfiguration();
+            log('Test page loaded. Ready to test uploads.');
+        };
+    </script>
+</body>
+</html>

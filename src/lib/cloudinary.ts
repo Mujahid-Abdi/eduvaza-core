@@ -15,7 +15,7 @@ export const cloudinaryConfig = {
   cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'humsjis',
   apiKey: import.meta.env.VITE_CLOUDINARY_API_KEY || '117465414766653',
   apiSecret: import.meta.env.VITE_CLOUDINARY_API_SECRET,
-  uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'eduvaza_uploads'
+  uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'afedulight_uploads'
 };
 
 // Helper function to get optimized image URL

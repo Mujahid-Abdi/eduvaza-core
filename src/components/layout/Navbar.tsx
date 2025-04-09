@@ -29,7 +29,7 @@ export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { href: '/', label: t('nav.home') },
+    { href: '/home', label: t('nav.home') },
     { href: '/courses', label: t('nav.courses') },
     { href: '/quizzes', label: 'Quizzes' },
     { href: '/opportunities', label: 'Opportunities' },
@@ -59,11 +59,9 @@ export const Navbar = () => {
       <nav className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-primary">
-            <span className="text-xl font-bold text-primary-foreground">E</span>
-          </div>
+          <img src="/afedulight-logo.jpg" alt="AfEdulight" className="h-10 w-10" />
           <span className="text-xl font-bold text-foreground">
-            Edu<span className="text-gradient-primary">Vaza</span>
+            Af<span className="text-[#c9a961]">Edu</span><span className="text-[#6b8cbb]">light</span>
           </span>
         </Link>
 

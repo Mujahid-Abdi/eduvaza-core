@@ -1,0 +1,163 @@
+═══════════════════════════════════════════════════════════════
+  TEST HOME PAGE AS DEFAULT LANDING
+═══════════════════════════════════════════════════════════════
+
+WHAT CHANGED?
+-------------
+✅ All users now land on HOME page after login/registration
+✅ Dashboard accessible via "Dashboard" button in navbar
+✅ Unified experience for all user types
+
+
+QUICK TEST
+----------
+1. Start server:
+   cd eduvaza-core
+   npm run dev
+
+2. Test Registration:
+   - Visit: http://localhost:8081/auth/register
+   - Register new account (any role)
+   - After success → Should see HOME page
+   - Check navbar → Should see "Dashboard" button
+
+3. Test Login:
+   - Visit: http://localhost:8081/auth/login
+   - Login with account
+   - Should redirect to HOME page
+   - Check navbar → Should see "Dashboard" button
+
+4. Test Dashboard Access:
+   - Click "Dashboard" button in navbar
+   - Should go to role-specific dashboard
+   - Can return to home by clicking logo
+
+
+DETAILED TEST SCENARIOS
+------------------------
+
+TEST 1: New Student Registration
+---------------------------------
+1. Visit: http://localhost:8081/auth/register
+2. Select "Student" role
+3. Fill in details and submit
+4. Expected: Success message
+5. Wait 3 seconds OR click "Go to Dashboard"
+6. Expected: Redirected to /home (NOT /student)
+7. Check navbar: Should see "Dashboard" button
+8. Click "Dashboard" → Should go to /student
+
+
+TEST 2: Teacher Login
+----------------------
+1. Visit: http://localhost:8081/auth/login
+2. Login as teacher
+3. Expected: Redirected to /home (NOT /teacher)
+4. Check navbar: Should see "Dashboard" button
+5. Click "Dashboard" → Should go to /teacher
+6. Check sidebar: Should see teacher features
+
+
+TEST 3: School Login
+--------------------
+1. Visit: http://localhost:8081/auth/login
+2. Login as school
+3. Expected: Redirected to /home (NOT /school)
+4. Check navbar: Should see "Dashboard" button
+5. Click "Dashboard" → Should go to /school
+6. Check sidebar: Should see school features
+
+
+TEST 4: Admin Login
+-------------------
+1. Visit: http://localhost:8081/auth/login
+2. Login as admin
+3. Expected: Redirected to /home (NOT /admin)
+4. Check navbar: Should see "Dashboard" button
+5. Click "Dashboard" → Should go to /admin
+6. Check sidebar: Should see admin features
+
+
+TEST 5: Root URL Behavior
+--------------------------
+Logged Out:
+1. Visit: http://localhost:8081/
+2. Expected: Redirected to /home
+3. Check navbar: Should see "Login" and "Register"
+
+Logged In:
+1. Visit: http://localhost:8081/
+2. Expected: Redirected to /home
+3. Check navbar: Should see "Dashboard" and "Logout"
+
+
+TEST 6: Navigation Flow
+------------------------
+1. Login as any user
+2. Land on /home
+3. Browse courses, quizzes
+4. Click "Dashboard" → Go to role dashboard
+5. Click logo → Return to /home
+6. Click "Dashboard" again → Go to role dashboard
+
+
+EXPECTED BEHAVIOR
+-----------------
+
+After Login/Registration:
+├─ Student → /home (can access /student via Dashboard button)
+├─ Teacher → /home (can access /teacher via Dashboard button)
+├─ School → /home (can access /school via Dashboard button)
+└─ Admin → /home (can access /admin via Dashboard button)
+
+Navbar Buttons:
+├─ Logged Out → "Login" + "Register"
+└─ Logged In → "Dashboard" + "Logout"
+
+Dashboard Button:
+├─ Student → /student
+├─ Teacher → /teacher
+├─ School → /school
+└─ Admin → /admin
+
+
+TROUBLESHOOTING
+---------------
+
+Problem: Still redirecting to dashboard
+Solution:
+  1. Clear browser cache
+  2. Hard refresh (Ctrl+F5)
+  3. Close all tabs and reopen
+  4. Try incognito window
+
+Problem: Dashboard button not showing
+Solution:
+  1. Make sure you're logged in
+  2. Check console for errors
+  3. Refresh the page
+
+Problem: Can't access dashboard
+Solution:
+  1. Click "Dashboard" button in navbar
+  2. Or type URL directly (/student, /teacher, etc.)
+  3. Check you have correct role
+
+
+SUCCESS CRITERIA
+----------------
+✓ New registration → Lands on /home
+✓ Login → Lands on /home
+✓ Root URL (/) → Redirects to /home
+✓ Dashboard button visible when logged in
+✓ Dashboard button goes to role-specific dashboard
+✓ Can navigate between home and dashboard freely
+
+
+═══════════════════════════════════════════════════════════════
+  READY TO TEST!
+═══════════════════════════════════════════════════════════════
+
+Run: npm run dev
+Test: Register/Login → Should land on home page
+Access Dashboard: Click "Dashboard" button in navbar

@@ -28,11 +28,9 @@ export const Footer = () => {
           {/* About Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-primary">
-                <span className="text-xl font-bold text-primary-foreground">E</span>
-              </div>
+              <img src="/afedulight-logo.jpg" alt="AfEdulight" className="h-10 w-10" />
               <span className="text-xl font-bold">
-                Edu<span className="text-primary">Vaza</span>
+                Af<span className="text-[#c9a961]">Edu</span><span className="text-[#6b8cbb]">light</span>
               </span>
             </div>
             <p className="text-sm text-background/70 leading-relaxed">
@@ -104,7 +102,7 @@ export const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-sm text-background/70">
                 <Mail className="h-4 w-4 text-primary" />
-                hello@eduvaza.com
+                hello@afedulight.com
               </li>
               <li className="flex items-center gap-2 text-sm text-background/70">
                 <Phone className="h-4 w-4 text-primary" />
@@ -121,7 +119,7 @@ export const Footer = () => {
         {/* Bottom Bar */}
         <div className="mt-12 pt-6 border-t border-background/10">
           <p className="text-center text-sm text-background/50">
-            © {new Date().getFullYear()} EduVaza. {t('footer.rights')}
+            © {new Date().getFullYear()} AfEdulight. {t('footer.rights')}
           </p>
         </div>
       </div>

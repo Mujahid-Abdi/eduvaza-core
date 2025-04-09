@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Phone, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { Mail, Phone, Lock, Eye, EyeOff, ArrowRight, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,7 +27,7 @@ export const LoginPage = () => {
   // Redirect when user logs in
   useEffect(() => {
     if (user?.role) {
-      navigate(getRoleBasedRoute(user.role), { replace: true });
+      navigate('/home', { replace: true });
     }
   }, [user, navigate]);
 
@@ -77,13 +77,20 @@ export const LoginPage = () => {
           transition={{ duration: 0.5 }}
           className="w-full max-w-md space-y-8"
         >
+          {/* Back to Home Button */}
+          <Link 
+            to="/home" 
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+          >
+            <Home className="h-4 w-4" />
+            Back to Home
+          </Link>
+
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 mb-8">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-primary">
-              <span className="text-2xl font-bold text-primary-foreground">E</span>
-            </div>
+            <img src="/afedulight-logo.jpg" alt="AfEdulight" className="h-12 w-12" />
             <span className="text-2xl font-bold">
-              Edu<span className="text-gradient-primary">Vaza</span>
+              Af<span className="text-[#c9a961]">Edu</span><span className="text-[#6b8cbb]">light</span>
             </span>
           </Link>
 

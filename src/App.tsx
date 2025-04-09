@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
+import LandingRedirect from "./pages/LandingRedirect";
 import NotFound from "./pages/NotFound";
 import CoursesPage from "./pages/CoursesPage";
 import AboutPage from "./pages/AboutPage";
@@ -15,6 +16,7 @@ import ContactPage from "./pages/ContactPage";
 import QuizzesPage from "./pages/QuizzesPage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
+import PendingApprovalPage from "./pages/auth/PendingApprovalPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminSettings from "./pages/admin/AdminSettings";
 import ManageUsers from "./pages/admin/ManageUsers";
@@ -70,15 +72,17 @@ const App = () => (
             }}
           >
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<LandingRedirect />} />
+              <Route path="/home" element={<Index />} />
               <Route path="/courses" element={<CoursesPage />} />
               <Route path="/quizzes" element={<QuizzesPage />} />
-              <Route path="/quiz/:quizId" element={<QuizTakePage />} />
               <Route path="/opportunities" element={<OpportunitiesPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/contact" element={<ContactPage />} />
+              <Route path="/quiz/:quizId" element={<ProtectedRoute allowedRoles={['student', 'teacher', 'school', 'super_admin']}><QuizTakePage /></ProtectedRoute>} />
               <Route path="/auth/login" element={<LoginPage />} />
               <Route path="/auth/register" element={<RegisterPage />} />
+              <Route path="/auth/pending-approval" element={<PendingApprovalPage />} />
               <Route path="/admin" element={<ProtectedRoute allowedRoles={['super_admin']}><AdminDashboard /></ProtectedRoute>} />
               <Route path="/admin/*" element={<ProtectedRoute allowedRoles={['super_admin']}><AdminDashboard /></ProtectedRoute>} />
               <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['super_admin']}><AdminSettings /></ProtectedRoute>} />

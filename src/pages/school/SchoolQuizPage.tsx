@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, FileQuestion, Calendar, Play, BarChart3, Trophy, Medal, Edit } from 'lucide-react';
+import { Plus, FileQuestion, Calendar, Play, BarChart3, Trophy, Medal, Edit, Trash2 } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -104,6 +104,26 @@ export const SchoolQuizPage = () => {
     }
   };
 
+  const handleDeleteQuiz = async (quizId: string, title: string) => {
+    if (!confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await quizService.deleteQuiz(quizId);
+      toast.success('Quiz deleted successfully');
+      
+      // Refresh quizzes list
+      if (user?.id) {
+        const fetchedQuizzes = await quizService.getQuizzesByTeacher(user.id);
+        setQuizzes(fetchedQuizzes);
+      }
+    } catch (error) {
+      console.error('❌ Error deleting quiz:', error);
+      toast.error('Failed to delete quiz');
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -175,15 +195,20 @@ export const SchoolQuizPage = () => {
                             </div>
                             <FileQuestion className="h-8 w-8 text-primary/50" />
                           </div>
-                          <div className="flex gap-2 mt-4">
+                          <div className="flex flex-wrap gap-2 mt-4">
                             <Button size="sm" variant="outline" onClick={() => { setSelectedQuiz(quiz); setView('schedule'); }}>
                               <Calendar className="h-4 w-4 mr-1" /> Schedule
                             </Button>
                             <Button size="sm" variant="outline" onClick={() => setView('analytics')}>
                               <BarChart3 className="h-4 w-4 mr-1" /> Analytics
                             </Button>
-                            <Button size="sm">
-                              <Play className="h-4 w-4 mr-1" /> Start Live
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleDeleteQuiz(quiz.id!, quiz.title)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" /> Delete
                             </Button>
                           </div>
                         </CardContent>
@@ -222,12 +247,20 @@ export const SchoolQuizPage = () => {
                               </div>
                               <FileQuestion className="h-8 w-8 text-primary/50" />
                             </div>
-                            <div className="flex gap-2 mt-4">
+                            <div className="flex flex-wrap gap-2 mt-4">
                               <Button size="sm" variant="outline" onClick={() => { setSelectedQuiz(quiz); setView('schedule'); }}>
                                 <Calendar className="h-4 w-4 mr-1" /> Schedule
                               </Button>
                               <Button size="sm" variant="outline" onClick={() => setView('analytics')}>
                                 <BarChart3 className="h-4 w-4 mr-1" /> Analytics
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleDeleteQuiz(quiz.id!, quiz.title)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" /> Delete
                               </Button>
                             </div>
                           </CardContent>
@@ -265,9 +298,17 @@ export const SchoolQuizPage = () => {
                               </div>
                               <FileQuestion className="h-8 w-8 text-primary/50" />
                             </div>
-                            <div className="flex gap-2 mt-4">
+                            <div className="flex flex-wrap gap-2 mt-4">
                               <Button size="sm" variant="outline">
                                 <Edit className="h-4 w-4 mr-1" /> Edit
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleDeleteQuiz(quiz.id!, quiz.title)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" /> Delete
                               </Button>
                             </div>
                           </CardContent>

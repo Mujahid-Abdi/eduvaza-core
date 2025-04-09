@@ -19,12 +19,10 @@ export const LoadingScreen = ({
         className="text-center space-y-6"
       >
         {/* Logo */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-primary">
-            <span className="text-3xl font-bold text-primary-foreground">E</span>
-          </div>
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <img src="/afedulight-logo.jpg" alt="AfEdulight" className="h-16 w-16" />
           <span className="text-3xl font-bold">
-            Edu<span className="text-gradient-primary">Vaza</span>
+            Af<span className="text-[#c9a961]">Edu</span><span className="text-[#6b8cbb]">light</span>
           </span>
         </div>
 

@@ -15,15 +15,16 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
     
-    // Courses collection - allow read for authenticated users
+    // Courses collection - allow public read, authenticated write
     match /courses/{courseId} {
-      allow read: if request.auth != null;
+      allow read: if true; // Public read access for browsing
       allow write: if request.auth != null;
     }
     
-    // Quizzes collection - allow read/write for authenticated users
+    // Quizzes collection - allow public read, authenticated write
     match /quizzes/{quizId} {
-      allow read, write: if request.auth != null;
+      allow read: if true; // Public read access for browsing
+      allow write: if request.auth != null;
     }
     
     // Quiz attempts - allow read/write for authenticated users

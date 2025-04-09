@@ -1,0 +1,149 @@
+═══════════════════════════════════════════════════════════════
+  TEST LOGIN REDIRECTS - QUICK GUIDE
+═══════════════════════════════════════════════════════════════
+
+WHAT WAS DONE
+-------------
+✅ Courses: "Enroll" button → Redirects to login
+✅ Quizzes: "Start Quiz" button → Redirects to login
+✅ Quizzes: "Save" button → Redirects to login
+✅ Quizzes: "Register" button → Redirects to login
+✅ Opportunities: "Learn More" button → Redirects to login
+
+
+QUICK TEST
+----------
+
+1. Logout or use incognito window
+2. Test each page (see below)
+3. Verify redirects work
+4. Login and verify actions work
+
+
+TEST 1: COURSES PAGE
+--------------------
+URL: http://localhost:8081/courses
+
+As Guest:
+1. Browse courses ✅ (should work)
+2. Click "Enroll" on any course
+3. Expected:
+   - Toast: "Authentication Required"
+   - Redirect to: /auth/login
+4. Login
+5. Try enrolling again
+6. Expected: Enrollment works ✅
+
+
+TEST 2: QUIZZES PAGE
+--------------------
+URL: http://localhost:8081/quizzes
+
+As Guest:
+1. Browse quizzes ✅ (should work)
+2. Click "Start Quiz" on any quiz
+3. Expected:
+   - Toast: "Please login or register to take quizzes"
+   - Redirect to: /auth/login
+
+4. Go back, click bookmark icon (Save)
+5. Expected:
+   - Toast: "Please login to save quizzes"
+   - Redirect to: /auth/login
+
+6. Go back, click "Register" on multiplayer quiz
+7. Expected:
+   - Toast: "Please login to register for quizzes"
+   - Redirect to: /auth/login
+
+8. Login
+9. Try actions again
+10. Expected: All actions work ✅
+
+
+TEST 3: OPPORTUNITIES PAGE
+---------------------------
+URL: http://localhost:8081/opportunities
+
+As Guest:
+1. Browse opportunities ✅ (should work)
+2. Click "Learn More" on any opportunity
+3. Expected:
+   - Toast: "Please login to access opportunities"
+   - Redirect to: /auth/login
+4. Login
+5. Click "Learn More" again
+6. Expected: External link opens ✅
+
+
+EXPECTED BEHAVIOR
+-----------------
+
+Guest User (Not Logged In):
+├─ Can VIEW all pages ✅
+├─ Can SEARCH/FILTER ✅
+├─ Cannot ENROLL ❌ → Login redirect
+├─ Cannot START QUIZ ❌ → Login redirect
+├─ Cannot SAVE QUIZ ❌ → Login redirect
+├─ Cannot ACCESS LINKS ❌ → Login redirect
+└─ See clear error messages
+
+Logged In User:
+├─ Can VIEW all pages ✅
+├─ Can SEARCH/FILTER ✅
+├─ Can ENROLL ✅
+├─ Can START QUIZ ✅
+├─ Can SAVE QUIZ ✅
+└─ Can ACCESS LINKS ✅
+
+
+TOAST MESSAGES TO VERIFY
+-------------------------
+
+Courses:
+"Authentication Required - Please login to enroll in courses"
+
+Quizzes (Start):
+"Please login or register to take quizzes"
+
+Quizzes (Save):
+"Please login to save quizzes"
+
+Quizzes (Register):
+"Please login to register for quizzes"
+
+Opportunities:
+"Please login to access opportunities"
+
+
+TROUBLESHOOTING
+---------------
+
+Not redirecting?
+→ Clear browser cache
+→ Hard refresh (Ctrl+F5)
+→ Try incognito window
+
+Still can access without login?
+→ Check browser console for errors
+→ Verify you're logged out
+→ Check authentication state
+
+
+SUCCESS CRITERIA
+----------------
+✓ Guest can browse all pages
+✓ Guest cannot take actions
+✓ Actions show toast message
+✓ Actions redirect to /auth/login
+✓ After login, actions work
+✓ Clear feedback at every step
+
+
+═══════════════════════════════════════════════════════════════
+  READY TO TEST!
+═══════════════════════════════════════════════════════════════
+
+Run: npm run dev
+Test: Logout → Try actions → Should redirect to login
+Verify: Login → Try actions → Should work

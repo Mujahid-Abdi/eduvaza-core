@@ -107,11 +107,26 @@ export const coursesService = {
 
   async createCourse(data: Omit<Course, 'id'>): Promise<Course> {
     try {
+      console.log('CoursesService: Creating course...', {
+        title: data.title,
+        category: data.category,
+        teacherId: data.teacherId,
+        schoolId: data.schoolId
+      });
+      
       const courseId = await firebaseService.createCourse(data);
+      console.log('CoursesService: Course created with ID:', courseId);
+      
       const course = await firebaseService.getCourse(courseId);
+      if (!course) {
+        throw new Error('Course was created but could not be retrieved');
+      }
+      
+      console.log('CoursesService: Course retrieved successfully');
       return course as Course;
-    } catch (error) {
-      console.error('Error creating course:', error);
+    } catch (error: any) {
+      console.error('CoursesService: Error creating course:', error);
+      // Re-throw with original error message
       throw error;
     }
   },

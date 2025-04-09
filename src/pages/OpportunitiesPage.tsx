@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,8 +8,11 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { opportunitiesService } from '@/services/opportunities';
 import { Opportunity } from '@/types';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 const OpportunitiesPage = () => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
@@ -25,9 +29,20 @@ const OpportunitiesPage = () => {
     } catch (error) {
       console.error('Error loading opportunities:', error);
       toast.error('Failed to load opportunities');
+      setOpportunities([]);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLearnMore = (opportunity: Opportunity) => {
+    if (!isAuthenticated) {
+      toast.error('Please login to access opportunities');
+      navigate('/auth/login');
+      return;
+    }
+    // Open external link
+    window.open(opportunity.link, '_blank', 'noopener,noreferrer');
   };
 
   const getCategoryIcon = (category: string) => {
@@ -169,17 +184,14 @@ const OpportunitiesPage = () => {
                 </CardHeader>
 
                 <CardContent>
-                  <a
-                    href={opportunity.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full"
+                  <Button 
+                    className="w-full" 
+                    variant="default"
+                    onClick={() => handleLearnMore(opportunity)}
                   >
-                    <Button className="w-full" variant="default">
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Learn More
-                    </Button>
-                  </a>
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Learn More
+                  </Button>
                 </CardContent>
               </Card>
             ))}

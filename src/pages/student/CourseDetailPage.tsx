@@ -321,7 +321,7 @@ export const CourseDetailPage = () => {
                         <Mail className="h-5 w-5 text-primary" />
                         <div>
                           <p className="text-sm font-medium">Email</p>
-                          <p className="text-sm text-muted-foreground">instructor@eduvaza.com</p>
+                          <p className="text-sm text-muted-foreground">instructor@afedulight.com</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50">

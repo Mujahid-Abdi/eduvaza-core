@@ -30,6 +30,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { aiStudyAssistantService, AIResult } from "@/services/aiStudyAssistant";
@@ -70,6 +71,16 @@ export const AIStudyAssistant = () => {
   // Edit and Preview modes
   const [isEditing, setIsEditing] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  
+  // Quiz upload configuration
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [quizUploadConfig, setQuizUploadConfig] = useState({
+    isMultiplayer: false,
+    scheduledStartTime: '',
+    scheduledEndTime: '',
+    registrationDeadline: '',
+    maxParticipants: 100,
+  });
 
   // Question generation options
   const [questionType, setQuestionType] = useState<string>("multiple_choice");
@@ -245,6 +256,28 @@ export const AIStudyAssistant = () => {
       return;
     }
 
+    // Validate multiplayer scheduling
+    if (quizUploadConfig.isMultiplayer) {
+      if (!quizUploadConfig.scheduledStartTime || !quizUploadConfig.scheduledEndTime || !quizUploadConfig.registrationDeadline) {
+        toast.error("Please fill in all scheduling fields for multiplayer quiz");
+        return;
+      }
+
+      const startTime = new Date(quizUploadConfig.scheduledStartTime);
+      const endTime = new Date(quizUploadConfig.scheduledEndTime);
+      const regDeadline = new Date(quizUploadConfig.registrationDeadline);
+
+      if (endTime <= startTime) {
+        toast.error("End time must be after start time");
+        return;
+      }
+
+      if (regDeadline >= startTime) {
+        toast.error("Registration deadline must be before start time");
+        return;
+      }
+    }
+
     setIsUploading(true);
 
     try {
@@ -264,26 +297,52 @@ export const AIStudyAssistant = () => {
         order: index + 1,
       }));
 
-      await quizService.createQuiz({
+      const quizData: any = {
         title: file?.name?.replace(".pdf", "") || "AI Generated Quiz",
         description: `Quiz generated from ${file?.name || "uploaded PDF"} using AI Study Assistant`,
-        questions: quizQuestions as any,
+        questions: quizQuestions,
         teacherId: user?.id || "",
         teacherName: user?.name || "",
         schoolId: user?.schoolId || undefined,
         difficulty: difficulty as any,
         isPublished: true,
-        quizType: "practice",
-      });
+        isMultiplayer: quizUploadConfig.isMultiplayer,
+        quizType: quizUploadConfig.isMultiplayer ? "scheduled" : "practice",
+      };
 
-      toast.success("Quiz uploaded to public quiz page!");
+      // Add scheduling fields for multiplayer
+      if (quizUploadConfig.isMultiplayer) {
+        quizData.scheduledStartTime = new Date(quizUploadConfig.scheduledStartTime);
+        quizData.scheduledEndTime = new Date(quizUploadConfig.scheduledEndTime);
+        quizData.registrationDeadline = new Date(quizUploadConfig.registrationDeadline);
+        quizData.maxParticipants = quizUploadConfig.maxParticipants;
+        quizData.registeredStudents = [];
+      }
+
+      await quizService.createQuiz(quizData);
+
+      toast.success(`Quiz uploaded to public ${quizUploadConfig.isMultiplayer ? 'multiplayer' : 'self-practice'} page!`);
       setIsPreviewMode(false);
+      setShowUploadDialog(false);
+      
+      // Reset config
+      setQuizUploadConfig({
+        isMultiplayer: false,
+        scheduledStartTime: '',
+        scheduledEndTime: '',
+        registrationDeadline: '',
+        maxParticipants: 100,
+      });
     } catch (error: any) {
       console.error("Upload error:", error);
       toast.error(error.message || "Failed to upload quiz");
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const openUploadDialog = () => {
+    setShowUploadDialog(true);
   };
 
   const handleCopy = async () => {
@@ -437,7 +496,7 @@ export const AIStudyAssistant = () => {
             questions={parsedQuestions}
             title={file?.name?.replace(".pdf", "") || "AI Generated Quiz"}
             onClose={() => setIsPreviewMode(false)}
-            onPublish={handleUploadAsQuiz}
+            onPublish={openUploadDialog}
           />
         </div>
       </DashboardLayout>
@@ -731,7 +790,7 @@ export const AIStudyAssistant = () => {
                         </Button>
                         <Button
                           className="flex-1 gap-2"
-                          onClick={handleUploadAsQuiz}
+                          onClick={openUploadDialog}
                           disabled={isUploading}
                         >
                           {isUploading ? (
@@ -822,6 +881,183 @@ export const AIStudyAssistant = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Quiz Upload Configuration Dialog */}
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Configure Quiz Upload</DialogTitle>
+            <DialogDescription>
+              Choose quiz type and configure settings before publishing to the public quiz page
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Quiz Type Selection */}
+            <div className="space-y-2">
+              <Label>Quiz Type</Label>
+              <Select
+                value={quizUploadConfig.isMultiplayer ? 'multiplayer' : 'self-practice'}
+                onValueChange={(value) => {
+                  setQuizUploadConfig(prev => ({ 
+                    ...prev, 
+                    isMultiplayer: value === 'multiplayer'
+                  }));
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="self-practice">
+                    <div className="flex flex-col items-start">
+                      <span className="font-medium">Self Practice</span>
+                      <span className="text-xs text-muted-foreground">Students can take anytime</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="multiplayer">
+                    <div className="flex flex-col items-start">
+                      <span className="font-medium">Multiplayer (Scheduled)</span>
+                      <span className="text-xs text-muted-foreground">Live competitive quiz with registration</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Multiplayer Scheduling Fields */}
+            {quizUploadConfig.isMultiplayer && (
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+                <h4 className="font-semibold text-sm">Multiplayer Schedule</h4>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="upload-startDate">Start Date *</Label>
+                    <Input
+                      id="upload-startDate"
+                      type="date"
+                      value={quizUploadConfig.scheduledStartTime ? quizUploadConfig.scheduledStartTime.split('T')[0] : ''}
+                      onChange={(e) => {
+                        const date = e.target.value;
+                        const time = quizUploadConfig.scheduledStartTime ? quizUploadConfig.scheduledStartTime.split('T')[1] : '00:00';
+                        setQuizUploadConfig(prev => ({ ...prev, scheduledStartTime: `${date}T${time}` }));
+                      }}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="upload-startTime">Start Time *</Label>
+                    <Input
+                      id="upload-startTime"
+                      type="time"
+                      value={quizUploadConfig.scheduledStartTime ? quizUploadConfig.scheduledStartTime.split('T')[1] : ''}
+                      onChange={(e) => {
+                        const time = e.target.value;
+                        const date = quizUploadConfig.scheduledStartTime ? quizUploadConfig.scheduledStartTime.split('T')[0] : new Date().toISOString().split('T')[0];
+                        setQuizUploadConfig(prev => ({ ...prev, scheduledStartTime: `${date}T${time}` }));
+                      }}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="upload-endDate">End Date *</Label>
+                    <Input
+                      id="upload-endDate"
+                      type="date"
+                      value={quizUploadConfig.scheduledEndTime ? quizUploadConfig.scheduledEndTime.split('T')[0] : ''}
+                      onChange={(e) => {
+                        const date = e.target.value;
+                        const time = quizUploadConfig.scheduledEndTime ? quizUploadConfig.scheduledEndTime.split('T')[1] : '23:59';
+                        setQuizUploadConfig(prev => ({ ...prev, scheduledEndTime: `${date}T${time}` }));
+                      }}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="upload-endTime">End Time *</Label>
+                    <Input
+                      id="upload-endTime"
+                      type="time"
+                      value={quizUploadConfig.scheduledEndTime ? quizUploadConfig.scheduledEndTime.split('T')[1] : ''}
+                      onChange={(e) => {
+                        const time = e.target.value;
+                        const date = quizUploadConfig.scheduledEndTime ? quizUploadConfig.scheduledEndTime.split('T')[0] : new Date().toISOString().split('T')[0];
+                        setQuizUploadConfig(prev => ({ ...prev, scheduledEndTime: `${date}T${time}` }));
+                      }}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="upload-registrationDeadline">Registration Deadline *</Label>
+                    <Input
+                      id="upload-registrationDeadline"
+                      type="datetime-local"
+                      value={quizUploadConfig.registrationDeadline}
+                      onChange={(e) => setQuizUploadConfig(prev => ({ ...prev, registrationDeadline: e.target.value }))}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="upload-maxParticipants">Max Participants</Label>
+                    <Input
+                      id="upload-maxParticipants"
+                      type="number"
+                      min={1}
+                      value={quizUploadConfig.maxParticipants}
+                      onChange={(e) => setQuizUploadConfig(prev => ({ ...prev, maxParticipants: parseInt(e.target.value) || 100 }))}
+                    />
+                  </div>
+                </div>
+
+                <p className="text-xs text-muted-foreground">
+                  Students must register before the deadline. The quiz will automatically convert to self-practice after the end time.
+                </p>
+              </div>
+            )}
+
+            {/* Quiz Info Summary */}
+            <Card className="bg-muted/50">
+              <CardContent className="p-4">
+                <h4 className="font-semibold mb-2">Quiz Summary</h4>
+                <div className="space-y-1 text-sm">
+                  <p><span className="text-muted-foreground">Title:</span> {file?.name?.replace(".pdf", "") || "AI Generated Quiz"}</p>
+                  <p><span className="text-muted-foreground">Questions:</span> {parsedQuestions.length}</p>
+                  <p><span className="text-muted-foreground">Difficulty:</span> {difficulty}</p>
+                  <p><span className="text-muted-foreground">Type:</span> {quizUploadConfig.isMultiplayer ? 'Multiplayer (Scheduled)' : 'Self Practice'}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUploadDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUploadAsQuiz} disabled={isUploading}>
+              {isUploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Upload Quiz
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };

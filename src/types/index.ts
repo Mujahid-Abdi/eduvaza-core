@@ -1,6 +1,8 @@
-// EduVaza Type Definitions
+// AfEdulight Type Definitions
 
 export type UserRole = 'super_admin' | 'school' | 'teacher' | 'student';
+
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 
 export type Language = 'en' | 'fr' | 'ar' | 'sw' | 'am';
 
@@ -14,6 +16,28 @@ export interface User {
   schoolId?: string;
   createdAt: Date;
   isActive: boolean;
+  approvalStatus?: ApprovalStatus;
+  approvalDocuments?: ApprovalDocuments;
+  rejectionReason?: string;
+  approvedAt?: Date;
+  approvedBy?: string;
+}
+
+export interface ApprovalDocuments {
+  // For Teachers
+  educationCertificate?: string; // URL to uploaded certificate
+  experienceDocument?: string; // URL to uploaded experience document
+  motivationLetter?: string; // URL to uploaded motivation letter
+  
+  // For Schools
+  governmentLicense?: string; // URL to uploaded government license
+  schoolExperienceDocument?: string; // URL to uploaded experience document
+  schoolMotivationLetter?: string; // URL to uploaded motivation letter
+  
+  // Metadata
+  uploadedAt?: Date;
+  verifiedAt?: Date;
+  verifiedBy?: string;
 }
 
 export interface School {
@@ -27,6 +51,10 @@ export interface School {
   teacherCount: number;
   studentCount: number;
   createdAt: Date;
+  approvalDocuments?: ApprovalDocuments;
+  rejectionReason?: string;
+  approvedAt?: Date;
+  approvedBy?: string;
 }
 
 export interface Teacher {
@@ -79,6 +107,16 @@ export interface Course {
   lessons: Lesson[];
   enrolledCount: number;
   isPublished: boolean;
+  isPaid: boolean;
+  price?: number;
+  currency?: string;
+  paymentDetails?: {
+    bankName?: string;
+    accountNumber?: string;
+    accountName?: string;
+    mobileMoneyNumber?: string;
+    mobileMoneyProvider?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }

@@ -24,6 +24,7 @@ import {
   Sparkles,
   Menu,
   X,
+  Home,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -59,6 +60,7 @@ const getNavItems = (role: UserRole, t: (key: string) => string): NavItem[] => {
         { icon: <FileQuestion className="h-5 w-5" />, label: 'Quizzes', href: '/quizzes' },
         { icon: <Sparkles className="h-5 w-5" />, label: 'Opportunities', href: '/opportunities' },
         { icon: <Flag className="h-5 w-5" />, label: 'Reports', href: '/reports' },
+        { icon: <Sparkles className="h-5 w-5" />, label: 'AI Assistant', href: '/ai-assistant' },
       ];
     case 'school':
       return [
@@ -134,10 +136,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       <div className="fixed top-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-lg border-b border-border">
         <div className="flex items-center justify-between h-14 px-4">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-primary">
-              <span className="text-sm font-bold text-primary-foreground">E</span>
-            </div>
-            <span className="text-lg font-bold">EduVaza</span>
+            <img src="/afedulight-logo.jpg" alt="AfEdulight" className="h-8 w-8" />
+            <span className="text-lg font-bold">AfEdulight</span>
           </Link>
           <div className="flex items-center gap-2">
             <button
@@ -199,6 +199,14 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             {/* Bottom Actions */}
             <div className="p-2 border-t border-border space-y-1">
               <Link
+                to="/home"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-foreground hover:bg-muted transition-colors"
+              >
+                <Home className="h-5 w-5" />
+                <span className="text-sm font-medium">Home</span>
+              </Link>
+              <Link
                 to={`${basePath}/settings`}
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-foreground hover:bg-muted transition-colors"
@@ -228,10 +236,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
           {!collapsed && (
             <Link to="/" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary">
-                <span className="text-lg font-bold text-sidebar-primary-foreground">E</span>
-              </div>
-              <span className="text-lg font-bold">EduVaza</span>
+              <img src="/afedulight-logo.jpg" alt="AfEdulight" className="h-9 w-9" />
+              <span className="text-lg font-bold">AfEdulight</span>
             </Link>
           )}
           <Button
@@ -282,6 +288,14 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
         {/* Bottom Actions */}
         <div className="p-2 border-t border-sidebar-border space-y-1">
+          {/* Home Link */}
+          <Link
+            to="/home"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent transition-colors"
+          >
+            <Home className="h-5 w-5" />
+            {!collapsed && <span className="text-sm font-medium">Home</span>}
+          </Link>
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}

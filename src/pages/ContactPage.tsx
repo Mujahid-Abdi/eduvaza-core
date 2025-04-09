@@ -35,8 +35,8 @@ const ContactPage = () => {
     {
       icon: <Mail className="h-6 w-6" />,
       title: 'Email Us',
-      details: 'support@eduvaza.com',
-      subdetails: 'info@eduvaza.com',
+      details: 'support@afedulight.com',
+      subdetails: 'info@afedulight.com',
     },
     {
       icon: <Phone className="h-6 w-6" />,
@@ -299,7 +299,7 @@ const ContactPage = () => {
               Frequently Asked Questions
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Find quick answers to common questions about EduVaza
+              Find quick answers to common questions about AfEdulight
             </p>
           </motion.div>
           <div className="max-w-3xl mx-auto space-y-4">
