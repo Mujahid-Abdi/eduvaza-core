@@ -160,7 +160,14 @@
     "multiplayer": "متعدد اللاعبين",
     "scheduled": "مجدول",
     "completed": "مكتمل",
-    "results": "النتائج"
+    "results": "النتائج",
+    "exploreQuizzes": "استكشف الاختبارات",
+    "testKnowledge": "اختبر معرفتك بالاختبارات التفاعلية. تحدَّ نفسك وتنافس مع الآخرين.",
+    "selfPractice": "تدريب ذاتي",
+    "multiplayerMode": "متعدد اللاعبين",
+    "joinGame": "انضم للعبة",
+    "noQuizzesFound": "لم يتم العثور على اختبارات",
+    "tryAdjusting": "حاول تعديل البحث أو الفلاتر"
   },
   "gamification": {
     "leaderboard": "لوحة المتصدرين",
