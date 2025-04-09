@@ -4,7 +4,7 @@ export type UserRole = 'super_admin' | 'school' | 'teacher' | 'student';
 
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 
-export type Language = 'en' | 'fr' | 'ar' | 'sw' | 'am';
+export type Language = 'en' | 'fr' | 'ar' | 'sw' | 'am' | 'ha';
 
 export interface User {
   id: string;
