@@ -477,6 +477,118 @@ export const quizService = {
     }
   },
 
+  // Multiplayer Quiz Registration
+  async registerForQuiz(quizId: string, studentId: string): Promise<void> {
+    try {
+      const quiz = await this.getQuizById(quizId);
+      if (!quiz) throw new Error('Quiz not found');
+
+      // Check if registration is still open
+      if (quiz.registrationDeadline && new Date() > new Date(quiz.registrationDeadline)) {
+        throw new Error('Registration deadline has passed');
+      }
+
+      // Check if already registered
+      const registeredStudents = quiz.registeredStudents || [];
+      if (registeredStudents.includes(studentId)) {
+        throw new Error('Already registered for this quiz');
+      }
+
+      // Check if max participants reached
+      if (quiz.maxParticipants && registeredStudents.length >= quiz.maxParticipants) {
+        throw new Error('Maximum participants reached');
+      }
+
+      // Add student to registered list
+      await updateDoc(doc(db, 'quizzes', quizId), {
+        registeredStudents: [...registeredStudents, studentId],
+        updatedAt: Timestamp.now(),
+      });
+    } catch (error) {
+      console.error('Error registering for quiz:', error);
+      throw error;
+    }
+  },
+
+  async unregisterFromQuiz(quizId: string, studentId: string): Promise<void> {
+    try {
+      const quiz = await this.getQuizById(quizId);
+      if (!quiz) throw new Error('Quiz not found');
+
+      const registeredStudents = quiz.registeredStudents || [];
+      const updatedStudents = registeredStudents.filter(id => id !== studentId);
+
+      await updateDoc(doc(db, 'quizzes', quizId), {
+        registeredStudents: updatedStudents,
+        updatedAt: Timestamp.now(),
+      });
+    } catch (error) {
+      console.error('Error unregistering from quiz:', error);
+      throw error;
+    }
+  },
+
+  async isRegisteredForQuiz(quizId: string, studentId: string): Promise<boolean> {
+    try {
+      const quiz = await this.getQuizById(quizId);
+      if (!quiz) return false;
+      
+      const registeredStudents = quiz.registeredStudents || [];
+      return registeredStudents.includes(studentId);
+    } catch (error) {
+      console.error('Error checking registration:', error);
+      return false;
+    }
+  },
+
+  async getRegisteredStudentsCount(quizId: string): Promise<number> {
+    try {
+      const quiz = await this.getQuizById(quizId);
+      if (!quiz) return 0;
+      
+      return (quiz.registeredStudents || []).length;
+    } catch (error) {
+      console.error('Error getting registered students count:', error);
+      return 0;
+    }
+  },
+
+  // Auto-convert expired multiplayer quizzes to self-practice
+  async convertExpiredMultiplayerQuizzes(): Promise<void> {
+    try {
+      const now = new Date();
+      const quizzesQuery = query(
+        collection(db, 'quizzes'),
+        where('isMultiplayer', '==', true),
+        where('isPublished', '==', true)
+      );
+      
+      const snapshot = await getDocs(quizzesQuery);
+      const updates: Promise<void>[] = [];
+
+      snapshot.docs.forEach(docSnapshot => {
+        const quiz = docSnapshot.data() as Quiz;
+        const endTime = quiz.scheduledEndTime ? new Date(quiz.scheduledEndTime) : null;
+        
+        // If end time has passed, convert to self-practice
+        if (endTime && now > endTime) {
+          updates.push(
+            updateDoc(doc(db, 'quizzes', docSnapshot.id), {
+              isMultiplayer: false,
+              quizType: 'practice',
+              updatedAt: Timestamp.now(),
+            })
+          );
+        }
+      });
+
+      await Promise.all(updates);
+      console.log(`✅ Converted ${updates.length} expired multiplayer quizzes to self-practice`);
+    } catch (error) {
+      console.error('Error converting expired quizzes:', error);
+    }
+  },
+
   // Placeholder methods for features to be implemented
   async getScheduledQuizzes(classId?: string): Promise<ScheduledQuiz[]> {
     // TODO: Implement with Firebase

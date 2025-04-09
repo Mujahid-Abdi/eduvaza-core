@@ -40,8 +40,10 @@ const QuizzesPage = () => {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [savedQuizIds, setSavedQuizIds] = useState<string[]>([]);
+  const [registeredQuizIds, setRegisteredQuizIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingQuiz, setSavingQuiz] = useState<string | null>(null);
+  const [registeringQuiz, setRegisteringQuiz] = useState<string | null>(null);
   
   // Quiz detail modal state
   const [showQuizDetail, setShowQuizDetail] = useState(false);
@@ -65,6 +67,10 @@ const QuizzesPage = () => {
       setLoading(true);
       try {
         console.log('🔍 Fetching published quizzes from Firebase...');
+        
+        // Auto-convert expired multiplayer quizzes
+        await quizService.convertExpiredMultiplayerQuizzes();
+        
         const fetchedQuizzes = await quizService.getQuizzes();
         console.log('✅ Fetched', fetchedQuizzes.length, 'published quizzes');
         setQuizzes(fetchedQuizzes);
@@ -73,6 +79,18 @@ const QuizzesPage = () => {
         if (user?.id) {
           const fetchedSavedQuizIds = await quizService.getSavedQuizzes(user.id);
           setSavedQuizIds(fetchedSavedQuizIds);
+          
+          // Fetch registered quizzes
+          const registeredIds: string[] = [];
+          for (const quiz of fetchedQuizzes) {
+            if (quiz.isMultiplayer && quiz.id) {
+              const isRegistered = await quizService.isRegisteredForQuiz(quiz.id, user.id);
+              if (isRegistered) {
+                registeredIds.push(quiz.id);
+              }
+            }
+          }
+          setRegisteredQuizIds(registeredIds);
         }
       } catch (error) {
         console.error('❌ Error fetching quizzes:', error);
@@ -181,6 +199,62 @@ const QuizzesPage = () => {
     e.stopPropagation();
     setSelectedQuizDetail(quiz);
     setShowQuizDetail(true);
+  };
+
+  const handleRegisterForQuiz = async (quizId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    
+    if (!user?.id) {
+      toast.error('Please login to register for quizzes');
+      navigate('/auth/login');
+      return;
+    }
+
+    setRegisteringQuiz(quizId);
+    try {
+      await quizService.registerForQuiz(quizId, user.id);
+      setRegisteredQuizIds(prev => [...prev, quizId]);
+      toast.success('Successfully registered for the quiz!');
+      
+      // Refresh quiz data to update registered count
+      const updatedQuiz = await quizService.getQuizById(quizId);
+      if (updatedQuiz) {
+        setQuizzes(prev => prev.map(q => q.id === quizId ? updatedQuiz : q));
+        if (selectedQuizDetail?.id === quizId) {
+          setSelectedQuizDetail(updatedQuiz);
+        }
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to register for quiz');
+    } finally {
+      setRegisteringQuiz(null);
+    }
+  };
+
+  const handleUnregisterFromQuiz = async (quizId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    
+    if (!user?.id) return;
+
+    setRegisteringQuiz(quizId);
+    try {
+      await quizService.unregisterFromQuiz(quizId, user.id);
+      setRegisteredQuizIds(prev => prev.filter(id => id !== quizId));
+      toast.success('Unregistered from the quiz');
+      
+      // Refresh quiz data
+      const updatedQuiz = await quizService.getQuizById(quizId);
+      if (updatedQuiz) {
+        setQuizzes(prev => prev.map(q => q.id === quizId ? updatedQuiz : q));
+        if (selectedQuizDetail?.id === quizId) {
+          setSelectedQuizDetail(updatedQuiz);
+        }
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to unregister from quiz');
+    } finally {
+      setRegisteringQuiz(null);
+    }
   };
 
   const renderQuizCard = (quiz: Quiz, index: number) => {
@@ -486,6 +560,49 @@ const QuizzesPage = () => {
                 </Badge>
               </div>
 
+              {/* Multiplayer Schedule Info */}
+              {selectedQuizDetail.isMultiplayer && selectedQuizDetail.scheduledStartTime && (
+                <Card className="border-primary/50 bg-primary/5">
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold mb-3 flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Scheduled Event
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Start Time</p>
+                        <p className="font-semibold">
+                          {new Date(selectedQuizDetail.scheduledStartTime).toLocaleString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">End Time</p>
+                        <p className="font-semibold">
+                          {selectedQuizDetail.scheduledEndTime 
+                            ? new Date(selectedQuizDetail.scheduledEndTime).toLocaleString()
+                            : 'Not set'}
+                        </p>
+                      </div>
+                      {selectedQuizDetail.registrationDeadline && (
+                        <div className="col-span-2">
+                          <p className="text-muted-foreground">Registration Deadline</p>
+                          <p className="font-semibold text-warning">
+                            {new Date(selectedQuizDetail.registrationDeadline).toLocaleString()}
+                          </p>
+                        </div>
+                      )}
+                      <div className="col-span-2">
+                        <p className="text-muted-foreground">Registered Students</p>
+                        <p className="font-semibold text-primary">
+                          {(selectedQuizDetail.registeredStudents || []).length}
+                          {selectedQuizDetail.maxParticipants && ` / ${selectedQuizDetail.maxParticipants}`}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Description */}
               <div>
                 <h3 className="font-semibold mb-2">Description</h3>
@@ -562,8 +679,14 @@ const QuizzesPage = () => {
                         <Users className="h-5 w-5 text-purple-500" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold">1.2k</p>
-                        <p className="text-xs text-muted-foreground">Students</p>
+                        <p className="text-2xl font-bold">
+                          {selectedQuizDetail.isMultiplayer 
+                            ? (selectedQuizDetail.registeredStudents || []).length
+                            : '1.2k'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {selectedQuizDetail.isMultiplayer ? 'Registered' : 'Students'}
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -595,44 +718,93 @@ const QuizzesPage = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-4 border-t">
-                {isAuthenticated && (
-                  <Button
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleToggleSaveQuiz(selectedQuizDetail.id!, e);
-                    }}
-                    disabled={savingQuiz === selectedQuizDetail.id}
-                    className="flex-1"
-                  >
-                    {savedQuizIds.includes(selectedQuizDetail.id!) ? (
-                      <>
-                        <BookmarkCheck className="h-4 w-4 mr-2" />
-                        Saved
-                      </>
+              <div className="flex flex-col gap-3 pt-4 border-t">
+                {/* Registration Button for Multiplayer */}
+                {selectedQuizDetail.isMultiplayer && selectedQuizDetail.registrationDeadline && 
+                 new Date() < new Date(selectedQuizDetail.registrationDeadline) && (
+                  <div className="flex gap-3">
+                    {isAuthenticated ? (
+                      registeredQuizIds.includes(selectedQuizDetail.id!) ? (
+                        <Button
+                          variant="outline"
+                          onClick={(e) => handleUnregisterFromQuiz(selectedQuizDetail.id!, e)}
+                          disabled={registeringQuiz === selectedQuizDetail.id}
+                          className="flex-1"
+                        >
+                          <UserPlus className="h-4 w-4 mr-2" />
+                          {registeringQuiz === selectedQuizDetail.id ? 'Processing...' : 'Unregister'}
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={(e) => handleRegisterForQuiz(selectedQuizDetail.id!, e)}
+                          disabled={registeringQuiz === selectedQuizDetail.id}
+                          className="flex-1"
+                        >
+                          <UserPlus className="h-4 w-4 mr-2" />
+                          {registeringQuiz === selectedQuizDetail.id ? 'Registering...' : 'Register Now'}
+                        </Button>
+                      )
                     ) : (
-                      <>
-                        <Bookmark className="h-4 w-4 mr-2" />
-                        Save for Later
-                      </>
+                      <Button
+                        onClick={() => {
+                          setShowQuizDetail(false);
+                          navigate('/auth/login');
+                        }}
+                        className="flex-1"
+                      >
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Login to Register
+                      </Button>
                     )}
-                  </Button>
+                  </div>
                 )}
-                <Button 
-                  className="flex-1" 
-                  onClick={() => {
-                    setShowQuizDetail(false);
-                    if (selectedQuizDetail.isMultiplayer) {
-                      handleStartMultiplayerQuiz(selectedQuizDetail);
-                    } else {
-                      handleStartSelfPractice(selectedQuizDetail.id!);
-                    }
-                  }}
-                >
-                  <Play className="h-4 w-4 mr-2" />
-                  {selectedQuizDetail.isMultiplayer ? 'Join Game' : 'Start Quiz'}
-                </Button>
+
+                {/* Save and Start Buttons */}
+                <div className="flex gap-3">
+                  {isAuthenticated && (
+                    <Button
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleSaveQuiz(selectedQuizDetail.id!, e);
+                      }}
+                      disabled={savingQuiz === selectedQuizDetail.id}
+                      className="flex-1"
+                    >
+                      {savedQuizIds.includes(selectedQuizDetail.id!) ? (
+                        <>
+                          <BookmarkCheck className="h-4 w-4 mr-2" />
+                          Saved
+                        </>
+                      ) : (
+                        <>
+                          <Bookmark className="h-4 w-4 mr-2" />
+                          Save for Later
+                        </>
+                      )}
+                    </Button>
+                  )}
+                  
+                  {/* Start/Join Button - Only show if not multiplayer or if registered/started */}
+                  {(!selectedQuizDetail.isMultiplayer || 
+                    registeredQuizIds.includes(selectedQuizDetail.id!) ||
+                    (selectedQuizDetail.scheduledStartTime && new Date() >= new Date(selectedQuizDetail.scheduledStartTime))) && (
+                    <Button 
+                      className="flex-1" 
+                      onClick={() => {
+                        setShowQuizDetail(false);
+                        if (selectedQuizDetail.isMultiplayer) {
+                          handleStartMultiplayerQuiz(selectedQuizDetail);
+                        } else {
+                          handleStartSelfPractice(selectedQuizDetail.id!);
+                        }
+                      }}
+                    >
+                      <Play className="h-4 w-4 mr-2" />
+                      {selectedQuizDetail.isMultiplayer ? 'Join Game' : 'Start Quiz'}
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           )}
