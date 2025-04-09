@@ -20,6 +20,7 @@ const languages: { code: Language; name: string; flag: string }[] = [
   { code: 'ar', name: 'العربية', flag: '🇸🇦' },
   { code: 'sw', name: 'Kiswahili', flag: '🇰🇪' },
   { code: 'am', name: 'አማርኛ', flag: '🇪🇹' },
+  { code: 'ha', name: 'Hausa', flag: '🇳🇬' },
 ];
 
 export const Navbar = () => {
