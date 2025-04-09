@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, 
@@ -37,12 +38,14 @@ interface QuizBuilderProps {
   onSave: (quiz: Partial<Quiz>) => void;
   onCancel: () => void;
   onGenerateAI?: () => void;
+  userRole?: 'super_admin' | 'school' | 'teacher' | 'student';
 }
 
 type Step = 'details' | 'questions' | 'settings' | 'preview';
 
-export const QuizBuilder = ({ initialQuiz, onSave, onCancel, onGenerateAI }: QuizBuilderProps) => {
+export const QuizBuilder = ({ initialQuiz, onSave, onCancel, onGenerateAI, userRole }: QuizBuilderProps) => {
   const { t } = useI18n();
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<Step>('details');
   const [quiz, setQuiz] = useState<Partial<Quiz>>(initialQuiz || {
     title: '',
@@ -180,13 +183,20 @@ export const QuizBuilder = ({ initialQuiz, onSave, onCancel, onGenerateAI }: Qui
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   Quiz Details
-                  {onGenerateAI && (
-                    <Button variant="outline" size="sm" onClick={onGenerateAI}>
-                      <Sparkles className="h-4 w-4 mr-2 text-warning" />
-                      Generate with AI
-                      <Badge variant="secondary" className="ml-2 text-xs">Draft</Badge>
-                    </Button>
-                  )}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      const aiPath = userRole === 'super_admin' ? '/admin/ai-assistant' : 
+                                     userRole === 'school' ? '/school/ai-assistant' : 
+                                     '/teacher/ai-assistant';
+                      navigate(aiPath);
+                    }}
+                  >
+                    <Sparkles className="h-4 w-4 mr-2 text-warning" />
+                    Generate with AI
+                    <Badge variant="secondary" className="ml-2 text-xs">Draft</Badge>
+                  </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -274,12 +284,18 @@ export const QuizBuilder = ({ initialQuiz, onSave, onCancel, onGenerateAI }: Qui
               <Card className="border-dashed">
                 <CardContent className="py-12 text-center">
                   <p className="text-muted-foreground mb-4">No questions yet. Add your first question above.</p>
-                  {onGenerateAI && (
-                    <Button variant="outline" onClick={onGenerateAI}>
-                      <Sparkles className="h-4 w-4 mr-2 text-warning" />
-                      Generate Questions with AI
-                    </Button>
-                  )}
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      const aiPath = userRole === 'super_admin' ? '/admin/ai-assistant' : 
+                                     userRole === 'school' ? '/school/ai-assistant' : 
+                                     '/teacher/ai-assistant';
+                      navigate(aiPath);
+                    }}
+                  >
+                    <Sparkles className="h-4 w-4 mr-2 text-warning" />
+                    Generate Questions with AI
+                  </Button>
                 </CardContent>
               </Card>
             )}
