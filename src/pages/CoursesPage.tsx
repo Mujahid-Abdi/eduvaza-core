@@ -14,6 +14,7 @@ import { coursesService } from '@/services/courses';
 import { useI18n } from '@/contexts/I18nContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
+import { AIChatbotButton } from '@/components/shared';
 import type { Course } from '@/types';
 import {
   Select,
@@ -177,6 +178,7 @@ const CoursesPage = () => {
 
   return (
     <MainLayout>
+      <AIChatbotButton />
       {/* Hero Section */}
       <section className="bg-gradient-hero py-16">
         <div className="container mx-auto px-4">

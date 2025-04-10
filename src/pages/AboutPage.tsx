@@ -5,6 +5,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/contexts/I18nContext';
+import { AIChatbotButton } from '@/components/shared';
 
 const AboutPage = () => {
   const { t } = useI18n();
@@ -60,6 +61,7 @@ const AboutPage = () => {
 
   return (
     <MainLayout>
+      <AIChatbotButton />
       {/* Hero Section */}
       <section className="bg-gradient-hero py-20">
         <div className="container mx-auto px-4">

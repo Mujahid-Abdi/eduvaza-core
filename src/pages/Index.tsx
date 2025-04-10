@@ -5,6 +5,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/contexts/I18nContext';
 import { mockCategories, mockCourses } from '@/services/mockData';
+import { AIChatbotButton } from '@/components/shared';
 
 const Index = () => {
   const { t } = useI18n();
@@ -13,6 +14,7 @@ const Index = () => {
 
   return (
     <MainLayout>
+      <AIChatbotButton />
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-hero py-12 lg:py-32">
         <div className="container mx-auto px-4">

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Download, Video, FileText, Trash2, Play, Eye, Search, Filter } from 'lucide-react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { StudentLayout } from '@/components/layout/StudentLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -96,7 +96,7 @@ export const StudentDownloads = () => {
   };
 
   return (
-    <DashboardLayout>
+    <StudentLayout>
       <div className="space-y-6">
         {/* Header */}
         <motion.div
@@ -301,7 +301,7 @@ export const StudentDownloads = () => {
           />
         )}
       </div>
-    </DashboardLayout>
+    </StudentLayout>
   );
 };
 
