@@ -70,29 +70,42 @@ const ManageOpportunities = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('=== CREATE OPPORTUNITY FORM SUBMITTED ===');
+    console.log('Form data:', formData);
+    console.log('User:', user);
+    console.log('Editing:', editingOpportunity);
+    
     if (!user) {
+      console.error('No user found');
       toast.error('You must be logged in');
       return;
     }
 
     try {
       if (editingOpportunity) {
+        console.log('Updating opportunity:', editingOpportunity.id);
         await opportunitiesService.updateOpportunity(editingOpportunity.id, formData);
         toast.success('Opportunity updated successfully');
       } else {
-        await opportunitiesService.createOpportunity({
+        console.log('Creating new opportunity...');
+        const opportunityData = {
           ...formData,
           createdBy: user.id,
-        });
+        };
+        console.log('Opportunity data to create:', opportunityData);
+        const newId = await opportunitiesService.createOpportunity(opportunityData);
+        console.log('Opportunity created with ID:', newId);
         toast.success('Opportunity created successfully');
       }
       
       setDialogOpen(false);
       resetForm();
       loadOpportunities();
-    } catch (error) {
-      console.error('Error saving opportunity:', error);
-      toast.error('Failed to save opportunity');
+    } catch (error: any) {
+      console.error('=== ERROR SAVING OPPORTUNITY ===', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      toast.error(`Failed to save opportunity: ${error.message || 'Unknown error'}`);
     }
   };
 

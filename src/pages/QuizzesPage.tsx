@@ -552,7 +552,7 @@ const QuizzesPage = () => {
 
           {/* Quizzes Grid */}
           {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <Card key={i} className="overflow-hidden">
                   <CardContent className="p-5">
@@ -563,7 +563,7 @@ const QuizzesPage = () => {
               ))}
             </div>
           ) : filteredQuizzes.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {filteredQuizzes.map((quiz, index) => renderQuizCard(quiz, index))}
             </div>
           ) : (
