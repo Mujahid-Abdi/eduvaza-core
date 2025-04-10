@@ -100,6 +100,9 @@ export const QuizPlayer = ({ quiz, onComplete, onExit }: QuizPlayerProps) => {
     setAnswers(newAnswers);
     setShowResult(true);
 
+    // In multiplayer mode, move quickly to next question without showing feedback
+    const delay = quiz.isMultiplayer ? 300 : (quiz.showResults ? 1500 : 500);
+    
     setTimeout(() => {
       if (currentIndex < quiz.questions.length - 1) {
         setCurrentIndex(prev => prev + 1);
@@ -112,7 +115,7 @@ export const QuizPlayer = ({ quiz, onComplete, onExit }: QuizPlayerProps) => {
         const timeTaken = Math.floor((Date.now() - startTime) / 1000);
         onComplete(newAnswers, timeTaken);
       }
-    }, quiz.showResults ? 1500 : 500);
+    }, delay);
   };
 
   const formatTime = (seconds: number) => {
@@ -262,8 +265,9 @@ export const QuizPlayer = ({ quiz, onComplete, onExit }: QuizPlayerProps) => {
                 <div className="space-y-2">
                   {currentQuestion.options.map((option, index) => {
                     const isSelected = selectedAnswer === option.id;
-                    const showCorrect = showResult && option.isCorrect;
-                    const showWrong = showResult && isSelected && !option.isCorrect;
+                    // In multiplayer mode, don't show correct/wrong answers during quiz - only at end
+                    const showCorrect = !quiz.isMultiplayer && showResult && option.isCorrect;
+                    const showWrong = !quiz.isMultiplayer && showResult && isSelected && !option.isCorrect;
 
                     return (
                       <motion.button
@@ -310,7 +314,8 @@ export const QuizPlayer = ({ quiz, onComplete, onExit }: QuizPlayerProps) => {
                     disabled={showResult}
                     className="text-lg"
                   />
-                  {showResult && (
+                  {/* In multiplayer mode, don't show correct answer during quiz - only at end */}
+                  {showResult && !quiz.isMultiplayer && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
