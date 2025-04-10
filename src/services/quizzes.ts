@@ -483,9 +483,14 @@ export const quizService = {
       const quiz = await this.getQuizById(quizId);
       if (!quiz) throw new Error('Quiz not found');
 
-      // Check if registration is still open
+      // Check if registration is still open (before deadline)
       if (quiz.registrationDeadline && new Date() > new Date(quiz.registrationDeadline)) {
         throw new Error('Registration deadline has passed');
+      }
+
+      // Check if quiz has already started (block registration after start time)
+      if (quiz.scheduledStartTime && new Date() >= new Date(quiz.scheduledStartTime)) {
+        throw new Error('Registration is closed because the quiz has already started');
       }
 
       // Check if already registered
