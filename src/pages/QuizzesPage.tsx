@@ -48,11 +48,6 @@ const QuizzesPage = () => {
   // Quiz detail modal state
   const [showQuizDetail, setShowQuizDetail] = useState(false);
   const [selectedQuizDetail, setSelectedQuizDetail] = useState<Quiz | null>(null);
-  
-  // Multiplayer registration state
-  const [showMultiplayerRegister, setShowMultiplayerRegister] = useState(false);
-  const [multiplayerName, setMultiplayerName] = useState('');
-  const [selectedMultiplayerQuiz, setSelectedMultiplayerQuiz] = useState<Quiz | null>(null);
 
   // Get active mode from URL params (default to 'self-practice')
   const activeMode = searchParams.get('mode') || 'self-practice';
@@ -168,27 +163,24 @@ const QuizzesPage = () => {
 
   const handleStartMultiplayerQuiz = (quiz: Quiz) => {
     if (!isAuthenticated) {
-      setSelectedMultiplayerQuiz(quiz);
-      setShowMultiplayerRegister(true);
-    } else {
-      navigate(`/quiz/${quiz.id}?mode=multiplayer`);
-    }
-  };
-
-  const handleMultiplayerRegister = () => {
-    if (!multiplayerName.trim()) {
-      toast.error('Please enter your name');
+      toast.error('Please login to join multiplayer quizzes');
+      navigate('/auth/login');
       return;
     }
     
-    // Store guest name in session storage for multiplayer
-    sessionStorage.setItem('multiplayerGuestName', multiplayerName.trim());
-    toast.success(`Welcome, ${multiplayerName}! Joining the quiz...`);
-    setShowMultiplayerRegister(false);
-    
-    if (selectedMultiplayerQuiz) {
-      navigate(`/quiz/${selectedMultiplayerQuiz.id}?mode=multiplayer&guest=${encodeURIComponent(multiplayerName.trim())}`);
+    // Check if user is registered
+    if (quiz.id && !registeredQuizIds.includes(quiz.id)) {
+      toast.error('You must register for this quiz before joining');
+      return;
     }
+    
+    // Check if quiz has started
+    if (quiz.scheduledStartTime && new Date() < new Date(quiz.scheduledStartTime)) {
+      toast.error('This quiz has not started yet');
+      return;
+    }
+    
+    navigate(`/quiz/${quiz.id}?mode=multiplayer`);
   };
 
   const handleStartSelfPractice = (quizId: string) => {
@@ -264,6 +256,11 @@ const QuizzesPage = () => {
 
   const renderQuizCard = (quiz: Quiz, index: number) => {
     const isMultiplayer = activeMode === 'multiplayer';
+    const isRegistered = quiz.id ? registeredQuizIds.includes(quiz.id) : false;
+    const hasStarted = quiz.scheduledStartTime ? new Date() >= new Date(quiz.scheduledStartTime) : false;
+    const registrationOpen = quiz.registrationDeadline ? new Date() < new Date(quiz.registrationDeadline) : true;
+    const canJoin = isMultiplayer && isRegistered && hasStarted;
+    const canRegister = isMultiplayer && !isRegistered && registrationOpen && !hasStarted;
     
     return (
       <motion.div
@@ -282,6 +279,12 @@ const QuizzesPage = () => {
                 <Badge variant="secondary">
                   <Trophy className="h-3 w-3 mr-1" />
                   Live
+                </Badge>
+              )}
+              {isRegistered && (
+                <Badge variant="default" className="bg-green-500">
+                  <UserPlus className="h-3 w-3 mr-1" />
+                  Registered
                 </Badge>
               )}
               <Badge variant="outline" className="text-xs">
@@ -321,6 +324,23 @@ const QuizzesPage = () => {
                 </div>
               )}
             </div>
+            
+            {/* Multiplayer Schedule Info */}
+            {isMultiplayer && quiz.scheduledStartTime && (
+              <div className="mt-3 p-2 bg-muted/50 rounded-md text-xs">
+                <div className="flex items-center gap-1 text-muted-foreground mb-1">
+                  <Clock className="h-3 w-3" />
+                  <span>Starts: {new Date(quiz.scheduledStartTime).toLocaleString()}</span>
+                </div>
+                {quiz.registrationDeadline && (
+                  <div className="flex items-center gap-1 text-warning">
+                    <UserPlus className="h-3 w-3" />
+                    <span>Register by: {new Date(quiz.registrationDeadline).toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
+            )}
+            
             <div className="flex gap-2 mt-3">
               <Button 
                 className="flex-1" 
@@ -331,24 +351,58 @@ const QuizzesPage = () => {
                 <Eye className="h-4 w-4 mr-1" />
                 View
               </Button>
-              <Button 
-                className="flex-1" 
-                variant={isMultiplayer ? "default" : "default"}
-                size="sm"
-                onClick={() => isMultiplayer ? handleStartMultiplayerQuiz(quiz) : handleStartSelfPractice(quiz.id!)}
-              >
-                {isMultiplayer ? (
-                  <>
+              
+              {isMultiplayer ? (
+                canRegister ? (
+                  <Button 
+                    className="flex-1" 
+                    variant="default"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!isAuthenticated) {
+                        toast.error('Please login to register');
+                        navigate('/auth/login');
+                      } else {
+                        handleRegisterForQuiz(quiz.id!, e);
+                      }
+                    }}
+                    disabled={registeringQuiz === quiz.id}
+                  >
+                    <UserPlus className="h-4 w-4 mr-1" />
+                    {registeringQuiz === quiz.id ? 'Registering...' : 'Register'}
+                  </Button>
+                ) : canJoin ? (
+                  <Button 
+                    className="flex-1" 
+                    variant="default"
+                    size="sm"
+                    onClick={() => handleStartMultiplayerQuiz(quiz)}
+                  >
                     <Play className="h-4 w-4 mr-1" />
                     Join
-                  </>
+                  </Button>
                 ) : (
-                  <>
-                    <Play className="h-4 w-4 mr-1" />
-                    Start
-                  </>
-                )}
-              </Button>
+                  <Button 
+                    className="flex-1" 
+                    variant="outline"
+                    size="sm"
+                    disabled
+                  >
+                    {!registrationOpen ? 'Registration Closed' : !hasStarted ? 'Not Started' : 'Unavailable'}
+                  </Button>
+                )
+              ) : (
+                <Button 
+                  className="flex-1" 
+                  variant="default"
+                  size="sm"
+                  onClick={() => handleStartSelfPractice(quiz.id!)}
+                >
+                  <Play className="h-4 w-4 mr-1" />
+                  Start
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -399,11 +453,11 @@ const QuizzesPage = () => {
             <div className="mb-6 sm:mb-8">
               {activeMode === 'self-practice' ? (
                 <p className="text-sm text-muted-foreground">
-                  Practice at your own pace. No registration required.
+                  Practice at your own pace. Login required to start.
                 </p>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Compete with others in real-time. Registration required to join.
+                  Compete with others in real-time. Login and register before the deadline to join.
                 </p>
               )}
             </div>
@@ -815,55 +869,6 @@ const QuizzesPage = () => {
               </div>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Multiplayer Registration Dialog */}
-      <Dialog open={showMultiplayerRegister} onOpenChange={setShowMultiplayerRegister}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5" />
-              Join Multiplayer Quiz
-            </DialogTitle>
-            <DialogDescription>
-              Enter your name to join the game. You'll compete with other players in real-time!
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="playerName">Your Name</Label>
-              <Input
-                id="playerName"
-                placeholder="Enter your display name"
-                value={multiplayerName}
-                onChange={(e) => setMultiplayerName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleMultiplayerRegister()}
-              />
-            </div>
-            {selectedMultiplayerQuiz && (
-              <Card className="bg-muted/50">
-                <CardContent className="p-4">
-                  <h4 className="font-semibold">{selectedMultiplayerQuiz.title}</h4>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {selectedMultiplayerQuiz.questions.length} questions • {selectedMultiplayerQuiz.timeLimit}min
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-            <p className="text-xs text-muted-foreground">
-              Already have an account? <Link to="/auth/login" className="text-primary hover:underline">Sign in</Link> for better tracking.
-            </p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowMultiplayerRegister(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleMultiplayerRegister}>
-              <Play className="h-4 w-4 mr-2" />
-              Join Game
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </MainLayout>
