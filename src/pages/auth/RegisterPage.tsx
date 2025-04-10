@@ -441,6 +441,26 @@ export const RegisterPage = () => {
                     <p className="text-sm text-muted-foreground">Swahili</p>
                   </div>
                 </button>
+                <button
+                  onClick={() => handleLanguageSelect('am')}
+                  className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-border hover:border-primary hover:bg-muted/50 transition-all text-left"
+                >
+                  <div className="text-3xl">🇪🇹</div>
+                  <div>
+                    <p className="font-semibold text-foreground">አማርኛ</p>
+                    <p className="text-sm text-muted-foreground">Amharic</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => handleLanguageSelect('ha')}
+                  className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-border hover:border-primary hover:bg-muted/50 transition-all text-left"
+                >
+                  <div className="text-3xl">🇳🇬</div>
+                  <div>
+                    <p className="font-semibold text-foreground">Hausa</p>
+                    <p className="text-sm text-muted-foreground">Hausa</p>
+                  </div>
+                </button>
               </div>
             </motion.div>
           )}
