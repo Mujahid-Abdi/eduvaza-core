@@ -552,6 +552,8 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
                 <SelectItem value="fr">French</SelectItem>
                 <SelectItem value="ar">Arabic</SelectItem>
                 <SelectItem value="sw">Swahili</SelectItem>
+                <SelectItem value="am">Amharic</SelectItem>
+                <SelectItem value="ha">Hausa</SelectItem>
               </SelectContent>
             </Select>
           </div>
