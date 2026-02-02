@@ -13,7 +13,9 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import SchoolDashboard from "./pages/school/SchoolDashboard";
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
+import TeacherQuizPage from "./pages/teacher/TeacherQuizPage";
 import StudentDashboard from "./pages/student/StudentDashboard";
+import StudentQuizPage from "./pages/student/StudentQuizPage";
 
 const queryClient = new QueryClient();
 
@@ -32,7 +34,11 @@ const App = () => (
               <Route path="/admin/*" element={<ProtectedRoute allowedRoles={['super_admin']}><AdminDashboard /></ProtectedRoute>} />
               <Route path="/school/*" element={<ProtectedRoute allowedRoles={['school']}><SchoolDashboard /></ProtectedRoute>} />
               <Route path="/teacher/*" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherDashboard /></ProtectedRoute>} />
+              <Route path="/teacher/quizzes" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherQuizPage /></ProtectedRoute>} />
               <Route path="/student/*" element={<ProtectedRoute allowedRoles={['student']}><StudentDashboard /></ProtectedRoute>} />
+              <Route path="/student/quizzes" element={<ProtectedRoute allowedRoles={['student']}><StudentQuizPage /></ProtectedRoute>} />
+              <Route path="/student/calendar" element={<ProtectedRoute allowedRoles={['student']}><StudentQuizPage /></ProtectedRoute>} />
+              <Route path="/student/leaderboard" element={<ProtectedRoute allowedRoles={['student']}><StudentQuizPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
