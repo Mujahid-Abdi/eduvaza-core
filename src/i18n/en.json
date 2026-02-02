@@ -143,5 +143,32 @@
     "contact": "Contact Us",
     "faq": "FAQ",
     "rights": "All rights reserved"
+  },
+  "quiz": {
+    "title": "Quizzes",
+    "myQuizzes": "My Quizzes",
+    "quizzes": "Quizzes",
+    "createQuiz": "Create Quiz",
+    "schedule": "Schedule",
+    "calendar": "Quiz Calendar",
+    "analytics": "Analytics",
+    "joinLive": "Join Live",
+    "startQuiz": "Start Quiz",
+    "questions": "Questions",
+    "points": "Points",
+    "timeLimit": "Time Limit",
+    "multiplayer": "Multiplayer",
+    "scheduled": "Scheduled",
+    "completed": "Completed",
+    "results": "Results"
+  },
+  "gamification": {
+    "leaderboard": "Leaderboard",
+    "badges": "Badges",
+    "achievements": "Achievements",
+    "points": "Points",
+    "level": "Level",
+    "streak": "Streak",
+    "rank": "Rank"
   }
 }
