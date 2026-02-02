@@ -55,7 +55,12 @@
     "roleAdmin": "Administrateur",
     "verificationCode": "Code de Vérification",
     "sendCode": "Envoyer le Code",
-    "resendCode": "Renvoyer le Code"
+    "resendCode": "Renvoyer le Code",
+    "registrationSuccess": "Inscription Réussie!",
+    "welcomeMessage": "Bienvenue sur EduVaza!",
+    "accountCreated": "Votre compte a été créé avec succès.",
+    "redirectingToDashboard": "Redirection vers votre tableau de bord...",
+    "goToDashboard": "Aller au Tableau de Bord"
   },
   "hero": {
     "title": "La Meilleure Plateforme pour S'inscrire à Votre Cours Spécial",

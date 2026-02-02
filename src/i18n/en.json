@@ -55,7 +55,12 @@
     "roleAdmin": "Administrator",
     "verificationCode": "Verification Code",
     "sendCode": "Send Code",
-    "resendCode": "Resend Code"
+    "resendCode": "Resend Code",
+    "registrationSuccess": "Registration Successful!",
+    "welcomeMessage": "Welcome to EduVaza!",
+    "accountCreated": "Your account has been created successfully.",
+    "redirectingToDashboard": "Redirecting to your dashboard...",
+    "goToDashboard": "Go to Dashboard"
   },
   "hero": {
     "title": "The Best Platform to Enroll in Your Special Course",

@@ -51,11 +51,9 @@ const getNavItems = (role: UserRole, t: (key: string) => string): NavItem[] => {
     case 'school':
       return [
         ...baseItems,
-        { icon: <Users className="h-5 w-5" />, label: t('school.manageTeachers'), href: '/teachers' },
-        { icon: <GraduationCap className="h-5 w-5" />, label: t('school.manageStudents'), href: '/students' },
-        { icon: <Layers className="h-5 w-5" />, label: t('school.manageClasses'), href: '/classes' },
-        { icon: <BookOpen className="h-5 w-5" />, label: t('school.manageCourses'), href: '/courses' },
-        { icon: <BarChart3 className="h-5 w-5" />, label: t('school.results'), href: '/results' },
+        { icon: <BookOpen className="h-5 w-5" />, label: 'Courses', href: '?tab=courses' },
+        { icon: <FileQuestion className="h-5 w-5" />, label: 'Quizzes', href: '?tab=quizzes' },
+        { icon: <BarChart3 className="h-5 w-5" />, label: 'Analytics', href: '/analytics' },
       ];
     case 'teacher':
       return [
@@ -154,8 +152,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const fullPath = `${basePath}${item.href}`;
-            const isActive = location.pathname === fullPath || 
-              (item.href === '' && location.pathname === basePath);
+            const isActive = item.href.startsWith('?')
+              ? location.pathname === basePath && location.search === item.href
+              : location.pathname === fullPath || (item.href === '' && location.pathname === basePath);
 
             return (
               <Link

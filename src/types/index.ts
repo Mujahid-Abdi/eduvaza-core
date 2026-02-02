@@ -130,6 +130,7 @@ export interface AuthState {
 export interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   loginWithPhone: (phone: string, code: string) => Promise<void>;
+  sendPhoneCode: (phone: string) => Promise<boolean>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
   selectRole: (role: UserRole) => void;

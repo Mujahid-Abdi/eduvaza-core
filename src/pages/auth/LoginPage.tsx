@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Phone, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
@@ -8,10 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/contexts/I18nContext';
+import { toast } from 'sonner';
+import { getRoleBasedRoute } from '@/lib/roleRedirect';
 
 export const LoginPage = () => {
   const { t } = useI18n();
-  const { login, loginWithPhone, isLoading } = useAuth();
+  const { login, loginWithPhone, sendPhoneCode, isLoading, user } = useAuth();
   const navigate = useNavigate();
   
   const [email, setEmail] = useState('');
@@ -20,22 +22,49 @@ export const LoginPage = () => {
   const [code, setCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
+  const [error, setError] = useState('');
+
+  // Redirect when user logs in
+  useEffect(() => {
+    if (user?.role) {
+      navigate(getRoleBasedRoute(user.role), { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(email, password);
-    navigate('/');
+    setError('');
+    
+    try {
+      await login(email, password);
+      toast.success('Login successful!');
+      // User state is updated by AuthContext, navigate immediately
+      // The login function already sets the user, so we can navigate right away
+    } catch (error: any) {
+      setError(error.message);
+      toast.error(error.message);
+    }
   };
 
   const handlePhoneLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!codeSent) {
-      // Simulate sending code
-      setCodeSent(true);
-      return;
+    setError('');
+    
+    try {
+      if (!codeSent) {
+        await sendPhoneCode(phone);
+        setCodeSent(true);
+        toast.success('Verification code sent!');
+        return;
+      }
+      
+      await loginWithPhone(phone, code);
+      toast.success('Login successful!');
+      // User state is updated by AuthContext, navigate immediately
+    } catch (error: any) {
+      setError(error.message);
+      toast.error(error.message);
     }
-    await loginWithPhone(phone, code);
-    navigate('/');
   };
 
   return (
@@ -78,6 +107,17 @@ export const LoginPage = () => {
                 {t('auth.loginWithPhone')}
               </TabsTrigger>
             </TabsList>
+
+            {/* Error Display */}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md"
+              >
+                <p className="text-sm text-destructive">{error}</p>
+              </motion.div>
+            )}
 
             {/* Email Login */}
             <TabsContent value="email">
@@ -180,6 +220,9 @@ export const LoginPage = () => {
                     </button>
                   </motion.div>
                 )}
+
+                {/* reCAPTCHA container for Firebase phone auth */}
+                <div id="recaptcha-container"></div>
 
                 <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isLoading}>
                   {isLoading ? t('common.loading') : codeSent ? t('nav.login') : t('auth.sendCode')}
