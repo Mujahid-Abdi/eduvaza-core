@@ -1,17 +1,20 @@
 import { motion } from 'framer-motion';
-import { BookOpen, Clock, TrendingUp, Play, ChevronRight } from 'lucide-react';
+import { BookOpen, Clock, TrendingUp, Play, ChevronRight, Trophy, Medal, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { useI18n } from '@/contexts/I18nContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockCourses, mockEnrollments } from '@/services/mockData';
+import { mockQuizzes, mockQuizAttempts } from '@/services/mockQuizData';
 
 export const StudentDashboard = () => {
   const { t } = useI18n();
   const { user } = useAuth();
+  const currentStudentId = user?.id || 'student-1';
 
   // Mock enrolled courses
   const enrolledCourses = mockCourses.slice(0, 3).map((course, index) => ({
@@ -21,6 +24,34 @@ export const StudentDashboard = () => {
   }));
 
   const recommendedCourses = mockCourses.slice(3, 6);
+
+  // Get recent completed quizzes with rankings
+  const recentQuizAttempts = mockQuizAttempts
+    .filter(attempt => attempt.studentId === currentStudentId && attempt.status === 'completed')
+    .sort((a, b) => {
+      const dateA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
+      const dateB = b.completedAt ? new Date(b.completedAt).getTime() : 0;
+      return dateB - dateA;
+    })
+    .slice(0, 5)
+    .map(attempt => {
+      const quiz = mockQuizzes.find(q => q.id === attempt.quizId);
+      return { ...attempt, quizTitle: quiz?.title || 'Unknown Quiz' };
+    });
+
+  const getRankColor = (rank: number) => {
+    if (rank === 1) return 'text-yellow-500';
+    if (rank === 2) return 'text-gray-400';
+    if (rank === 3) return 'text-amber-600';
+    return 'text-muted-foreground';
+  };
+
+  const getRankIcon = (rank: number) => {
+    if (rank === 1) return <Medal className="h-5 w-5 text-yellow-500" />;
+    if (rank === 2) return <Medal className="h-5 w-5 text-gray-400" />;
+    if (rank === 3) return <Medal className="h-5 w-5 text-amber-600" />;
+    return <Trophy className="h-5 w-5 text-primary" />;
+  };
 
   return (
     <DashboardLayout>
@@ -141,11 +172,103 @@ export const StudentDashboard = () => {
           </Card>
         </motion.div>
 
-        {/* Recommended */}
+        {/* Recent Quiz Rankings */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
+        >
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-primary" />
+                <CardTitle>My Quiz Rankings</CardTitle>
+              </div>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/student/leaderboard">
+                  {t('common.viewAll')}
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {recentQuizAttempts.length > 0 ? (
+                <div className="space-y-3">
+                  {recentQuizAttempts.map((attempt) => (
+                    <div
+                      key={attempt.id}
+                      className="flex items-center gap-4 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors"
+                    >
+                      {/* Rank Badge */}
+                      <div className={`p-3 rounded-lg ${
+                        attempt.rank === 1 ? 'bg-yellow-500/20' :
+                        attempt.rank === 2 ? 'bg-gray-400/20' :
+                        attempt.rank === 3 ? 'bg-amber-600/20' :
+                        'bg-primary/10'
+                      }`}>
+                        <div className="flex flex-col items-center">
+                          {getRankIcon(attempt.rank || 0)}
+                          <p className={`text-lg font-bold mt-1 ${getRankColor(attempt.rank || 0)}`}>
+                            #{attempt.rank}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Quiz Info */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-foreground truncate">{attempt.quizTitle}</h3>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Completed {attempt.completedAt ? new Date(attempt.completedAt).toLocaleDateString() : 'recently'}
+                        </p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          <Badge variant="secondary" className="text-xs">
+                            Score: {attempt.score}/{attempt.totalPoints}
+                          </Badge>
+                          <Badge className={`text-xs ${
+                            attempt.percentage >= 90 ? 'bg-green-500' :
+                            attempt.percentage >= 70 ? 'bg-blue-500' :
+                            attempt.percentage >= 50 ? 'bg-yellow-500' :
+                            'bg-red-500'
+                          }`}>
+                            {attempt.percentage}%
+                          </Badge>
+                          {attempt.rank && attempt.rank <= 3 && (
+                            <Badge variant="outline" className="text-xs border-primary text-primary">
+                              <Award className="h-3 w-3 mr-1" />
+                              Top 3
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Time Taken */}
+                      <div className="text-right hidden sm:block">
+                        <p className="text-sm font-medium text-foreground">
+                          {Math.floor(attempt.timeTaken / 60)}:{(attempt.timeTaken % 60).toString().padStart(2, '0')}
+                        </p>
+                        <p className="text-xs text-muted-foreground">time</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Trophy className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
+                  <p className="text-muted-foreground">No completed quizzes yet</p>
+                  <Button variant="outline" size="sm" className="mt-3" asChild>
+                    <Link to="/student/quizzes">Take Your First Quiz</Link>
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Recommended */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
         >
           <Card>
             <CardHeader>
