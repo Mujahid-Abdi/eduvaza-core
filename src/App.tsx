@@ -37,6 +37,7 @@ import TeacherSettings from "./pages/teacher/TeacherSettings";
 import TeacherAnalytics from "./pages/teacher/TeacherAnalytics";
 import TeacherEnrolledCourses from "./pages/teacher/TeacherEnrolledCourses";
 import TeacherStudentQuestions from "./pages/teacher/TeacherStudentQuestions";
+import TeacherDownloads from "./pages/teacher/TeacherDownloads";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import StudentQuizPage from "./pages/student/StudentQuizPage";
 import StudentLeaderboard from "./pages/student/StudentLeaderboard";
@@ -91,6 +92,7 @@ const App = () => (
               <Route path="/teacher/analytics" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherAnalytics /></ProtectedRoute>} />
               <Route path="/teacher/learning" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherEnrolledCourses /></ProtectedRoute>} />
               <Route path="/teacher/questions" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherStudentQuestions /></ProtectedRoute>} />
+              <Route path="/teacher/downloads" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherDownloads /></ProtectedRoute>} />
               <Route path="/student/*" element={<ProtectedRoute allowedRoles={['student']}><StudentDashboard /></ProtectedRoute>} />
               <Route path="/student/quizzes" element={<ProtectedRoute allowedRoles={['student']}><StudentQuizPage /></ProtectedRoute>} />
               <Route path="/student/quiz-explore" element={<ProtectedRoute allowedRoles={['student']}><QuizExplorePage /></ProtectedRoute>} />
