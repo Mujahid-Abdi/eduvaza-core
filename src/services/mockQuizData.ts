@@ -4,7 +4,6 @@ import type {
   Question, 
   ScheduledQuiz, 
   QuizAttempt, 
-  MultiplayerSession,
   GamificationProfile,
   Badge,
   LeaderboardEntry,
@@ -82,7 +81,6 @@ export const mockQuizzes: Quiz[] = [
     totalPoints: 40,
     timeLimit: 10,
     isPublished: true,
-    isMultiplayer: true,
     shuffleQuestions: false,
     shuffleOptions: true,
     showResults: true,
@@ -132,7 +130,6 @@ export const mockQuizzes: Quiz[] = [
     totalPoints: 15,
     timeLimit: 5,
     isPublished: true,
-    isMultiplayer: false,
     shuffleQuestions: true,
     shuffleOptions: true,
     showResults: true,
@@ -209,8 +206,8 @@ export const mockBadges: Badge[] = [
   { id: 'badge-2', name: 'Perfect Score', description: 'Score 100% on any quiz', icon: '⭐', color: '#FFD700', category: 'quiz', earnedAt: new Date() },
   { id: 'badge-3', name: 'Week Streak', description: 'Learn for 7 days in a row', icon: '🔥', color: '#FF4500', category: 'streak', earnedAt: new Date() },
   { id: 'badge-4', name: 'Quick Learner', description: 'Complete 5 courses', icon: '📚', color: '#6B35FF', category: 'learning', earnedAt: new Date() },
-  { id: 'badge-5', name: 'Team Player', description: 'Participate in 10 multiplayer quizzes', icon: '🤝', color: '#35B5FF', category: 'social', earnedAt: new Date() },
-  { id: 'badge-6', name: 'Early Bird', description: 'Join a live quiz before it starts', icon: '🐦', color: '#35FF6B', category: 'special', earnedAt: new Date() },
+  { id: 'badge-5', name: 'Team Player', description: 'Participate in 10 group activities', icon: '🤝', color: '#35B5FF', category: 'social', earnedAt: new Date() },
+  { id: 'badge-6', name: 'Early Bird', description: 'Join a quiz before it starts', icon: '🐦', color: '#35FF6B', category: 'special', earnedAt: new Date() },
 ];
 
 export const mockGamificationProfile: GamificationProfile = {
@@ -293,22 +290,6 @@ export const mockClassAnalytics: ClassAnalytics = {
   completionRate: 87,
   topPerformers: mockLeaderboard.slice(0, 5),
   recentQuizzes: [mockQuizAnalytics],
-};
-
-export const mockMultiplayerSession: MultiplayerSession = {
-  id: 'session-1',
-  scheduledQuizId: 'sched-1',
-  quiz: mockQuizzes[0],
-  joinCode: 'ABC123',
-  hostId: 'teacher-1',
-  status: 'waiting',
-  currentQuestionIndex: 0,
-  participants: [
-    { id: 'p1', sessionId: 'session-1', studentId: 'student-1', studentName: 'Amara Diallo', score: 0, correctAnswers: 0, currentStreak: 0, hasAnswered: false, rank: 1, joinedAt: new Date() },
-    { id: 'p2', sessionId: 'session-1', studentId: 'student-5', studentName: 'Kofi Mensah', score: 0, correctAnswers: 0, currentStreak: 0, hasAnswered: false, rank: 2, joinedAt: new Date() },
-    { id: 'p3', sessionId: 'session-1', studentId: 'student-7', studentName: 'Thabo Ndlovu', score: 0, correctAnswers: 0, currentStreak: 0, hasAnswered: false, rank: 3, joinedAt: new Date() },
-  ],
-  createdAt: new Date(),
 };
 
 export const mockAIDrafts: AIDraft[] = [

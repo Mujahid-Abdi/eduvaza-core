@@ -9,40 +9,15 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { QuizBuilder } from '@/components/quiz/QuizBuilder';
 import { QuizScheduler } from '@/components/quiz/QuizScheduler';
 import { AnalyticsDashboard } from '@/components/analytics/AnalyticsDashboard';
-import { AIDraftGenerator } from '@/components/ai/AIDraftGenerator';
 import { useI18n } from '@/contexts/I18nContext';
 import { mockQuizzes, mockScheduledQuizzes, mockQuizAnalytics } from '@/services/mockQuizData';
 import { mockClasses } from '@/services/mockData';
 import type { Quiz } from '@/types/quiz';
 
-export const TeacherQuizPage = () => {
+export const SchoolQuizPage = () => {
   const { t } = useI18n();
   const [view, setView] = useState<'list' | 'create' | 'schedule' | 'analytics' | 'leaderboard'>('list');
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
-
-  // Mock top students data - will be fetched from Firebase
-  const topStudents = [
-    { rank: 1, name: 'Alice Johnson', country: 'United States', flag: '🇺🇸', totalScore: 2850, quizzesTaken: 15, avgScore: 95 },
-    { rank: 2, name: 'Bob Smith', country: 'United Kingdom', flag: '🇬🇧', totalScore: 2720, quizzesTaken: 14, avgScore: 93 },
-    { rank: 3, name: 'Charlie Brown', country: 'Canada', flag: '🇨🇦', totalScore: 2680, quizzesTaken: 14, avgScore: 92 },
-    { rank: 4, name: 'Diana Prince', country: 'Australia', flag: '🇦🇺', totalScore: 2590, quizzesTaken: 13, avgScore: 91 },
-    { rank: 5, name: 'Ethan Hunt', country: 'Germany', flag: '🇩🇪', totalScore: 2540, quizzesTaken: 13, avgScore: 90 },
-    { rank: 6, name: 'Fiona Green', country: 'France', flag: '🇫🇷', totalScore: 2480, quizzesTaken: 12, avgScore: 89 },
-    { rank: 7, name: 'George Wilson', country: 'United States', flag: '🇺🇸', totalScore: 2420, quizzesTaken: 12, avgScore: 88 },
-    { rank: 8, name: 'Hannah Lee', country: 'South Korea', flag: '🇰🇷', totalScore: 2380, quizzesTaken: 12, avgScore: 87 },
-    { rank: 9, name: 'Ian Malcolm', country: 'United Kingdom', flag: '🇬🇧', totalScore: 2340, quizzesTaken: 11, avgScore: 86 },
-    { rank: 10, name: 'Julia Roberts', country: 'Canada', flag: '🇨🇦', totalScore: 2290, quizzesTaken: 11, avgScore: 85 },
-    { rank: 11, name: 'Kevin Hart', country: 'United States', flag: '🇺🇸', totalScore: 2250, quizzesTaken: 11, avgScore: 84 },
-    { rank: 12, name: 'Laura Palmer', country: 'Australia', flag: '🇦🇺', totalScore: 2210, quizzesTaken: 10, avgScore: 83 },
-    { rank: 13, name: 'Mike Ross', country: 'Germany', flag: '🇩🇪', totalScore: 2170, quizzesTaken: 10, avgScore: 82 },
-    { rank: 14, name: 'Nina Simone', country: 'France', flag: '🇫🇷', totalScore: 2130, quizzesTaken: 10, avgScore: 81 },
-    { rank: 15, name: 'Oscar Wilde', country: 'Ireland', flag: '🇮🇪', totalScore: 2090, quizzesTaken: 10, avgScore: 80 },
-    { rank: 16, name: 'Paula Abdul', country: 'United States', flag: '🇺🇸', totalScore: 2050, quizzesTaken: 9, avgScore: 79 },
-    { rank: 17, name: 'Quinn Fabray', country: 'Canada', flag: '🇨🇦', totalScore: 2010, quizzesTaken: 9, avgScore: 78 },
-    { rank: 18, name: 'Rachel Green', country: 'United Kingdom', flag: '🇬🇧', totalScore: 1970, quizzesTaken: 9, avgScore: 77 },
-    { rank: 19, name: 'Sam Winchester', country: 'Australia', flag: '🇦🇺', totalScore: 1930, quizzesTaken: 9, avgScore: 76 },
-    { rank: 20, name: 'Tina Turner', country: 'Germany', flag: '🇩🇪', totalScore: 1890, quizzesTaken: 8, avgScore: 75 },
-  ];
 
   // Helper function to get top students for a specific quiz
   const getTopStudentsForQuiz = (quizId: string) => {
@@ -315,4 +290,4 @@ export const TeacherQuizPage = () => {
   );
 };
 
-export default TeacherQuizPage;
+export default SchoolQuizPage;

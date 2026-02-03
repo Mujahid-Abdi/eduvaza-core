@@ -22,6 +22,7 @@ interface CourseEditDialogProps {
     level: 'beginner' | 'intermediate' | 'advanced';
     language: string;
     teacher: string;
+    isPublished?: boolean;
     parts?: CoursePart[];
   };
   onCourseUpdated?: () => void;
@@ -51,6 +52,7 @@ export const CourseEditDialog = ({ open, onOpenChange, course, onCourseUpdated }
     level: course.level,
     language: course.language,
     assignedTeacher: course.teacher,
+    isPublished: course.isPublished ?? true,
   });
   const [courseParts, setCourseParts] = useState<CoursePart[]>(course.parts || []);
 
@@ -62,6 +64,7 @@ export const CourseEditDialog = ({ open, onOpenChange, course, onCourseUpdated }
       level: course.level,
       language: course.language,
       assignedTeacher: course.teacher,
+      isPublished: course.isPublished ?? true,
     });
     setCourseParts(course.parts || []);
   }, [course]);
@@ -200,6 +203,45 @@ export const CourseEditDialog = ({ open, onOpenChange, course, onCourseUpdated }
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="status">Status *</Label>
+              <Select
+                value={formData.isPublished ? 'published' : 'draft'}
+                onValueChange={(value) => setFormData({ ...formData, isPublished: value === 'published' })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="published">Published</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {formData.isPublished ? 'Course is visible to students' : 'Course is hidden from students'}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="language">Language</Label>
+              <Select
+                value={formData.language}
+                onValueChange={(value) => setFormData({ ...formData, language: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="en">English</SelectItem>
+                  <SelectItem value="fr">French</SelectItem>
+                  <SelectItem value="ar">Arabic</SelectItem>
+                  <SelectItem value="sw">Swahili</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="teacher">Assign to Registered Teacher *</Label>
             <Select
@@ -215,24 +257,6 @@ export const CourseEditDialog = ({ open, onOpenChange, course, onCourseUpdated }
                     {teacher.name} ({teacher.email})
                   </SelectItem>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="language">Language</Label>
-            <Select
-              value={formData.language}
-              onValueChange={(value) => setFormData({ ...formData, language: value })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="fr">French</SelectItem>
-                <SelectItem value="ar">Arabic</SelectItem>
-                <SelectItem value="sw">Swahili</SelectItem>
               </SelectContent>
             </Select>
           </div>

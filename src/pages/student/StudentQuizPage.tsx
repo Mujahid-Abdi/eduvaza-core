@@ -1,24 +1,39 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Trophy, Calendar as CalendarIcon } from 'lucide-react';
+import { Play, Trophy, CheckCircle, Medal, Clock } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { QuizPlayer } from '@/components/quiz/QuizPlayer';
-import { QuizCalendar } from '@/components/quiz/QuizCalendar';
-import { MultiplayerLobby } from '@/components/quiz/MultiplayerLobby';
 import { GamificationCard } from '@/components/gamification/GamificationCard';
-import { Leaderboard } from '@/components/gamification/Leaderboard';
 import { useI18n } from '@/contexts/I18nContext';
-import { mockQuizzes, mockScheduledQuizzes, mockGamificationProfile, mockLeaderboard } from '@/services/mockQuizData';
+import { mockQuizzes, mockGamificationProfile, mockQuizAttempts } from '@/services/mockQuizData';
 import type { Quiz } from '@/types/quiz';
 
 export const StudentQuizPage = () => {
   const { t } = useI18n();
-  const [view, setView] = useState<'list' | 'play' | 'join' | 'leaderboard' | 'calendar'>('list');
+  const [view, setView] = useState<'list' | 'play'>('list');
   const [activeQuiz, setActiveQuiz] = useState<Quiz | null>(null);
+  const currentStudentId = 'student-1'; // This should come from auth context
+
+  // Get student's completed quizzes
+  const completedQuizzes = mockQuizAttempts
+    .filter(attempt => attempt.studentId === currentStudentId && attempt.status === 'completed')
+    .map(attempt => {
+      const quiz = mockQuizzes.find(q => q.id === attempt.quizId);
+      return {
+        ...attempt,
+        quiz,
+      };
+    });
+
+  // Get available quizzes (not yet taken)
+  const completedQuizIds = completedQuizzes.map(cq => cq.quizId);
+  const availableQuizzes = mockQuizzes.filter(
+    q => q.isPublished && !completedQuizIds.includes(q.id)
+  );
 
   const handleStartQuiz = (quiz: Quiz) => {
     setActiveQuiz(quiz);
@@ -27,6 +42,14 @@ export const StudentQuizPage = () => {
 
   const handleCompleteQuiz = (answers: any[], timeTaken: number) => {
     console.log('Quiz completed:', { answers, timeTaken });
+    setView('list');
+  };
+
+  const getRankBadge = (rank: number) => {
+    if (rank === 1) return <Badge className="bg-yellow-500"><Medal className="h-3 w-3 mr-1" />1st Place</Badge>;
+    if (rank === 2) return <Badge className="bg-gray-400"><Medal className="h-3 w-3 mr-1" />2nd Place</Badge>;
+    if (rank === 3) return <Badge className="bg-amber-600"><Medal className="h-3 w-3 mr-1" />3rd Place</Badge>;
+    return <Badge variant="outline">Rank #{rank}</Badge>;
   };
 
   return (
@@ -39,10 +62,6 @@ export const StudentQuizPage = () => {
             </motion.div>
 
             <div className="flex gap-4">
-              <Button variant="outline" onClick={() => setView('join')}>
-                <Play className="h-4 w-4 mr-2" />
-                {t('quiz.joinLive')}
-              </Button>
               <Button variant="outline" onClick={() => setView('calendar')}>
                 <CalendarIcon className="h-4 w-4 mr-2" />
                 {t('quiz.calendar')}
@@ -81,10 +100,6 @@ export const StudentQuizPage = () => {
 
         {view === 'play' && activeQuiz && (
           <QuizPlayer quiz={activeQuiz} onComplete={handleCompleteQuiz} onExit={() => setView('list')} />
-        )}
-
-        {view === 'join' && (
-          <MultiplayerLobby isHost={false} onJoin={(code, name) => console.log('Join:', code, name)} onLeave={() => setView('list')} />
         )}
 
         {view === 'calendar' && (

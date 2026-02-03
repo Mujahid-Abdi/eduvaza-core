@@ -30,7 +30,6 @@ export const QuizScheduler = ({ quiz, classes, onSchedule, onCancel }: QuizSched
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [duration, setDuration] = useState(quiz.timeLimit || 15);
-  const [isLive, setIsLive] = useState(quiz.isMultiplayer);
   const [maxParticipants, setMaxParticipants] = useState<number | undefined>();
 
   const handleSchedule = () => {
@@ -43,7 +42,7 @@ export const QuizScheduler = ({ quiz, classes, onSchedule, onCancel }: QuizSched
       startTime: startDateTime,
       endTime: endDateTime,
       duration,
-      isLive,
+      isLive: false,
       maxParticipants,
     });
   };
@@ -128,43 +127,6 @@ export const QuizScheduler = ({ quiz, classes, onSchedule, onCancel }: QuizSched
             </div>
           </div>
 
-          {/* Live Quiz Toggle */}
-          <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-warning/10">
-                <Zap className="h-5 w-5 text-warning" />
-              </div>
-              <div>
-                <Label>Live Multiplayer Mode</Label>
-                <p className="text-sm text-muted-foreground">
-                  Host a real-time quiz session with join code
-                </p>
-              </div>
-            </div>
-            <Switch
-              checked={isLive}
-              onCheckedChange={setIsLive}
-            />
-          </div>
-
-          {isLive && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="space-y-2"
-            >
-              <Label>Max Participants (Optional)</Label>
-              <Input
-                type="number"
-                value={maxParticipants || ''}
-                onChange={(e) => setMaxParticipants(parseInt(e.target.value) || undefined)}
-                placeholder="No limit"
-                min={2}
-              />
-            </motion.div>
-          )}
-
           {/* Summary */}
           {isValid && (
             <motion.div
@@ -191,12 +153,6 @@ export const QuizScheduler = ({ quiz, classes, onSchedule, onCancel }: QuizSched
                   <p className="flex items-center gap-2">
                     <Users className="h-4 w-4" />
                     {classes.find(c => c.id === selectedClass)?.name || 'All Students'}
-                  </p>
-                )}
-                {isLive && (
-                  <p className="flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-warning" />
-                    Live multiplayer session
                   </p>
                 )}
               </div>

@@ -37,7 +37,6 @@ export interface Quiz {
   totalPoints: number;
   timeLimit?: number; // Total time in minutes
   isPublished: boolean;
-  isMultiplayer: boolean;
   shuffleQuestions: boolean;
   shuffleOptions: boolean;
   showResults: boolean;

@@ -8,10 +8,6 @@ import { useI18n } from '@/contexts/I18nContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CourseUploadDialog } from '@/components/school/CourseUploadDialog';
-import { CourseEditDialog } from '@/components/school/CourseEditDialog';
-import { QuizCreateDialog } from '@/components/school/QuizCreateDialog';
-import { QuizEditDialog } from '@/components/school/QuizEditDialog';
 import { QuizLeaderboardDialog } from '@/components/school/QuizLeaderboardDialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
@@ -25,8 +21,6 @@ export const SchoolDashboard = () => {
   // Get tab from URL or default to 'courses'
   const tabFromUrl = searchParams.get('tab') || 'courses';
   const [activeTab, setActiveTab] = useState(tabFromUrl);
-  const [editingCourse, setEditingCourse] = useState<any>(null);
-  const [editingQuiz, setEditingQuiz] = useState<any>(null);
 
   // Sync activeTab with URL parameter
   useEffect(() => {
@@ -156,7 +150,9 @@ export const SchoolDashboard = () => {
             <TabsContent value="courses" className="space-y-4">
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-semibold">Courses I Created</h2>
-                <CourseUploadDialog />
+                <Button onClick={() => navigate('/school/courses')}>
+                  Manage Courses
+                </Button>
               </div>
 
               <div className="grid gap-4">
@@ -175,7 +171,7 @@ export const SchoolDashboard = () => {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => setEditingCourse(course)}
+                            onClick={() => navigate('/school/courses')}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -221,7 +217,9 @@ export const SchoolDashboard = () => {
             <TabsContent value="quizzes" className="space-y-4">
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-semibold">Quizzes I Created</h2>
-                <QuizCreateDialog />
+                <Button onClick={() => navigate('/school/quizzes')}>
+                  Manage Quizzes
+                </Button>
               </div>
 
               <div className="grid gap-4">
@@ -243,7 +241,7 @@ export const SchoolDashboard = () => {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => setEditingQuiz(quiz)}
+                            onClick={() => navigate('/school/quizzes')}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -286,31 +284,6 @@ export const SchoolDashboard = () => {
             </TabsContent>
           </Tabs>
         </motion.div>
-
-        {/* Edit Dialogs */}
-        {editingCourse && (
-          <CourseEditDialog
-            open={!!editingCourse}
-            onOpenChange={(open) => !open && setEditingCourse(null)}
-            course={editingCourse}
-            onCourseUpdated={() => {
-              // TODO: Refresh courses list
-              setEditingCourse(null);
-            }}
-          />
-        )}
-
-        {editingQuiz && (
-          <QuizEditDialog
-            open={!!editingQuiz}
-            onOpenChange={(open) => !open && setEditingQuiz(null)}
-            quiz={editingQuiz}
-            onQuizUpdated={() => {
-              // TODO: Refresh quizzes list
-              setEditingQuiz(null);
-            }}
-          />
-        )}
       </div>
     </DashboardLayout>
   );

@@ -5,7 +5,6 @@ import type {
   ScheduledQuiz, 
   QuizAttempt, 
   QuizAnswer,
-  MultiplayerSession,
   GamificationProfile,
   LeaderboardEntry,
   QuizAnalytics,
@@ -22,14 +21,12 @@ import {
   mockQuizAnalytics,
   mockStudentAnalytics,
   mockClassAnalytics,
-  mockMultiplayerSession,
   mockAIDrafts,
 } from './mockQuizData';
 
 let quizzes = [...mockQuizzes];
 let scheduledQuizzes = [...mockScheduledQuizzes];
 let attempts = [...mockQuizAttempts];
-let sessions: MultiplayerSession[] = [mockMultiplayerSession];
 
 export const quizService = {
   // Quiz CRUD
@@ -74,7 +71,6 @@ export const quizService = {
       totalPoints: data.questions?.reduce((sum, q) => sum + q.points, 0) || 0,
       timeLimit: data.timeLimit,
       isPublished: false,
-      isMultiplayer: data.isMultiplayer || false,
       shuffleQuestions: data.shuffleQuestions || false,
       shuffleOptions: data.shuffleOptions || true,
       showResults: data.showResults ?? true,
@@ -206,53 +202,6 @@ export const quizService = {
   async getAttemptsByQuiz(quizId: string): Promise<QuizAttempt[]> {
     await new Promise(resolve => setTimeout(resolve, 300));
     return attempts.filter(a => a.quizId === quizId);
-  },
-
-  // Multiplayer
-  async createSession(scheduledQuizId: string, hostId: string): Promise<MultiplayerSession> {
-    await new Promise(resolve => setTimeout(resolve, 400));
-    const scheduled = scheduledQuizzes.find(s => s.id === scheduledQuizId);
-    const quiz = quizzes.find(q => q.id === scheduled?.quizId);
-    
-    const session: MultiplayerSession = {
-      id: `session-${Date.now()}`,
-      scheduledQuizId,
-      quiz: quiz!,
-      joinCode: scheduled?.joinCode || generateJoinCode(),
-      hostId,
-      status: 'waiting',
-      currentQuestionIndex: 0,
-      participants: [],
-      createdAt: new Date(),
-    };
-    sessions.push(session);
-    return session;
-  },
-
-  async joinSession(joinCode: string, studentId: string, studentName: string): Promise<MultiplayerSession | null> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const session = sessions.find(s => s.joinCode === joinCode && s.status === 'waiting');
-    if (session) {
-      session.participants.push({
-        id: `p-${Date.now()}`,
-        sessionId: session.id,
-        studentId,
-        studentName,
-        score: 0,
-        correctAnswers: 0,
-        currentStreak: 0,
-        hasAnswered: false,
-        rank: session.participants.length + 1,
-        joinedAt: new Date(),
-      });
-      return session;
-    }
-    return null;
-  },
-
-  async getSessionByCode(code: string): Promise<MultiplayerSession | null> {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    return sessions.find(s => s.joinCode === code) || null;
   },
 
   // Analytics
