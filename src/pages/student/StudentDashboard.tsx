@@ -68,12 +68,20 @@ export const StudentDashboard = () => {
             </h1>
             <p className="text-muted-foreground">{t('student.continueWhere')}</p>
           </div>
-          <Button variant="hero" asChild>
-            <Link to="/student/browse">
-              <BookOpen className="h-4 w-4 mr-2" />
-              {t('student.browseCourses')}
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link to="/student/quiz-explore">
+                <Trophy className="h-4 w-4 mr-2" />
+                Explore Quizzes
+              </Link>
+            </Button>
+            <Button variant="hero" asChild>
+              <Link to="/student/browse">
+                <BookOpen className="h-4 w-4 mr-2" />
+                {t('student.browseCourses')}
+              </Link>
+            </Button>
+          </div>
         </motion.div>
 
         {/* Stats */}
@@ -137,8 +145,9 @@ export const StudentDashboard = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               {enrolledCourses.map((course) => (
-                <div
+                <Link
                   key={course.id}
+                  to={`/student/course/${course.id}`}
                   className="flex items-center gap-4 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors group cursor-pointer"
                 >
                   <div className="w-20 h-20 rounded-lg bg-muted overflow-hidden flex-shrink-0 relative">
@@ -166,7 +175,7 @@ export const StudentDashboard = () => {
                     </div>
                   </div>
                   <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                </div>
+                </Link>
               ))}
             </CardContent>
           </Card>

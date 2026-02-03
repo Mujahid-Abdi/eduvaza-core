@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { Plus, BookOpen, Eye, Edit, Trash2, Users } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
@@ -160,13 +161,13 @@ export const TeacherCoursePage = () => {
                     <Card className="hover:shadow-lg transition-shadow">
                       <CardContent className="p-6">
                         <div className="flex items-start justify-between">
-                          <div className="flex-1">
+                          <Link to={`/teacher/course/${course.id}`} className="flex-1">
                             <div className="flex items-start gap-4">
                               <div className="w-20 h-20 rounded-lg bg-muted flex items-center justify-center text-3xl flex-shrink-0">
                                 📚
                               </div>
                               <div className="flex-1">
-                                <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
+                                <h3 className="text-lg font-semibold mb-2 hover:text-primary transition-colors">{course.title}</h3>
                                 <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
                                 <div className="flex flex-wrap gap-2">
                                   <Badge variant={course.isPublished ? 'default' : 'secondary'}>
@@ -183,7 +184,7 @@ export const TeacherCoursePage = () => {
                                 </div>
                               </div>
                             </div>
-                          </div>
+                          </Link>
                           <div className="flex gap-2">
                             <Button 
                               variant="outline" 

@@ -20,6 +20,7 @@ import {
   Zap,
   Trophy,
   MessageSquare,
+  Flag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -45,9 +46,13 @@ const getNavItems = (role: UserRole, t: (key: string) => string): NavItem[] => {
     case 'super_admin':
       return [
         ...baseItems,
-        { icon: <School className="h-5 w-5" />, label: t('admin.manageSchools'), href: '/schools' },
-        { icon: <UserCheck className="h-5 w-5" />, label: t('admin.pendingApprovals'), href: '/approvals' },
-        { icon: <BarChart3 className="h-5 w-5" />, label: t('dashboard.stats'), href: '/stats' },
+        { icon: <Users className="h-5 w-5" />, label: 'All Users', href: '/users' },
+        { icon: <GraduationCap className="h-5 w-5" />, label: 'Students', href: '/students' },
+        { icon: <UserCheck className="h-5 w-5" />, label: 'Teachers', href: '/teachers' },
+        { icon: <School className="h-5 w-5" />, label: 'Schools', href: '/schools' },
+        { icon: <BookOpen className="h-5 w-5" />, label: 'Courses', href: '/courses' },
+        { icon: <FileQuestion className="h-5 w-5" />, label: 'Quizzes', href: '/quizzes' },
+        { icon: <Flag className="h-5 w-5" />, label: 'Reports', href: '/reports' },
       ];
     case 'school':
       return [

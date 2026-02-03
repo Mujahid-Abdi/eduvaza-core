@@ -1,13 +1,21 @@
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { ArrowRight, BookOpen, Users, GraduationCap, Globe, CheckCircle } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/contexts/I18nContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { mockCategories, mockCourses, mockStats } from '@/services/mockData';
+import { RoleChecker } from '@/components/dev/RoleChecker';
 
 const Index = () => {
   const { t } = useI18n();
+  const { isAuthenticated, user } = useAuth();
+
+  // Only redirect admin to dashboard, other users can see public pages
+  if (isAuthenticated && user?.role === 'super_admin') {
+    return <Navigate to="/admin" replace />;
+  }
 
   const featuredCourses = mockCourses.slice(0, 6);
 
@@ -140,6 +148,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Development Role Checker - Remove in production */}
+      {isAuthenticated && <RoleChecker />}
     </MainLayout>
   );
 };
