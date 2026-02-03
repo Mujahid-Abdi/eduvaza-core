@@ -652,7 +652,7 @@ export const RegisterPage = () => {
                     } else if (selectedRole === 'student') {
                       setStep('education');
                     } else {
-                      setStep('school');
+                      setStep('teacher_details');
                     }
                   }}
                   className="text-muted-foreground hover:text-foreground"

@@ -213,6 +213,7 @@ export const CourseDetailPage = () => {
                     {course.lessons.map((lesson, index) => (
                       <div
                         key={lesson.id}
+                        onClick={() => navigate(`/student/courses/${courseId}/learn?lesson=${index}`)}
                         className="flex items-center gap-4 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors group cursor-pointer"
                       >
                         <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary font-semibold flex-shrink-0">
@@ -240,6 +241,18 @@ export const CourseDetailPage = () => {
                       </div>
                     ))}
                   </div>
+                  
+                  {/* Start Learning Button */}
+                  {isEnrolled && (
+                    <Button 
+                      className="w-full mt-6" 
+                      size="lg"
+                      onClick={() => navigate(`/student/courses/${courseId}/learn?lesson=${completedLessons}`)}
+                    >
+                      <Play className="h-5 w-5 mr-2" />
+                      {completedLessons > 0 ? 'Continue Learning' : 'Start Learning'}
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

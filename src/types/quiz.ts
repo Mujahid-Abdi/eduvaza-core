@@ -37,6 +37,8 @@ export interface Quiz {
   totalPoints: number;
   timeLimit?: number; // Total time in minutes
   isPublished: boolean;
+  isMultiplayer?: boolean; // Whether it's a multiplayer quiz
+  difficulty?: 'easy' | 'medium' | 'hard'; // Quiz difficulty level
   shuffleQuestions: boolean;
   shuffleOptions: boolean;
   showResults: boolean;
@@ -76,7 +78,8 @@ export interface QuizAttempt {
   timeTaken: number; // seconds
   startedAt: Date;
   completedAt?: Date;
-  status: 'in_progress' | 'completed' | 'abandoned';
+  isCompleted?: boolean; // Legacy compatibility
+  status?: 'in_progress' | 'completed' | 'abandoned';
   rank?: number; // Student's rank in this quiz
 }
 

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { DownloadViewer } from '@/components/content/DownloadViewer';
 import { useI18n } from '@/contexts/I18nContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -24,7 +25,7 @@ interface DownloadedItem {
   fileUrl: string;
 }
 
-// Mock downloaded items
+// Mock downloaded items with real sample URLs
 const mockDownloads: DownloadedItem[] = [
   {
     id: 'dl-1',
@@ -34,7 +35,7 @@ const mockDownloads: DownloadedItem[] = [
     size: '245 MB',
     downloadedAt: new Date(Date.now() - 86400000),
     duration: '15:30',
-    fileUrl: '/downloads/algebra-intro.mp4',
+    fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
   },
   {
     id: 'dl-2',
@@ -43,7 +44,7 @@ const mockDownloads: DownloadedItem[] = [
     courseName: 'Mathematics Grade 10',
     size: '2.5 MB',
     downloadedAt: new Date(Date.now() - 172800000),
-    fileUrl: '/downloads/algebra-practice.pdf',
+    fileUrl: 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/img/table-word.pdf',
   },
   {
     id: 'dl-3',
@@ -53,7 +54,7 @@ const mockDownloads: DownloadedItem[] = [
     size: '180 MB',
     downloadedAt: new Date(Date.now() - 259200000),
     duration: '12:45',
-    fileUrl: '/downloads/ecosystem.mp4',
+    fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
   },
   {
     id: 'dl-4',
@@ -62,7 +63,7 @@ const mockDownloads: DownloadedItem[] = [
     courseName: 'Science - Biology',
     size: '5.8 MB',
     downloadedAt: new Date(Date.now() - 345600000),
-    fileUrl: '/downloads/cell-structure.pdf',
+    fileUrl: 'https://www.africau.edu/images/default/sample.pdf',
   },
   {
     id: 'dl-5',
@@ -72,7 +73,7 @@ const mockDownloads: DownloadedItem[] = [
     size: '320 MB',
     downloadedAt: new Date(Date.now() - 432000000),
     duration: '20:15',
-    fileUrl: '/downloads/photosynthesis.mp4',
+    fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
   },
 ];
 
@@ -82,6 +83,8 @@ export const StudentDownloads = () => {
   const [downloads, setDownloads] = useState<DownloadedItem[]>(mockDownloads);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'video' | 'document'>('all');
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<DownloadedItem | null>(null);
 
   // Filter downloads
   const filteredDownloads = downloads.filter(item => {
@@ -104,8 +107,8 @@ export const StudentDownloads = () => {
   };
 
   const handleOpen = (item: DownloadedItem) => {
-    // In a real app, this would open the file
-    toast.info(`Opening ${item.title}...`);
+    setSelectedItem(item);
+    setViewerOpen(true);
   };
 
   const getFileIcon = (type: 'video' | 'document') => {
@@ -296,6 +299,20 @@ export const StudentDownloads = () => {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Download Viewer Modal */}
+        {selectedItem && (
+          <DownloadViewer
+            isOpen={viewerOpen}
+            onClose={() => {
+              setViewerOpen(false);
+              setSelectedItem(null);
+            }}
+            title={selectedItem.title}
+            type={selectedItem.type}
+            src={selectedItem.fileUrl}
+          />
+        )}
       </div>
     </DashboardLayout>
   );
