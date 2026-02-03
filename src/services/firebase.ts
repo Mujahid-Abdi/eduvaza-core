@@ -15,7 +15,8 @@ import {
   Timestamp
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import type { User, School, Course, Quiz } from '@/types';
+import type { User, School, Course } from '@/types';
+import type { Quiz } from '@/types/quiz';
 
 export const firebaseService = {
   // Users
