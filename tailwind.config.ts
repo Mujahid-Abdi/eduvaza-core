@@ -6,13 +6,60 @@ export default {
   prefix: "",
   theme: {
     container: {
-      center: true,
-      padding: "2rem",
+      center: false,
+      padding: {
+        DEFAULT: '0.75rem',
+        sm: '0.75rem',
+        md: '1rem',
+        lg: '1rem',
+        xl: '1rem',
+        '2xl': '1rem',
+      },
       screens: {
-        "2xl": "1400px",
+        sm: '640px',
+        md: '768px',
+        lg: '1024px',
+        xl: '1280px',
+        '2xl': '1536px',
       },
     },
     extend: {
+      fontSize: {
+        xs: ['0.75rem', { lineHeight: '1rem' }],
+        sm: ['0.875rem', { lineHeight: '1.25rem' }],
+        base: ['0.933rem', { lineHeight: '1.5rem' }],
+        lg: ['1.067rem', { lineHeight: '1.6rem' }],
+        xl: ['1.2rem', { lineHeight: '1.75rem' }],
+        '2xl': ['1.5rem', { lineHeight: '2rem' }],
+        '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
+        '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
+        '5xl': ['3rem', { lineHeight: '3rem' }],
+      },
+      spacing: {
+        '0': '0',
+        '0.5': '0.125rem',  /* 2px */
+        '1': '0.25rem',     /* 4px */
+        '1.5': '0.375rem',  /* 6px */
+        '2': '0.375rem',    /* 6px - reduced */
+        '2.5': '0.5rem',    /* 8px - reduced */
+        '3': '0.5rem',      /* 8px - reduced */
+        '3.5': '0.625rem',  /* 10px - reduced */
+        '4': '0.75rem',     /* 12px - reduced */
+        '5': '0.875rem',    /* 14px - reduced */
+        '6': '1rem',        /* 16px - reduced */
+        '7': '1.125rem',    /* 18px - reduced */
+        '8': '1.25rem',     /* 20px - reduced */
+        '9': '1.375rem',    /* 22px - reduced */
+        '10': '1.5rem',     /* 24px - reduced */
+        '11': '1.75rem',    /* 28px - reduced */
+        '12': '1.875rem',   /* 30px - reduced */
+        '14': '2.25rem',    /* 36px - reduced */
+        '16': '2.5rem',     /* 40px - reduced */
+        '20': '3rem',       /* 48px - reduced */
+        '24': '3.75rem',    /* 60px - reduced */
+        '28': '4.5rem',     /* 72px - reduced */
+        '32': '5rem',       /* 80px - reduced */
+      },
       fontFamily: {
         sans: ["Plus Jakarta Sans", "Inter", "system-ui", "sans-serif"],
         display: ["Plus Jakarta Sans", "system-ui", "sans-serif"],

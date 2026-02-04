@@ -1,130 +1,240 @@
-// Mock Courses Service
+// Courses Service with Firebase Integration
 import type { Course, Lesson, Enrollment, CourseCategory } from '@/types';
-import { mockCourses, mockCategories, mockEnrollments } from './mockData';
-
-let courses = [...mockCourses];
-let enrollments = [...mockEnrollments];
+import { mockCategories } from './mockData';
+import { firebaseService } from './firebase';
+import { 
+  collection, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy 
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export const coursesService = {
   async getCourses(): Promise<Course[]> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return courses.filter(c => c.isPublished);
+    try {
+      const coursesQuery = query(
+        collection(db, 'courses'),
+        where('isPublished', '==', true),
+        orderBy('createdAt', 'desc')
+      );
+      const snapshot = await getDocs(coursesQuery);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt.toDate(),
+        updatedAt: doc.data().updatedAt.toDate()
+      })) as Course[];
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      return [];
+    }
   },
 
   async getAllCourses(): Promise<Course[]> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return courses;
+    try {
+      const coursesQuery = query(
+        collection(db, 'courses'),
+        orderBy('createdAt', 'desc')
+      );
+      const snapshot = await getDocs(coursesQuery);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt.toDate(),
+        updatedAt: doc.data().updatedAt.toDate()
+      })) as Course[];
+    } catch (error) {
+      console.error('Error fetching all courses:', error);
+      return [];
+    }
   },
 
   async getCourseById(id: string): Promise<Course | undefined> {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    return courses.find(c => c.id === id);
+    try {
+      const course = await firebaseService.getCourse(id);
+      return course || undefined;
+    } catch (error) {
+      console.error('Error fetching course:', error);
+      return undefined;
+    }
   },
 
   async getCoursesByTeacher(teacherId: string): Promise<Course[]> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return courses.filter(c => c.teacherId === teacherId);
+    try {
+      return await firebaseService.getCoursesByTeacher(teacherId);
+    } catch (error) {
+      console.error('Error fetching teacher courses:', error);
+      return [];
+    }
   },
 
   async getCoursesBySchool(schoolId: string): Promise<Course[]> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return courses.filter(c => c.schoolId === schoolId);
+    try {
+      return await firebaseService.getCoursesBySchool(schoolId);
+    } catch (error) {
+      console.error('Error fetching school courses:', error);
+      return [];
+    }
   },
 
   async getCoursesByCategory(category: string): Promise<Course[]> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return courses.filter(c => c.category === category && c.isPublished);
+    try {
+      const coursesQuery = query(
+        collection(db, 'courses'),
+        where('category', '==', category),
+        where('isPublished', '==', true),
+        orderBy('createdAt', 'desc')
+      );
+      const snapshot = await getDocs(coursesQuery);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt.toDate(),
+        updatedAt: doc.data().updatedAt.toDate()
+      })) as Course[];
+    } catch (error) {
+      console.error('Error fetching courses by category:', error);
+      return [];
+    }
   },
 
   async getCategories(): Promise<CourseCategory[]> {
-    await new Promise(resolve => setTimeout(resolve, 200));
+    // Categories are static for now
     return mockCategories;
   },
 
-  async createCourse(data: Partial<Course>): Promise<Course> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const newCourse: Course = {
-      id: `course-${Date.now()}`,
-      title: data.title || '',
-      description: data.description || '',
-      thumbnail: data.thumbnail,
-      teacherId: data.teacherId || '',
-      teacherName: data.teacherName || '',
-      schoolId: data.schoolId,
-      language: data.language || 'en',
-      category: data.category || '',
-      curriculum: data.curriculum,
-      level: data.level || 'beginner',
-      lessons: [],
-      enrolledCount: 0,
-      isPublished: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    courses.push(newCourse);
-    return newCourse;
+  async createCourse(data: Omit<Course, 'id'>): Promise<Course> {
+    try {
+      const courseId = await firebaseService.createCourse(data);
+      const course = await firebaseService.getCourse(courseId);
+      return course as Course;
+    } catch (error) {
+      console.error('Error creating course:', error);
+      throw error;
+    }
+  },
+
+  async updateCourse(courseId: string, updates: Partial<Course>): Promise<void> {
+    try {
+      await firebaseService.updateCourse(courseId, updates);
+    } catch (error) {
+      console.error('Error updating course:', error);
+      throw error;
+    }
+  },
+
+  async deleteCourse(courseId: string): Promise<void> {
+    try {
+      await firebaseService.deleteCourse(courseId);
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      throw error;
+    }
   },
 
   async addLesson(courseId: string, lesson: Partial<Lesson>): Promise<Lesson> {
-    await new Promise(resolve => setTimeout(resolve, 400));
-    const course = courses.find(c => c.id === courseId);
-    const newLesson: Lesson = {
-      id: `lesson-${Date.now()}`,
-      courseId,
-      title: lesson.title || '',
-      content: lesson.content || '',
-      contentType: lesson.contentType || 'text',
-      pdfUrl: lesson.pdfUrl,
-      order: course?.lessons.length ? course.lessons.length + 1 : 1,
-      duration: lesson.duration,
-    };
-    if (course) {
-      course.lessons.push(newLesson);
-      course.updatedAt = new Date();
+    try {
+      const course = await firebaseService.getCourse(courseId);
+      if (!course) {
+        throw new Error('Course not found');
+      }
+
+      const newLesson: Lesson = {
+        id: `lesson-${Date.now()}`,
+        courseId,
+        title: lesson.title || '',
+        content: lesson.content || '',
+        contentType: lesson.contentType || 'text',
+        videoUrl: lesson.videoUrl,
+        pdfUrl: lesson.pdfUrl,
+        order: course.lessons.length + 1,
+        duration: lesson.duration,
+      };
+
+      const updatedLessons = [...course.lessons, newLesson];
+      await firebaseService.updateCourse(courseId, { lessons: updatedLessons });
+
+      return newLesson;
+    } catch (error) {
+      console.error('Error adding lesson:', error);
+      throw error;
     }
-    return newLesson;
   },
 
   async enrollStudent(studentId: string, courseId: string): Promise<Enrollment> {
-    await new Promise(resolve => setTimeout(resolve, 400));
-    const enrollment: Enrollment = {
-      id: `enr-${Date.now()}`,
-      studentId,
-      courseId,
-      progress: 0,
-      completedLessons: [],
-      lastAccessedAt: new Date(),
-      enrolledAt: new Date(),
-    };
-    enrollments.push(enrollment);
-    
-    const course = courses.find(c => c.id === courseId);
-    if (course) {
-      course.enrolledCount += 1;
+    try {
+      const enrollmentData = {
+        studentId,
+        courseId,
+        progress: 0,
+        completedLessons: [],
+      };
+      
+      const enrollmentId = await firebaseService.createEnrollment(enrollmentData);
+      
+      // Update course enrolled count
+      const course = await firebaseService.getCourse(courseId);
+      if (course) {
+        await firebaseService.updateCourse(courseId, {
+          enrolledCount: course.enrolledCount + 1
+        });
+      }
+
+      return {
+        id: enrollmentId,
+        ...enrollmentData,
+        lastAccessedAt: new Date(),
+        enrolledAt: new Date(),
+      };
+    } catch (error) {
+      console.error('Error enrolling student:', error);
+      throw error;
     }
-    
-    return enrollment;
   },
 
   async getEnrollments(studentId: string): Promise<Enrollment[]> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return enrollments.filter(e => e.studentId === studentId);
+    try {
+      return await firebaseService.getEnrollmentsByStudent(studentId);
+    } catch (error) {
+      console.error('Error fetching enrollments:', error);
+      return [];
+    }
   },
 
   async updateProgress(enrollmentId: string, lessonId: string): Promise<Enrollment> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const enrollment = enrollments.find(e => e.id === enrollmentId);
-    if (enrollment) {
-      if (!enrollment.completedLessons.includes(lessonId)) {
-        enrollment.completedLessons.push(lessonId);
+    try {
+      const enrollment = await firebaseService.get('enrollments', enrollmentId);
+      if (!enrollment) {
+        throw new Error('Enrollment not found');
       }
-      enrollment.lastAccessedAt = new Date();
-      
-      const course = courses.find(c => c.id === enrollment.courseId);
-      if (course) {
-        enrollment.progress = Math.round((enrollment.completedLessons.length / course.lessons.length) * 100);
+
+      const completedLessons = enrollment.completedLessons || [];
+      if (!completedLessons.includes(lessonId)) {
+        completedLessons.push(lessonId);
       }
+
+      const course = await firebaseService.getCourse(enrollment.courseId);
+      const progress = course 
+        ? Math.round((completedLessons.length / course.lessons.length) * 100)
+        : 0;
+
+      await firebaseService.update('enrollments', enrollmentId, {
+        completedLessons,
+        progress,
+        lastAccessedAt: new Date(),
+      });
+
+      return {
+        ...enrollment,
+        completedLessons,
+        progress,
+        lastAccessedAt: new Date(),
+      };
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      throw error;
     }
-    return enrollment!;
   },
 };

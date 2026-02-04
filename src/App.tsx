@@ -17,6 +17,7 @@ import QuizzesPage from "./pages/QuizzesPage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminSettings from "./pages/admin/AdminSettings";
 import ManageUsers from "./pages/admin/ManageUsers";
 import ManageStudents from "./pages/admin/ManageStudents";
 import ManageTeachers from "./pages/admin/ManageTeachers";
@@ -75,6 +76,7 @@ const App = () => (
               <Route path="/auth/register" element={<RegisterPage />} />
               <Route path="/admin" element={<ProtectedRoute allowedRoles={['super_admin']}><AdminDashboard /></ProtectedRoute>} />
               <Route path="/admin/*" element={<ProtectedRoute allowedRoles={['super_admin']}><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['super_admin']}><AdminSettings /></ProtectedRoute>} />
               <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['super_admin']}><ManageUsers /></ProtectedRoute>} />
               <Route path="/admin/students" element={<ProtectedRoute allowedRoles={['super_admin']}><ManageStudents /></ProtectedRoute>} />
               <Route path="/admin/teachers" element={<ProtectedRoute allowedRoles={['super_admin']}><ManageTeachers /></ProtectedRoute>} />

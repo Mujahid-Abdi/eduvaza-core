@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { FontSizeControl } from '@/components/settings/FontSizeControl';
 import { toast } from 'sonner';
 import { 
   User, 
@@ -705,6 +706,10 @@ export const TeacherSettings = () => {
                     </SelectContent>
                   </Select>
                 </div>
+
+                <Separator />
+
+                <FontSizeControl />
               </AccordionContent>
             </AccordionItem>
 

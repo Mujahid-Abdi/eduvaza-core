@@ -26,18 +26,11 @@ export const TeacherDashboard = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
         >
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              {t('dashboard.welcome')}, {user?.name?.split(' ')[0]}! 👋
-            </h1>
-            <p className="text-muted-foreground">{t('teacher.title')}</p>
-          </div>
-          <Button variant="hero" onClick={() => navigate('/teacher/courses')}>
-            <PlusCircle className="h-4 w-4 mr-2" />
-            {t('teacher.createCourse')}
-          </Button>
+          <h1 className="text-3xl font-bold text-foreground">
+            {t('dashboard.welcome')}, {user?.name?.split(' ')[0]}! 👋
+          </h1>
+          <p className="text-muted-foreground">{t('teacher.title')}</p>
         </motion.div>
 
         {/* Stats */}

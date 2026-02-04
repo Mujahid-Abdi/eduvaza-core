@@ -10,6 +10,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Separator } from '@/components/ui/separator';
+import { FontSizeControl } from '@/components/settings/FontSizeControl';
 import { toast } from 'sonner';
 import { Building2, Mail, Phone, MapPin, Globe, Save, Lock, Bell } from 'lucide-react';
 
@@ -174,6 +176,10 @@ export const SchoolSettings = () => {
                     </SelectContent>
                   </Select>
                 </div>
+
+                <Separator />
+
+                <FontSizeControl />
               </AccordionContent>
             </AccordionItem>
 

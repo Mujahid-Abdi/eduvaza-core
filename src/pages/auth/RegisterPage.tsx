@@ -678,14 +678,14 @@ export const RegisterPage = () => {
                   <div className="space-y-2">
                     <Label htmlFor="schoolName">School/Organization Name *</Label>
                     <div className="relative">
-                      <School className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <School className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
                       <Input
                         id="schoolName"
                         type="text"
                         placeholder="ABC High School"
                         value={formData.schoolName}
                         onChange={(e) => setFormData({ ...formData, schoolName: e.target.value })}
-                        className="pl-10"
+                        className="input-with-icon"
                         required
                       />
                     </div>
@@ -694,14 +694,14 @@ export const RegisterPage = () => {
                   <div className="space-y-2">
                     <Label htmlFor="schoolEmail">School/Organization Email *</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
                       <Input
                         id="schoolEmail"
                         type="email"
                         placeholder="info@abcschool.edu"
                         value={formData.schoolEmail}
                         onChange={(e) => setFormData({ ...formData, schoolEmail: e.target.value })}
-                        className="pl-10"
+                        className="input-with-icon"
                         required
                       />
                     </div>
@@ -712,14 +712,14 @@ export const RegisterPage = () => {
               <div className="space-y-2">
                 <Label htmlFor="name">{selectedRole === 'school' ? 'Contact Person Name *' : t('auth.fullName')}</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
                   <Input
                     id="name"
                     type="text"
                     placeholder="John Doe"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="pl-10"
+                    className="input-with-icon"
                     required
                   />
                 </div>
@@ -728,14 +728,14 @@ export const RegisterPage = () => {
               <div className="space-y-2">
                 <Label htmlFor="email">{selectedRole === 'school' ? 'Contact Person Email *' : t('auth.email')}</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="you@example.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="pl-10"
+                    className="input-with-icon"
                     required
                   />
                 </div>
@@ -744,14 +744,14 @@ export const RegisterPage = () => {
               <div className="space-y-2">
                 <Label htmlFor="phone">{t('auth.phone')}</Label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
                   <Input
                     id="phone"
                     type="tel"
                     placeholder="+254 700 000 000"
                     value={formData.phone || ''}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="pl-10"
+                    className="input-with-icon"
                   />
                 </div>
               </div>
@@ -777,23 +777,23 @@ export const RegisterPage = () => {
               <div className="space-y-2">
                 <Label htmlFor="password">{t('auth.password')}</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="pl-10 pr-10"
+                    className="input-with-icon-both"
                     required
                     minLength={6}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
               </div>
@@ -801,23 +801,23 @@ export const RegisterPage = () => {
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password *</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="••••••••"
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    className="pl-10 pr-10"
+                    className="input-with-icon-both"
                     required
                     minLength={6}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10"
                   >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
                 {formData.confirmPassword && formData.password !== formData.confirmPassword && (

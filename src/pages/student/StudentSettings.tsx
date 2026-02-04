@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { FontSizeControl } from '@/components/settings/FontSizeControl';
 import { toast } from 'sonner';
 import { 
   User, 
@@ -226,6 +227,10 @@ export const StudentSettings = () => {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <Separator />
+
+                  <FontSizeControl />
 
                   <Button onClick={handleSaveProfile} disabled={loading} className="w-full">
                     <Save className="h-4 w-4 mr-2" />

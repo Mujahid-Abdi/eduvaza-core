@@ -18,6 +18,7 @@ export const mockQuizzes: Quiz[] = [
     id: 'quiz-1',
     title: 'Algebra Basics Quiz',
     description: 'Test your understanding of basic algebraic concepts',
+    quizType: 'scheduled',
     courseId: 'course-1',
     schoolId: 'sch-1',
     teacherId: 'teacher-1',
@@ -92,6 +93,7 @@ export const mockQuizzes: Quiz[] = [
     id: 'quiz-2',
     title: 'Science: Ecosystems',
     description: 'Explore your knowledge about ecosystems and environment',
+    quizType: 'practice',
     courseId: 'course-2',
     schoolId: 'sch-1',
     teacherId: 'teacher-2',
@@ -136,6 +138,7 @@ export const mockQuizzes: Quiz[] = [
     passingScore: 50,
     createdAt: new Date('2024-02-20'),
     updatedAt: new Date('2024-02-25'),
+    postedAt: new Date('2024-02-25'),
   },
 ];
 
