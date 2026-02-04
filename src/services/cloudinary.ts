@@ -29,11 +29,15 @@ export interface UploadOptions {
   resourceType?: 'image' | 'video' | 'raw' | 'auto';
   transformation?: string;
   onProgress?: (progress: UploadProgress) => void;
+  accessMode?: 'public' | 'authenticated';
 }
 
 class CloudinaryService {
   private cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
   private uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'eduvaza_uploads';
+  private pdfDelivery = (import.meta.env.VITE_CLOUDINARY_PDF_DELIVERY || 'public') as
+    | 'public'
+    | 'authenticated';
 
   // Get upload URL based on resource type
   private getUploadUrl(resourceType: 'image' | 'video' | 'raw' | 'auto' = 'auto'): string {
@@ -48,7 +52,8 @@ class CloudinaryService {
     const {
       folder = 'eduvaza',
       resourceType = 'auto',
-      onProgress
+      onProgress,
+      accessMode
     } = options;
 
     return new Promise((resolve, reject) => {
@@ -57,11 +62,11 @@ class CloudinaryService {
       formData.append('upload_preset', this.uploadPreset);
       formData.append('folder', folder);
       
-      // For raw files (PDFs), try to set public access
+      // For raw files (PDFs), allow access mode override
       // Note: This may be ignored by unsigned presets
       if (resourceType === 'raw') {
         formData.append('type', 'upload');
-        formData.append('access_mode', 'public');
+        formData.append('access_mode', accessMode || 'public');
       }
 
       const xhr = new XMLHttpRequest();
@@ -137,8 +142,14 @@ class CloudinaryService {
     return this.uploadFile(file, {
       folder: `eduvaza/courses/${courseId}/lessons/${lessonId}`,
       resourceType,
-      onProgress
+      onProgress,
+      accessMode: resourceType === 'raw' ? this.pdfDelivery : undefined
     });
+  }
+
+  getRawFileUrl(publicId: string): string {
+    const deliveryType = this.pdfDelivery === 'authenticated' ? 'authenticated' : 'upload';
+    return `https://res.cloudinary.com/${this.cloudName}/raw/${deliveryType}/${publicId}`;
   }
 
   // Upload school logo

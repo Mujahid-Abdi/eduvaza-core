@@ -39,6 +39,14 @@ interface ThumbnailData {
   dataUrl: string;
 }
 
+const isCloudinaryRawUrl = (url: string) => url.includes('/raw/upload/');
+
+const formatCloudinaryAuthHint = (url: string) => {
+  const match = url.match(/https:\/\/res\.cloudinary\.com\/([^/]+)\/raw\/upload\/(.+)/);
+  if (!match) return url;
+  return `https://res.cloudinary.com/${match[1]}/raw/authenticated/${match[2]}`;
+};
+
 export const PDFViewer = ({
   src,
   title = 'Document',
@@ -60,6 +68,7 @@ export const PDFViewer = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [statusCode, setStatusCode] = useState<number | null>(null);
   const [showThumbnails, setShowThumbnails] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -73,8 +82,15 @@ export const PDFViewer = ({
       try {
         setIsLoading(true);
         setError(null);
+        setStatusCode(null);
 
-        const loadingTask = pdfjsLib.getDocument(src);
+        const loadingTask = pdfjsLib.getDocument({
+          url: src,
+          withCredentials: false,
+          httpHeaders: {
+            'Cache-Control': 'no-store',
+          },
+        });
         const pdf = await loadingTask.promise;
         
         setPdfDoc(pdf);
@@ -82,6 +98,8 @@ export const PDFViewer = ({
         setCurrentPage(1);
       } catch (err: any) {
         console.error('Error loading PDF:', err);
+        const code = typeof err?.status === 'number' ? err.status : null;
+        setStatusCode(code);
         setError(err.message || 'Failed to load PDF');
       } finally {
         setIsLoading(false);
@@ -300,12 +318,23 @@ export const PDFViewer = ({
   }, []);
 
   if (error) {
+    const showCloudinaryHint = isCloudinaryRawUrl(src);
     return (
       <div className={cn('flex items-center justify-center h-96 bg-muted rounded-lg', className)}>
         <div className="text-center">
           <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">Failed to load PDF</h3>
           <p className="text-sm text-muted-foreground">{error}</p>
+          {showCloudinaryHint && (
+            <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+              <p>
+                Cloudinary raw PDFs often return 401 errors when the upload preset is not public.
+                Update the Cloudinary upload preset to allow public access or generate authenticated URLs.
+              </p>
+              <p>Example authenticated delivery URL:</p>
+              <p className="break-all">{formatCloudinaryAuthHint(src)}</p>
+            </div>
+          )}
         </div>
       </div>
     );

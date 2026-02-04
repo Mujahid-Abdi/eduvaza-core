@@ -776,7 +776,8 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
                     className="w-full h-12 cursor-pointer"
                   />
                   <p className="text-xs text-muted-foreground mt-2">
-                    Max 10MB • Format: PDF only
+                    Max 10MB • Format: PDF only • Ensure your Cloudinary preset allows public
+                    access for PDFs to avoid 401 errors.
                   </p>
                   {formData.pdfFile && (
                     <div className="flex items-center gap-3 p-3 bg-background rounded-md border">
