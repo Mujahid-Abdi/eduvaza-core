@@ -39,7 +39,14 @@ interface ThumbnailData {
   dataUrl: string;
 }
 
-export const isCloudinaryRawUrl = (url: string) => url.includes('/raw/upload/');
+export const isCloudinaryRawUrl = (url: string) => {
+  try {
+    const parsed = new URL(url);
+    return parsed.host === 'res.cloudinary.com' && parsed.pathname.includes('/raw/upload/');
+  } catch {
+    return false;
+  }
+};
 
 export const formatCloudinaryAuthHint = (url: string) => {
   try {
@@ -53,7 +60,14 @@ export const formatCloudinaryAuthHint = (url: string) => {
   }
 };
 
-const isCloudinaryAuthenticatedUrl = (url: string) => url.includes('/raw/authenticated/');
+const isCloudinaryAuthenticatedUrl = (url: string) => {
+  try {
+    const parsed = new URL(url);
+    return parsed.host === 'res.cloudinary.com' && parsed.pathname.includes('/raw/authenticated/');
+  } catch {
+    return false;
+  }
+};
 
 export const PDFViewer = ({
   src,
