@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { BookOpen, Clock, TrendingUp, Play, ChevronRight, Trophy, Medal, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,22 +9,65 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useI18n } from '@/contexts/I18nContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { mockCourses, mockEnrollments } from '@/services/mockData';
+import { coursesService } from '@/services/courses';
 import { mockQuizzes, mockQuizAttempts } from '@/services/mockQuizData';
+import type { Course, Enrollment } from '@/types';
 
 export const StudentDashboard = () => {
   const { t } = useI18n();
   const { user } = useAuth();
   const currentStudentId = user?.id || 'student-1';
+  
+  const [enrolledCourses, setEnrolledCourses] = useState<Array<Course & { progress: number; lastLesson: string; enrollmentId: string }>>([]);
+  const [recommendedCourses, setRecommendedCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock enrolled courses
-  const enrolledCourses = mockCourses.slice(0, 3).map((course, index) => ({
-    ...course,
-    progress: [65, 30, 10][index],
-    lastLesson: course.lessons[0]?.title || 'Getting Started',
-  }));
+  // Fetch enrolled courses
+  useEffect(() => {
+    const fetchEnrolledCourses = async () => {
+      if (!user?.id) return;
+      
+      setLoading(true);
+      try {
+        const enrollments = await coursesService.getEnrollments(user.id);
+        
+        // Fetch course details for each enrollment
+        const coursesWithProgress = await Promise.all(
+          enrollments.map(async (enrollment) => {
+            const course = await coursesService.getCourseById(enrollment.courseId);
+            if (course) {
+              const lastCompletedLessonId = enrollment.completedLessons[enrollment.completedLessons.length - 1];
+              const lastLesson = lastCompletedLessonId 
+                ? course.lessons.find(l => l.id === lastCompletedLessonId)?.title || 'Getting Started'
+                : course.lessons[0]?.title || 'Getting Started';
+              
+              return {
+                ...course,
+                progress: enrollment.progress,
+                lastLesson,
+                enrollmentId: enrollment.id,
+              };
+            }
+            return null;
+          })
+        );
+        
+        setEnrolledCourses(coursesWithProgress.filter(Boolean) as any);
+        
+        // Fetch recommended courses (not enrolled)
+        const allCourses = await coursesService.getCourses();
+        const enrolledIds = enrollments.map(e => e.courseId);
+        const recommended = allCourses.filter(c => !enrolledIds.includes(c.id)).slice(0, 6);
+        setRecommendedCourses(recommended);
+      } catch (error) {
+        console.error('Error fetching enrolled courses:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const recommendedCourses = mockCourses.slice(3, 6);
+    fetchEnrolledCourses();
+  }, [user?.id]);
 
   // Get recent completed quizzes with rankings
   const recentQuizAttempts = mockQuizAttempts
@@ -141,10 +185,26 @@ export const StudentDashboard = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>{t('student.myCourses')}</CardTitle>
-              <Button variant="ghost" size="sm">{t('common.viewAll')}</Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/courses">{t('common.viewAll')}</Link>
+              </Button>
             </CardHeader>
             <CardContent className="space-y-4">
-              {enrolledCourses.map((course) => (
+              {loading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 rounded-xl border border-border">
+                      <div className="w-20 h-20 rounded-lg bg-muted animate-pulse" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
+                        <div className="h-3 bg-muted rounded animate-pulse w-1/2" />
+                        <div className="h-2 bg-muted rounded animate-pulse" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : enrolledCourses.length > 0 ? (
+                enrolledCourses.map((course) => (
                 <Link
                   key={course.id}
                   to={`/student/course/${course.id}`}
@@ -176,7 +236,16 @@ export const StudentDashboard = () => {
                   </div>
                   <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                 </Link>
-              ))}
+              ))
+              ) : (
+                <div className="text-center py-8">
+                  <BookOpen className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
+                  <p className="text-muted-foreground mb-3">No enrolled courses yet</p>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/courses">Browse Courses</Link>
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>

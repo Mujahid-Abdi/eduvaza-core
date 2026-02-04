@@ -102,9 +102,9 @@ const App = () => (
               <Route path="/student/*" element={<ProtectedRoute allowedRoles={['student']}><StudentDashboard /></ProtectedRoute>} />
               <Route path="/student/quizzes" element={<ProtectedRoute allowedRoles={['student']}><StudentQuizPage /></ProtectedRoute>} />
               <Route path="/student/quiz-explore" element={<ProtectedRoute allowedRoles={['student']}><QuizExplorePage /></ProtectedRoute>} />
-              <Route path="/student/course/:courseId" element={<ProtectedRoute allowedRoles={['student']}><CourseDetailPage /></ProtectedRoute>} />
-              <Route path="/student/courses/:courseId" element={<ProtectedRoute allowedRoles={['student']}><CourseDetailPage /></ProtectedRoute>} />
-              <Route path="/student/courses/:courseId/learn" element={<ProtectedRoute allowedRoles={['student']}><LessonViewerPage /></ProtectedRoute>} />
+              <Route path="/student/course/:courseId" element={<ProtectedRoute allowedRoles={['student', 'teacher']}><CourseDetailPage /></ProtectedRoute>} />
+              <Route path="/student/courses/:courseId" element={<ProtectedRoute allowedRoles={['student', 'teacher']}><CourseDetailPage /></ProtectedRoute>} />
+              <Route path="/student/courses/:courseId/learn" element={<ProtectedRoute allowedRoles={['student', 'teacher']}><LessonViewerPage /></ProtectedRoute>} />
               <Route path="/student/leaderboard" element={<ProtectedRoute allowedRoles={['student']}><StudentLeaderboard /></ProtectedRoute>} />
               <Route path="/student/downloads" element={<ProtectedRoute allowedRoles={['student']}><StudentDownloads /></ProtectedRoute>} />
               <Route path="/student/settings" element={<ProtectedRoute allowedRoles={['student']}><StudentSettings /></ProtectedRoute>} />

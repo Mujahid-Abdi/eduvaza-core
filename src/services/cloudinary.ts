@@ -56,6 +56,13 @@ class CloudinaryService {
       formData.append('file', file);
       formData.append('upload_preset', this.uploadPreset);
       formData.append('folder', folder);
+      
+      // For raw files (PDFs), try to set public access
+      // Note: This may be ignored by unsigned presets
+      if (resourceType === 'raw') {
+        formData.append('type', 'upload');
+        formData.append('access_mode', 'public');
+      }
 
       const xhr = new XMLHttpRequest();
 

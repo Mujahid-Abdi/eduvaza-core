@@ -1,98 +1,88 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, Users, Trophy, Trash2, Edit } from 'lucide-react';
+import { BookOpen, Users, Trophy, TrendingUp, Award, Calendar } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/contexts/I18nContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { QuizLeaderboardDialog } from '@/components/school/QuizLeaderboardDialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useNavigate } from 'react-router-dom';
+import { coursesService } from '@/services/courses';
 import { toast } from 'sonner';
+import type { Course } from '@/types';
 
 export const SchoolDashboard = () => {
   const { t } = useI18n();
   const { user } = useAuth();
-  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   
-  // Get tab from URL or default to 'courses'
-  const tabFromUrl = searchParams.get('tab') || 'courses';
-  const [activeTab, setActiveTab] = useState(tabFromUrl);
+  const [myCourses, setMyCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Sync activeTab with URL parameter
+  // Fetch school's courses from Firebase
   useEffect(() => {
-    const tab = searchParams.get('tab') || 'courses';
-    setActiveTab(tab);
-  }, [searchParams]);
+    const fetchCourses = async () => {
+      if (!user) return;
+      
+      // For school users, schoolId is their own user ID
+      const schoolId = user.role === 'school' ? user.id : user.schoolId;
+      
+      if (!schoolId) {
+        console.error('No schoolId found for user:', user);
+        setLoading(false);
+        return;
+      }
+      
+      setLoading(true);
+      try {
+        console.log('Fetching courses for schoolId:', schoolId);
+        const courses = await coursesService.getCoursesBySchool(schoolId);
+        console.log('Fetched courses:', courses);
+        setMyCourses(courses);
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+        toast.error('Failed to load courses');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Update URL when tab changes
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    setSearchParams({ tab: value });
-  };
-
-  // Mock data - will be replaced with real Firebase data
-  const myCourses = [
-    { 
-      id: '1', 
-      title: 'Mathematics 101', 
-      description: 'Introduction to basic mathematics concepts',
-      category: 'Mathematics',
-      level: 'beginner' as const,
-      language: 'en',
-      enrolledStudents: 45, 
-      teacher: 'John Doe' 
-    },
-    { 
-      id: '2', 
-      title: 'Physics Basics', 
-      description: 'Fundamental physics principles',
-      category: 'Physics',
-      level: 'intermediate' as const,
-      language: 'en',
-      enrolledStudents: 32, 
-      teacher: 'Jane Smith' 
-    },
-  ];
-
-  const myQuizzes = [
-    { 
-      id: '1', 
-      title: 'Math Quiz 1', 
-      course: 'Mathematics 101',
-      startTime: '2024-02-10 10:00',
-      endTime: '2024-02-10 11:00',
-      participants: 38
-    },
-  ];
-
-  const handleDeleteCourse = async (courseId: string) => {
-    try {
-      // TODO: Implement Firebase course deletion
-      // await firebaseService.deleteCourse(courseId);
-      toast.success('Course deleted successfully');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to delete course');
-    }
-  };
-
-  const handleDeleteQuiz = async (quizId: string) => {
-    try {
-      // TODO: Implement Firebase quiz deletion
-      // await firebaseService.deleteQuiz(quizId);
-      toast.success('Quiz deleted successfully');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to delete quiz');
-    }
-  };
+    fetchCourses();
+  }, [user]);
 
   const stats = [
-    { icon: BookOpen, label: 'My Courses', value: myCourses.length, color: 'text-primary', bg: 'bg-primary/10' },
-    { icon: Users, label: 'Total Enrollments', value: myCourses.reduce((sum, c) => sum + c.enrolledStudents, 0), color: 'text-secondary', bg: 'bg-secondary/10' },
-    { icon: Trophy, label: 'Active Quizzes', value: myQuizzes.length, color: 'text-accent', bg: 'bg-accent/10' },
+    { 
+      icon: BookOpen, 
+      label: 'Total Courses', 
+      value: loading ? '...' : myCourses.length, 
+      color: 'text-primary', 
+      bg: 'bg-primary/10',
+      action: () => navigate('/school/courses')
+    },
+    { 
+      icon: Users, 
+      label: 'Total Students', 
+      value: loading ? '...' : myCourses.reduce((sum, c) => sum + c.enrolledCount, 0), 
+      color: 'text-secondary', 
+      bg: 'bg-secondary/10',
+      action: () => navigate('/school/courses')
+    },
+    { 
+      icon: Trophy, 
+      label: 'Active Quizzes', 
+      value: loading ? '...' : 0, 
+      color: 'text-accent', 
+      bg: 'bg-accent/10',
+      action: () => navigate('/school/quizzes')
+    },
+    { 
+      icon: TrendingUp, 
+      label: 'Published Courses', 
+      value: loading ? '...' : myCourses.filter(c => c.isPublished).length, 
+      color: 'text-success', 
+      bg: 'bg-success/10',
+      action: () => navigate('/school/courses')
+    },
   ];
 
   return (
@@ -105,8 +95,10 @@ export const SchoolDashboard = () => {
           className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
         >
           <div>
-            <h1 className="text-3xl font-bold text-foreground">School Dashboard</h1>
-            <p className="text-muted-foreground">Manage your courses and quizzes</p>
+            <h1 className="text-3xl font-bold text-foreground">
+              {t('dashboard.welcome')}, {user?.name?.split(' ')[0]}! 👋
+            </h1>
+            <p className="text-muted-foreground">School Dashboard Overview</p>
           </div>
         </motion.div>
 
@@ -115,10 +107,14 @@ export const SchoolDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid gap-4 md:grid-cols-3"
+          className="grid gap-4 md:grid-cols-4"
         >
           {stats.map((stat) => (
-            <Card key={stat.label}>
+            <Card 
+              key={stat.label} 
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={stat.action}
+            >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -134,155 +130,146 @@ export const SchoolDashboard = () => {
           ))}
         </motion.div>
 
-        {/* Main Content Tabs */}
+        {/* Quick Actions */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="courses">Courses</TabsTrigger>
-              <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
-            </TabsList>
-
-            {/* Courses Tab */}
-            <TabsContent value="courses" className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Courses I Created</h2>
-                <Button onClick={() => navigate('/school/courses')}>
-                  Manage Courses
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Button 
+                  variant="outline" 
+                  className="h-auto py-4 justify-start"
+                  onClick={() => navigate('/school/courses')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <BookOpen className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold">Manage Courses</div>
+                      <div className="text-xs text-muted-foreground">Create and edit courses</div>
+                    </div>
+                  </div>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-auto py-4 justify-start"
+                  onClick={() => navigate('/school/quizzes')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-secondary/10">
+                      <Trophy className="h-5 w-5 text-secondary" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold">Manage Quizzes</div>
+                      <div className="text-xs text-muted-foreground">Create and schedule quizzes</div>
+                    </div>
+                  </div>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-auto py-4 justify-start"
+                  onClick={() => navigate('/school/analytics')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-success/10">
+                      <TrendingUp className="h-5 w-5 text-success" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold">Analytics</div>
+                      <div className="text-xs text-muted-foreground">View performance data</div>
+                    </div>
+                  </div>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-auto py-4 justify-start"
+                  onClick={() => navigate('/school/settings')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-warning/10">
+                      <Award className="h-5 w-5 text-warning" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold">Settings</div>
+                      <div className="text-xs text-muted-foreground">School configuration</div>
+                    </div>
+                  </div>
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-              <div className="grid gap-4">
-                {myCourses.map((course) => (
-                  <Card key={course.id}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
-                          <div className="space-y-1 text-sm text-muted-foreground">
-                            <p>Assigned Teacher: {course.teacher}</p>
-                            <p>Enrolled Students: {course.enrolledStudents}</p>
+        {/* Recent Courses */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Recent Courses</CardTitle>
+              <Button variant="outline" size="sm" onClick={() => navigate('/school/courses')}>
+                View All
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+                  <p className="text-muted-foreground mt-4 text-sm">Loading courses...</p>
+                </div>
+              ) : myCourses.length > 0 ? (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {myCourses.slice(0, 4).map((course) => (
+                    <div
+                      key={course.id}
+                      className="flex gap-4 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors cursor-pointer"
+                      onClick={() => navigate('/school/courses')}
+                    >
+                      <div className="w-16 h-16 rounded-lg bg-muted overflow-hidden flex-shrink-0">
+                        {course.thumbnail ? (
+                          <img
+                            src={course.thumbnail}
+                            alt={course.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-2xl">
+                            📚
                           </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => navigate('/school/courses')}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm" className="text-destructive">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Course</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete "{course.title}"? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteCourse(course.id)} className="bg-destructive text-destructive-foreground">
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
+                        )}
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-
-                {myCourses.length === 0 && (
-                  <Card>
-                    <CardContent className="p-12 text-center">
-                      <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      <p className="text-muted-foreground">No courses yet. Upload your first course!</p>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </TabsContent>
-
-            {/* Quizzes Tab */}
-            <TabsContent value="quizzes" className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Quizzes I Created</h2>
-                <Button onClick={() => navigate('/school/quizzes')}>
-                  Manage Quizzes
-                </Button>
-              </div>
-
-              <div className="grid gap-4">
-                {myQuizzes.map((quiz) => (
-                  <Card key={quiz.id}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold mb-2">{quiz.title}</h3>
-                          <div className="space-y-1 text-sm text-muted-foreground">
-                            <p>Course: {quiz.course}</p>
-                            <p>Start: {quiz.startTime}</p>
-                            <p>End: {quiz.endTime}</p>
-                            <p>Participants: {quiz.participants}</p>
-                          </div>
-                          <QuizLeaderboardDialog quizId={quiz.id} quizTitle={quiz.title} />
-                        </div>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => navigate('/school/quizzes')}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm" className="text-destructive">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Quiz</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete "{quiz.title}"? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteQuiz(quiz.id)} className="bg-destructive text-destructive-foreground">
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-foreground truncate">{course.title}</h3>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {course.lessons.length} lessons • {course.enrolledCount} students
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          By: {course.teacherName}
+                        </p>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-
-                {myQuizzes.length === 0 && (
-                  <Card>
-                    <CardContent className="p-12 text-center">
-                      <Trophy className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      <p className="text-muted-foreground">No quizzes yet. Create your first quiz!</p>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">No courses yet. Create your first course!</p>
+                  <Button className="mt-4" onClick={() => navigate('/school/courses')}>
+                    Create Course
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </motion.div>
       </div>
     </DashboardLayout>
