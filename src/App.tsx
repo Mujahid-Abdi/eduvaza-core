@@ -46,6 +46,7 @@ import StudentDownloads from "./pages/student/StudentDownloads";
 import QuizExplorePage from "./pages/student/QuizExplorePage";
 import CourseDetailPage from "./pages/student/CourseDetailPage";
 import LessonViewerPage from "./pages/student/LessonViewerPage";
+import ContentTestPage from "./pages/test/ContentTestPage";
 
 const queryClient = new QueryClient();
 
@@ -103,6 +104,7 @@ const App = () => (
               <Route path="/student/leaderboard" element={<ProtectedRoute allowedRoles={['student']}><StudentLeaderboard /></ProtectedRoute>} />
               <Route path="/student/downloads" element={<ProtectedRoute allowedRoles={['student']}><StudentDownloads /></ProtectedRoute>} />
               <Route path="/student/settings" element={<ProtectedRoute allowedRoles={['student']}><StudentSettings /></ProtectedRoute>} />
+              <Route path="/test/content" element={<ContentTestPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
