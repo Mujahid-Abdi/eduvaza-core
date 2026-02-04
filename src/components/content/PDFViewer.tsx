@@ -39,42 +39,37 @@ interface ThumbnailData {
   dataUrl: string;
 }
 
-export const isCloudinaryRawUrl = (url: string) => {
+const parseCloudinaryUrl = (url: string) => {
   try {
     const parsed = new URL(url);
-    if (parsed.host !== 'res.cloudinary.com') return false;
+    if (parsed.host !== 'res.cloudinary.com') return null;
     const segments = parsed.pathname.split('/').filter(Boolean);
-    return segments.length >= 3 && segments[1] === 'raw' && segments[2] === 'upload';
+    return { parsed, segments };
   } catch {
-    return false;
+    return null;
   }
+};
+
+const matchesCloudinaryRawType = (segments: string[], type: 'upload' | 'authenticated') =>
+  segments.length >= 3 && segments[1] === 'raw' && segments[2] === type;
+
+export const isCloudinaryRawUrl = (url: string) => {
+  const parsed = parseCloudinaryUrl(url);
+  return parsed ? matchesCloudinaryRawType(parsed.segments, 'upload') : false;
 };
 
 export const formatCloudinaryAuthHint = (url: string) => {
-  try {
-    const parsed = new URL(url);
-    if (parsed.host !== 'res.cloudinary.com') return url;
-    const segments = parsed.pathname.split('/').filter(Boolean);
-    if (segments.length >= 3 && segments[1] === 'raw' && segments[2] === 'upload') {
-      segments[2] = 'authenticated';
-      parsed.pathname = `/${segments.join('/')}`;
-      return parsed.toString();
-    }
-    return url;
-  } catch {
-    return url;
-  }
+  const parsed = parseCloudinaryUrl(url);
+  if (!parsed || !matchesCloudinaryRawType(parsed.segments, 'upload')) return url;
+  const nextSegments = [...parsed.segments];
+  nextSegments[2] = 'authenticated';
+  parsed.parsed.pathname = `/${nextSegments.join('/')}`;
+  return parsed.parsed.toString();
 };
 
 const isCloudinaryAuthenticatedUrl = (url: string) => {
-  try {
-    const parsed = new URL(url);
-    if (parsed.host !== 'res.cloudinary.com') return false;
-    const segments = parsed.pathname.split('/').filter(Boolean);
-    return segments.length >= 3 && segments[1] === 'raw' && segments[2] === 'authenticated';
-  } catch {
-    return false;
-  }
+  const parsed = parseCloudinaryUrl(url);
+  return parsed ? matchesCloudinaryRawType(parsed.segments, 'authenticated') : false;
 };
 
 export const PDFViewer = ({

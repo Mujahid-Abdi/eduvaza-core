@@ -20,7 +20,9 @@ describe('PDFViewer', () => {
     });
 
     expect(screen.getByText(/raw PDFs often return 401/i)).toBeInTheDocument();
-    expect(screen.getByText(/raw\/authenticated/i)).toBeInTheDocument();
+    expect(
+      screen.getByText((content) => content.includes('raw/authenticated'))
+    ).toBeInTheDocument();
 
     expect(consoleSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();
