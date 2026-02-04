@@ -78,6 +78,76 @@
     --sidebar-border: 240 8% 25%;
     --sidebar-ring: 16 100% 56%;
   }
+
+  .dark {
+    /* Core Brand Colors - Dark Mode */
+    --background: 240 10% 8%;
+    --foreground: 0 0% 95%;
+    
+    /* Primary stays vibrant in dark mode */
+    --primary: 16 100% 58%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Deep Purple Secondary - slightly lighter */
+    --secondary: 263 70% 60%;
+    --secondary-foreground: 0 0% 100%;
+    
+    /* Teal Accent - slightly brighter */
+    --accent: 174 72% 45%;
+    --accent-foreground: 0 0% 100%;
+    
+    /* Muted backgrounds - dark */
+    --muted: 240 8% 14%;
+    --muted-foreground: 240 5% 65%;
+    
+    /* Cards & Surfaces - dark */
+    --card: 240 10% 10%;
+    --card-foreground: 0 0% 95%;
+    
+    --popover: 240 10% 10%;
+    --popover-foreground: 0 0% 95%;
+    
+    /* UI Elements - dark */
+    --border: 240 8% 20%;
+    --input: 240 8% 20%;
+    --ring: 16 100% 58%;
+    
+    /* Destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Success */
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
+    
+    /* Warning */
+    --warning: 38 92% 55%;
+    --warning-foreground: 0 0% 10%;
+    
+    /* Gradients - dark mode */
+    --gradient-primary: linear-gradient(135deg, hsl(16 100% 58%) 0%, hsl(35 100% 58%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(263 70% 55%) 0%, hsl(280 80% 65%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(240 10% 10%) 0%, hsl(240 10% 8%) 50%, hsl(240 8% 6%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(240 10% 12%) 0%, hsl(240 10% 8%) 100%);
+    
+    /* Shadows - darker */
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.2);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.3), 0 2px 4px -2px hsl(0 0% 0% / 0.2);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -4px hsl(0 0% 0% / 0.2);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.4), 0 8px 10px -6px hsl(0 0% 0% / 0.3);
+    --shadow-primary: 0 10px 30px -10px hsl(16 100% 58% / 0.3);
+    --shadow-secondary: 0 10px 30px -10px hsl(263 70% 60% / 0.3);
+    
+    /* Sidebar - stays dark */
+    --sidebar-background: 240 10% 6%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 16 100% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 8% 15%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 240 8% 18%;
+    --sidebar-ring: 16 100% 58%;
+  }
 }
 
 @layer base {
