@@ -35,9 +35,15 @@ export interface UploadOptions {
 class CloudinaryService {
   private cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
   private uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'eduvaza_uploads';
-  private pdfDelivery = (import.meta.env.VITE_CLOUDINARY_PDF_DELIVERY || 'public') as
-    | 'public'
-    | 'authenticated';
+  private pdfDelivery = this.resolvePdfDelivery();
+
+  private resolvePdfDelivery(): 'public' | 'authenticated' {
+    const value = import.meta.env.VITE_CLOUDINARY_PDF_DELIVERY;
+    if (value === 'authenticated' || value === 'public') {
+      return value;
+    }
+    return 'public';
+  }
 
   // Get upload URL based on resource type
   private getUploadUrl(resourceType: 'image' | 'video' | 'raw' | 'auto' = 'auto'): string {

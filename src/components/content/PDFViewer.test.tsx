@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { PDFViewer } from './PDFViewer';
+import { PDFViewer, formatCloudinaryAuthHint } from './PDFViewer';
 
 vi.mock('pdfjs-dist', () => ({
   version: '0.0.0',
@@ -23,5 +23,15 @@ describe('PDFViewer', () => {
     expect(screen.getByText(/raw\/authenticated/i)).toBeInTheDocument();
 
     consoleSpy.mockRestore();
+  });
+
+  it('formats Cloudinary authenticated URLs', () => {
+    expect(
+      formatCloudinaryAuthHint('https://res.cloudinary.com/demo/raw/upload/v1/sample.pdf')
+    ).toBe('https://res.cloudinary.com/demo/raw/authenticated/v1/sample.pdf');
+
+    expect(formatCloudinaryAuthHint('https://example.com/file.pdf')).toBe(
+      'https://example.com/file.pdf'
+    );
   });
 });

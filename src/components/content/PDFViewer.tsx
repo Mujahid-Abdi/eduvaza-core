@@ -39,13 +39,15 @@ interface ThumbnailData {
   dataUrl: string;
 }
 
-const isCloudinaryRawUrl = (url: string) => url.includes('/raw/upload/');
+export const isCloudinaryRawUrl = (url: string) => url.includes('/raw/upload/');
 
-const formatCloudinaryAuthHint = (url: string) => {
+export const formatCloudinaryAuthHint = (url: string) => {
   const match = url.match(/https:\/\/res\.cloudinary\.com\/([^/]+)\/raw\/upload\/(.+)/);
   if (!match) return url;
   return `https://res.cloudinary.com/${match[1]}/raw/authenticated/${match[2]}`;
 };
+
+const isCloudinaryAuthenticatedUrl = (url: string) => url.includes('/raw/authenticated/');
 
 export const PDFViewer = ({
   src,
@@ -84,7 +86,7 @@ export const PDFViewer = ({
 
         const loadingTask = pdfjsLib.getDocument({
           url: src,
-          withCredentials: false,
+          withCredentials: isCloudinaryAuthenticatedUrl(src),
         });
         const pdf = await loadingTask.promise;
         
