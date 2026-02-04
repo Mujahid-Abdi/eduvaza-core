@@ -57,7 +57,10 @@ class CloudinaryService {
       const url = result.secure_url;
       // Transform /raw/upload/ to /raw/authenticated/
       if (url.includes('/raw/upload/')) {
-        result.secure_url = url.replace('/raw/upload/', '/raw/authenticated/');
+        return {
+          ...result,
+          secure_url: url.replace('/raw/upload/', '/raw/authenticated/')
+        };
       }
     }
     return result;

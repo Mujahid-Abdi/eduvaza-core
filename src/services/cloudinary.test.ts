@@ -45,7 +45,7 @@ describe('CloudinaryService', () => {
         responseText: ''
       };
 
-      // @ts-ignore - Mock XMLHttpRequest
+      // @ts-expect-error - Mocking XMLHttpRequest for testing purposes
       global.XMLHttpRequest = vi.fn(() => mockXHR);
 
       const file = new File(['dummy content'], 'test.pdf', { type: 'application/pdf' });
@@ -91,7 +91,7 @@ describe('CloudinaryService', () => {
         responseText: ''
       };
 
-      // @ts-ignore
+      // @ts-expect-error - Mocking XMLHttpRequest for testing purposes
       global.XMLHttpRequest = vi.fn(() => mockXHR);
 
       const file = new File(['dummy content'], 'test.mp4', { type: 'video/mp4' });
@@ -133,7 +133,7 @@ describe('CloudinaryService', () => {
         responseText: ''
       };
 
-      // @ts-ignore
+      // @ts-expect-error - Mocking XMLHttpRequest for testing purposes
       global.XMLHttpRequest = vi.fn(() => mockXHR);
 
       const file = new File(['dummy content'], 'test.jpg', { type: 'image/jpeg' });
