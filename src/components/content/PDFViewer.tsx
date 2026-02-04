@@ -86,7 +86,7 @@ export const PDFViewer = ({
           url: src,
           withCredentials: false,
           httpHeaders: {
-            'Cache-Control': 'no-store',
+            'Cache-Control': 'no-cache',
           },
         });
         const pdf = await loadingTask.promise;
@@ -325,7 +325,8 @@ export const PDFViewer = ({
             <div className="mt-3 space-y-2 text-xs text-muted-foreground">
               <p>
                 Cloudinary raw PDFs often return 401 errors when the upload preset is not public.
-                Update the Cloudinary upload preset to allow public access or generate authenticated URLs.
+                Administrators can update the Cloudinary upload preset to allow public access or
+                generate authenticated URLs.
               </p>
               <p>Example authenticated delivery URL:</p>
               <p className="break-all">{formatCloudinaryAuthHint(src)}</p>
