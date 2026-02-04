@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { getAuthenticatedRawUrlFromCloudinaryUrl } from '@/lib/cloudinary';
 
 // Set up PDF.js worker - use unpkg for better compatibility
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
@@ -66,6 +67,11 @@ export const PDFViewer = ({
   const [searchResults, setSearchResults] = useState<{ page: number; matches: number }[]>([]);
   const [thumbnails, setThumbnails] = useState<ThumbnailData[]>([]);
   const [isRenderingPage, setIsRenderingPage] = useState(false);
+  const [resolvedSrc, setResolvedSrc] = useState(src);
+
+  useEffect(() => {
+    setResolvedSrc(src);
+  }, [src]);
 
   // Load PDF document
   useEffect(() => {
@@ -74,12 +80,30 @@ export const PDFViewer = ({
         setIsLoading(true);
         setError(null);
 
-        const loadingTask = pdfjsLib.getDocument(src);
-        const pdf = await loadingTask.promise;
-        
-        setPdfDoc(pdf);
-        setNumPages(pdf.numPages);
-        setCurrentPage(1);
+        const loadWithSource = async (source: string) => {
+          const loadingTask = pdfjsLib.getDocument(source);
+          return loadingTask.promise;
+        };
+
+        try {
+          const pdf = await loadWithSource(src);
+          setResolvedSrc(src);
+          setPdfDoc(pdf);
+          setNumPages(pdf.numPages);
+          setCurrentPage(1);
+          return;
+        } catch (err) {
+          const authenticatedUrl = getAuthenticatedRawUrlFromCloudinaryUrl(src);
+          if (authenticatedUrl && authenticatedUrl !== src) {
+            const pdf = await loadWithSource(authenticatedUrl);
+            setResolvedSrc(authenticatedUrl);
+            setPdfDoc(pdf);
+            setNumPages(pdf.numPages);
+            setCurrentPage(1);
+            return;
+          }
+          throw err;
+        }
       } catch (err: any) {
         console.error('Error loading PDF:', err);
         setError(err.message || 'Failed to load PDF');
@@ -382,7 +406,7 @@ export const PDFViewer = ({
             <Button
               variant="ghost"
               size="iconSm"
-              onClick={() => window.open(src, '_blank')}
+              onClick={() => window.open(resolvedSrc, '_blank')}
               className="h-8 w-8"
             >
               <Download className="h-4 w-4" />
