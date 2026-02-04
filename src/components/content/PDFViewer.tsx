@@ -42,7 +42,9 @@ interface ThumbnailData {
 export const isCloudinaryRawUrl = (url: string) => {
   try {
     const parsed = new URL(url);
-    return parsed.host === 'res.cloudinary.com' && parsed.pathname.includes('/raw/upload/');
+    if (parsed.host !== 'res.cloudinary.com') return false;
+    const segments = parsed.pathname.split('/').filter(Boolean);
+    return segments.length >= 3 && segments[1] === 'raw' && segments[2] === 'upload';
   } catch {
     return false;
   }
@@ -52,9 +54,13 @@ export const formatCloudinaryAuthHint = (url: string) => {
   try {
     const parsed = new URL(url);
     if (parsed.host !== 'res.cloudinary.com') return url;
-    if (!parsed.pathname.includes('/raw/upload/')) return url;
-    parsed.pathname = parsed.pathname.replace('/raw/upload/', '/raw/authenticated/');
-    return parsed.toString();
+    const segments = parsed.pathname.split('/').filter(Boolean);
+    if (segments.length >= 3 && segments[1] === 'raw' && segments[2] === 'upload') {
+      segments[2] = 'authenticated';
+      parsed.pathname = `/${segments.join('/')}`;
+      return parsed.toString();
+    }
+    return url;
   } catch {
     return url;
   }
@@ -63,7 +69,9 @@ export const formatCloudinaryAuthHint = (url: string) => {
 const isCloudinaryAuthenticatedUrl = (url: string) => {
   try {
     const parsed = new URL(url);
-    return parsed.host === 'res.cloudinary.com' && parsed.pathname.includes('/raw/authenticated/');
+    if (parsed.host !== 'res.cloudinary.com') return false;
+    const segments = parsed.pathname.split('/').filter(Boolean);
+    return segments.length >= 3 && segments[1] === 'raw' && segments[2] === 'authenticated';
   } catch {
     return false;
   }
