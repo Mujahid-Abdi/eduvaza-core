@@ -85,9 +85,6 @@ export const PDFViewer = ({
         const loadingTask = pdfjsLib.getDocument({
           url: src,
           withCredentials: false,
-          httpHeaders: {
-            'Cache-Control': 'no-cache',
-          },
         });
         const pdf = await loadingTask.promise;
         
