@@ -21,12 +21,12 @@ EduVaza now uses **Cloudinary** for all file storage instead of Firebase Storage
 
 ### 📋 Configuration
 
-**Cloudinary Credentials** (Already configured in `.env`):
+**Cloudinary Credentials** (set in `.env`):
 ```env
-VITE_CLOUDINARY_CLOUD_NAME=humsjis
-VITE_CLOUDINARY_API_KEY=117465414766653
-VITE_CLOUDINARY_API_SECRET=w-6S-6EO_tO0dAYVUN7FILUHpxw
-VITE_CLOUDINARY_UPLOAD_PRESET=eduvaza_uploads
+VITE_CLOUDINARY_CLOUD_NAME=your_cloud_name
+VITE_CLOUDINARY_API_KEY=your_api_key
+VITE_CLOUDINARY_API_SECRET=your_api_secret
+VITE_CLOUDINARY_UPLOAD_PRESET=your_unsigned_preset
 ```
 
 ### 🚨 IMPORTANT: Create Upload Preset

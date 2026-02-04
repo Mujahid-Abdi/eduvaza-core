@@ -68,7 +68,6 @@ export const PDFViewer = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [statusCode, setStatusCode] = useState<number | null>(null);
   const [showThumbnails, setShowThumbnails] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -82,7 +81,6 @@ export const PDFViewer = ({
       try {
         setIsLoading(true);
         setError(null);
-        setStatusCode(null);
 
         const loadingTask = pdfjsLib.getDocument({
           url: src,
@@ -98,8 +96,6 @@ export const PDFViewer = ({
         setCurrentPage(1);
       } catch (err: any) {
         console.error('Error loading PDF:', err);
-        const code = typeof err?.status === 'number' ? err.status : null;
-        setStatusCode(code);
         setError(err.message || 'Failed to load PDF');
       } finally {
         setIsLoading(false);

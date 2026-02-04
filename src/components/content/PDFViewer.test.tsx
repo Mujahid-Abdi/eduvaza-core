@@ -19,7 +19,7 @@ describe('PDFViewer', () => {
       expect(screen.getByText('Failed to load PDF')).toBeInTheDocument();
     });
 
-    expect(screen.getByText(/restricted access/i)).toBeInTheDocument();
+    expect(screen.getByText(/raw PDFs often return 401/i)).toBeInTheDocument();
     expect(screen.getByText(/raw\/authenticated/i)).toBeInTheDocument();
 
     consoleSpy.mockRestore();

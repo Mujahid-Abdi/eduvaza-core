@@ -147,11 +147,6 @@ class CloudinaryService {
     });
   }
 
-  getRawFileUrl(publicId: string): string {
-    const deliveryType = this.pdfDelivery === 'authenticated' ? 'authenticated' : 'upload';
-    return `https://res.cloudinary.com/${this.cloudName}/raw/${deliveryType}/${publicId}`;
-  }
-
   // Upload school logo
   async uploadSchoolLogo(file: File, schoolId: string, onProgress?: (progress: UploadProgress) => void): Promise<CloudinaryUploadResult> {
     return this.uploadFile(file, {
