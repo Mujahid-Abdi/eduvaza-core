@@ -42,9 +42,15 @@ interface ThumbnailData {
 export const isCloudinaryRawUrl = (url: string) => url.includes('/raw/upload/');
 
 export const formatCloudinaryAuthHint = (url: string) => {
-  const match = url.match(/https:\/\/res\.cloudinary\.com\/([^/]+)\/raw\/upload\/(.+)/);
-  if (!match) return url;
-  return `https://res.cloudinary.com/${match[1]}/raw/authenticated/${match[2]}`;
+  try {
+    const parsed = new URL(url);
+    if (parsed.host !== 'res.cloudinary.com') return url;
+    if (!parsed.pathname.includes('/raw/upload/')) return url;
+    parsed.pathname = parsed.pathname.replace('/raw/upload/', '/raw/authenticated/');
+    return parsed.toString();
+  } catch {
+    return url;
+  }
 };
 
 const isCloudinaryAuthenticatedUrl = (url: string) => url.includes('/raw/authenticated/');
