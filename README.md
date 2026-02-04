@@ -90,6 +90,8 @@ npm run dev
 
 1. Go to [Cloudinary Console](https://console.cloudinary.com)
 2. Create upload preset: `eduvaza_uploads` (unsigned)
+3. Set **Access Mode** to **Public** for raw files (PDFs). If your PDFs must stay private,
+   set `VITE_CLOUDINARY_PDF_DELIVERY=authenticated` and serve authenticated URLs.
 
 **See [QUICK_START.md](./QUICK_START.md) for detailed instructions**
 

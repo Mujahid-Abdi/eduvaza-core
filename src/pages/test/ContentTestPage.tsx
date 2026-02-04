@@ -38,7 +38,7 @@ export const ContentTestPage = () => {
               </CardHeader>
               <CardContent>
                 <PDFViewer
-                  src="/test-document.pdf"
+                  src="https://res.cloudinary.com/demo/raw/upload/v1/sample.pdf"
                   title="Software Process Models - Chapter 2"
                   allowDownload={true}
                   allowCopy={true}

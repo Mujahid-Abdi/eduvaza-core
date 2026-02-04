@@ -39,6 +39,39 @@ interface ThumbnailData {
   dataUrl: string;
 }
 
+const parseCloudinaryUrl = (url: string) => {
+  try {
+    const parsed = new URL(url);
+    if (parsed.host !== 'res.cloudinary.com') return null;
+    const segments = parsed.pathname.split('/').filter(Boolean);
+    return { parsed, segments };
+  } catch {
+    return null;
+  }
+};
+
+const matchesCloudinaryRawType = (segments: string[], type: 'upload' | 'authenticated') =>
+  segments.length >= 3 && segments[1] === 'raw' && segments[2] === type;
+
+export const isCloudinaryRawUrl = (url: string) => {
+  const parsed = parseCloudinaryUrl(url);
+  return parsed ? matchesCloudinaryRawType(parsed.segments, 'upload') : false;
+};
+
+export const formatCloudinaryAuthHint = (url: string) => {
+  const parsed = parseCloudinaryUrl(url);
+  if (!parsed || !matchesCloudinaryRawType(parsed.segments, 'upload')) return url;
+  const nextSegments = [...parsed.segments];
+  nextSegments[2] = 'authenticated';
+  parsed.parsed.pathname = `/${nextSegments.join('/')}`;
+  return parsed.parsed.toString();
+};
+
+const isCloudinaryAuthenticatedUrl = (url: string) => {
+  const parsed = parseCloudinaryUrl(url);
+  return parsed ? matchesCloudinaryRawType(parsed.segments, 'authenticated') : false;
+};
+
 export const PDFViewer = ({
   src,
   title = 'Document',
@@ -74,7 +107,10 @@ export const PDFViewer = ({
         setIsLoading(true);
         setError(null);
 
-        const loadingTask = pdfjsLib.getDocument(src);
+        const loadingTask = pdfjsLib.getDocument({
+          url: src,
+          withCredentials: isCloudinaryAuthenticatedUrl(src),
+        });
         const pdf = await loadingTask.promise;
         
         setPdfDoc(pdf);
@@ -300,12 +336,24 @@ export const PDFViewer = ({
   }, []);
 
   if (error) {
+    const showCloudinaryHint = isCloudinaryRawUrl(src);
     return (
       <div className={cn('flex items-center justify-center h-96 bg-muted rounded-lg', className)}>
         <div className="text-center">
           <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">Failed to load PDF</h3>
           <p className="text-sm text-muted-foreground">{error}</p>
+          {showCloudinaryHint && (
+            <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+              <p>
+                Cloudinary raw PDFs often return 401 errors when the upload preset is not public.
+                Administrators can update the Cloudinary upload preset to allow public access or
+                generate authenticated URLs.
+              </p>
+              <p>Example authenticated delivery URL:</p>
+              <p className="break-all">{formatCloudinaryAuthHint(src)}</p>
+            </div>
+          )}
         </div>
       </div>
     );
