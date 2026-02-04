@@ -50,6 +50,19 @@ class CloudinaryService {
     return `https://api.cloudinary.com/v1_1/${this.cloudName}/${resourceType}/upload`;
   }
 
+  // Transform secure_url for authenticated delivery if needed
+  private transformSecureUrl(result: CloudinaryUploadResult): CloudinaryUploadResult {
+    // Only transform raw files (PDFs) when using authenticated delivery
+    if (result.resource_type === 'raw' && this.pdfDelivery === 'authenticated') {
+      const url = result.secure_url;
+      // Transform /raw/upload/ to /raw/authenticated/
+      if (url.includes('/raw/upload/')) {
+        result.secure_url = url.replace('/raw/upload/', '/raw/authenticated/');
+      }
+    }
+    return result;
+  }
+
   // Upload file to Cloudinary using unsigned upload
   async uploadFile(
     file: File, 
@@ -95,7 +108,9 @@ class CloudinaryService {
         if (xhr.status === 200) {
           try {
             const result = JSON.parse(xhr.responseText);
-            resolve(result);
+            // Transform URL for authenticated delivery if needed
+            const transformedResult = this.transformSecureUrl(result);
+            resolve(transformedResult);
           } catch (error) {
             reject(new Error('Failed to parse upload response'));
           }

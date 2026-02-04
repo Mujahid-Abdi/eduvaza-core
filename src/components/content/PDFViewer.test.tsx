@@ -41,5 +41,17 @@ describe('PDFViewer', () => {
   it('detects only valid Cloudinary raw URLs', () => {
     expect(isCloudinaryRawUrl('https://res.cloudinary.com/demo/raw/upload/v1/sample.pdf')).toBe(true);
     expect(isCloudinaryRawUrl('https://evil.com/res.cloudinary.com/raw/upload/file.pdf')).toBe(false);
+    expect(isCloudinaryRawUrl('https://res.cloudinary.com/demo/raw/authenticated/v1/sample.pdf')).toBe(false);
+  });
+
+  it('does not transform already authenticated URLs', () => {
+    expect(
+      formatCloudinaryAuthHint('https://res.cloudinary.com/demo/raw/authenticated/v1/sample.pdf')
+    ).toBe('https://res.cloudinary.com/demo/raw/authenticated/v1/sample.pdf');
+  });
+
+  it('handles non-Cloudinary URLs gracefully', () => {
+    expect(formatCloudinaryAuthHint('https://example.com/file.pdf')).toBe('https://example.com/file.pdf');
+    expect(formatCloudinaryAuthHint('not-a-url')).toBe('not-a-url');
   });
 });
