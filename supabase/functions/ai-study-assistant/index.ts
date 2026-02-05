@@ -1,74 +1,105 @@
- import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
- import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
- 
- const corsHeaders = {
-   "Access-Control-Allow-Origin": "*",
-   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
- };
- 
- serve(async (req) => {
-   // Handle CORS preflight
-   if (req.method === "OPTIONS") {
-     return new Response(null, { headers: corsHeaders });
-   }
- 
-   try {
-     // Validate auth
-     const authHeader = req.headers.get("Authorization");
-     if (!authHeader?.startsWith("Bearer ")) {
-       return new Response(
-         JSON.stringify({ error: "Unauthorized" }),
-         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-       );
-     }
- 
-     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
- 
-     if (!lovableApiKey) {
-       return new Response(
-         JSON.stringify({ error: "AI service not configured" }),
-         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-       );
-     }
- 
-     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-       global: { headers: { Authorization: authHeader } },
-     });
- 
-     // Validate user
-     const token = authHeader.replace("Bearer ", "");
-     const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-     
-     if (claimsError || !claimsData?.claims) {
-       return new Response(
-         JSON.stringify({ error: "Invalid token" }),
-         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-       );
-     }
- 
-     const userId = claimsData.claims.sub;
- 
-     // Parse request body
-     const body = await req.json();
-     const { action, pdfText, role, questionType, difficulty, questionCount, filename } = body;
- 
-     if (!action || !pdfText) {
-       return new Response(
-         JSON.stringify({ error: "Missing required fields: action and pdfText" }),
-         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-       );
-     }
- 
-     // Role-based access control
-     const userRole = role || "student";
-     if (action === "generate_questions" && userRole === "student") {
-       return new Response(
-         JSON.stringify({ error: "Students can only use the summarize feature" }),
-         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-       );
-     }
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+// Verify Firebase ID token by decoding and checking expiry
+async function verifyFirebaseToken(token: string): Promise<{ uid: string } | null> {
+  try {
+    // Decode the JWT to get the payload (Firebase ID tokens are JWTs)
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    
+    // Check if token is expired
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp && payload.exp < now) {
+      console.log("Token expired");
+      return null;
+    }
+    
+    // Check issuer is Firebase
+    if (!payload.iss?.includes("securetoken.google.com")) {
+      console.log("Invalid issuer:", payload.iss);
+      return null;
+    }
+    
+    // Return user ID
+    if (payload.user_id || payload.sub) {
+      return { uid: payload.user_id || payload.sub };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Token verification error:", error);
+    return null;
+  }
+}
+
+serve(async (req) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    // Validate auth header
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    
+    // Verify Firebase token
+    const firebaseUser = await verifyFirebaseToken(token);
+    if (!firebaseUser) {
+      return new Response(
+        JSON.stringify({ error: "Invalid or expired token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const userId = firebaseUser.uid;
+
+    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+    if (!lovableApiKey) {
+      return new Response(
+        JSON.stringify({ error: "AI service not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    // Parse request body
+    const body = await req.json();
+    const { action, pdfText, role, questionType, difficulty, questionCount, filename } = body;
+
+    if (!action || !pdfText) {
+      return new Response(
+        JSON.stringify({ error: "Missing required fields: action and pdfText" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Role-based access control
+    const userRole = role || "student";
+    if (action === "generate_questions" && userRole === "student") {
+      return new Response(
+        JSON.stringify({ error: "Students can only use the summarize feature" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
  
      // Limit text to prevent token overflow (approx 6000 chars)
      const truncatedText = pdfText.slice(0, 6000);
