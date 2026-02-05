@@ -42,7 +42,7 @@ export const QuizPlayer = ({ quiz, onComplete, onExit }: QuizPlayerProps) => {
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [timeRemaining, isCompleted]);
+  }, [quiz.timeLimit, timeRemaining, isCompleted]);
 
   // Question timer
   useEffect(() => {

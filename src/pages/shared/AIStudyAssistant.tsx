@@ -16,6 +16,8 @@ import {
   Send,
   Eye,
   EyeOff,
+  Edit2,
+  Play,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -33,6 +35,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { aiStudyAssistantService, AIResult } from "@/services/aiStudyAssistant";
 import { quizService } from "@/services/quizzes";
 import ReactMarkdown from "react-markdown";
+import { QuestionEditor, type EditableQuestion } from "@/components/quiz/QuestionEditor";
+import { QuizPreviewMode } from "@/components/quiz/QuizPreviewMode";
 
 interface ParsedQuestion {
   id: number;
@@ -62,6 +66,10 @@ export const AIStudyAssistant = () => {
   const [parsedQuestions, setParsedQuestions] = useState<ParsedQuestion[]>([]);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
   const [isUploading, setIsUploading] = useState(false);
+
+  // Edit and Preview modes
+  const [isEditing, setIsEditing] = useState(false);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
 
   // Question generation options
   const [questionType, setQuestionType] = useState<string>("multiple_choice");
@@ -123,6 +131,8 @@ export const AIStudyAssistant = () => {
     setResultType(null);
     setParsedQuestions([]);
     setSelectedAnswers({});
+    setIsEditing(false);
+    setIsPreviewMode(false);
     setIsExtracting(true);
 
     try {
@@ -156,6 +166,8 @@ export const AIStudyAssistant = () => {
     setIsProcessing(true);
     setResult("");
     setParsedQuestions([]);
+    setIsEditing(false);
+    setIsPreviewMode(false);
 
     try {
       const response = await aiStudyAssistantService.processDocument({
@@ -192,6 +204,8 @@ export const AIStudyAssistant = () => {
     setParsedQuestions([]);
     setSelectedAnswers({});
     setShowAnswers(false);
+    setIsEditing(false);
+    setIsPreviewMode(false);
 
     try {
       const response = await aiStudyAssistantService.processDocument({
@@ -239,7 +253,11 @@ export const AIStudyAssistant = () => {
         quizId: "",
         type: q.type === "multiple_choice" ? "mcq" : q.type === "true_false" ? "true_false" : "short_answer",
         question: q.question,
-        options: q.options || undefined,
+        options: q.options ? q.options.map((opt, optIndex) => ({
+          id: `opt-${Date.now()}-${index}-${optIndex}`,
+          text: opt,
+          isCorrect: opt.charAt(0) === q.correctAnswer,
+        })) : undefined,
         correctAnswer: q.correctAnswer,
         points: 10,
         timeLimit: 30,
@@ -258,7 +276,8 @@ export const AIStudyAssistant = () => {
         quizType: "practice",
       });
 
-      toast.success("Quiz uploaded successfully!");
+      toast.success("Quiz uploaded to public quiz page!");
+      setIsPreviewMode(false);
     } catch (error: any) {
       console.error("Upload error:", error);
       toast.error(error.message || "Failed to upload quiz");
@@ -302,13 +321,19 @@ export const AIStudyAssistant = () => {
     setResultType(null);
     setParsedQuestions([]);
     setSelectedAnswers({});
+    setIsEditing(false);
+    setIsPreviewMode(false);
   };
 
   const handleAnswerSelect = (questionId: number, answer: string) => {
     setSelectedAnswers(prev => ({ ...prev, [questionId]: answer }));
   };
 
-  // Render questions in quiz mode
+  const handleQuestionsChange = (newQuestions: EditableQuestion[]) => {
+    setParsedQuestions(newQuestions);
+  };
+
+  // Render questions in quiz mode (with checkboxes and hidden answers)
   const renderQuestions = () => {
     if (parsedQuestions.length === 0) {
       return (
@@ -402,6 +427,22 @@ export const AIStudyAssistant = () => {
       </div>
     );
   };
+
+  // Preview Mode
+  if (isPreviewMode && parsedQuestions.length > 0) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <QuizPreviewMode
+            questions={parsedQuestions}
+            title={file?.name?.replace(".pdf", "") || "AI Generated Quiz"}
+            onClose={() => setIsPreviewMode(false)}
+            onPublish={handleUploadAsQuiz}
+          />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -609,14 +650,29 @@ export const AIStudyAssistant = () => {
                       {result && (
                         <div className="flex gap-2">
                           {resultType === "questions" && parsedQuestions.length > 0 && (
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => setShowAnswers(!showAnswers)}
-                              title={showAnswers ? "Hide Answers" : "Show Answers"}
-                            >
-                              {showAnswers ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </Button>
+                            <>
+                              <Button
+                                variant={isEditing ? "default" : "outline"}
+                                size="icon"
+                                onClick={() => {
+                                  setIsEditing(!isEditing);
+                                  setShowAnswers(false);
+                                }}
+                                title={isEditing ? "View Mode" : "Edit Questions"}
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                              {!isEditing && (
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => setShowAnswers(!showAnswers)}
+                                  title={showAnswers ? "Hide Answers" : "Show Answers"}
+                                >
+                                  {showAnswers ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </Button>
+                              )}
+                            </>
                           )}
                           <Button variant="outline" size="icon" onClick={handleCopy}>
                             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -640,7 +696,12 @@ export const AIStudyAssistant = () => {
                           </p>
                         </div>
                       ) : result ? (
-                        resultType === "questions" && parsedQuestions.length > 0 ? (
+                        isEditing && resultType === "questions" ? (
+                          <QuestionEditor
+                            questions={parsedQuestions}
+                            onQuestionsChange={handleQuestionsChange}
+                          />
+                        ) : resultType === "questions" && parsedQuestions.length > 0 ? (
                           renderQuestions()
                         ) : resultType === "summary" ? (
                           <div className="prose prose-sm dark:prose-invert max-w-none">
@@ -657,21 +718,30 @@ export const AIStudyAssistant = () => {
                       )}
                     </ScrollArea>
 
-                    {/* Upload as Quiz Button */}
+                    {/* Action Buttons for Questions */}
                     {canUploadToPublic && resultType === "questions" && parsedQuestions.length > 0 && (
-                      <Button
-                        className="w-full gap-2"
-                        variant="default"
-                        onClick={handleUploadAsQuiz}
-                        disabled={isUploading}
-                      >
-                        {isUploading ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Send className="h-4 w-4" />
-                        )}
-                        Upload as Public Quiz
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          className="flex-1 gap-2"
+                          onClick={() => setIsPreviewMode(true)}
+                        >
+                          <Play className="h-4 w-4" />
+                          Preview as Quiz
+                        </Button>
+                        <Button
+                          className="flex-1 gap-2"
+                          onClick={handleUploadAsQuiz}
+                          disabled={isUploading}
+                        >
+                          {isUploading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Send className="h-4 w-4" />
+                          )}
+                          Upload as Public Quiz
+                        </Button>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
