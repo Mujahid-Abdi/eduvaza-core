@@ -1,173 +1,156 @@
 # Quiz System - Quick Reference Guide
 
-## 🎯 Overview
-The quiz system is now fully integrated with Firebase. No more mock data!
+## For Students
 
-## 📍 Where to Find Quizzes
+### How to Take a Quiz
+1. Go to `/quizzes` or `/student/quizzes`
+2. Click "Start Quiz" on any quiz
+3. Answer questions
+4. Click "Next Question" or "Finish Quiz"
+5. View your results
 
-### Public Quiz Page
-- **URL**: `/quizzes`
-- **Who can access**: Everyone (students, guests, logged-in users)
-- **What shows**: Only **published** quizzes
-- **Features**: Search, filter by difficulty/language
+### How to Save a Quiz for Later
+1. Find a quiz you want to take later
+2. Click the bookmark icon (📑)
+3. Quiz is saved to your "Saved" tab
+4. Access it anytime from `/student/quizzes` → Saved tab
 
-### Teacher Quiz Page
-- **URL**: `/teacher/quizzes`
-- **Who can access**: Teachers only
-- **What shows**: Teacher's own quizzes (published + drafts)
-- **Features**: Create, edit, schedule, view analytics
+### How to Retake a Quiz
+1. Go to `/student/quizzes` → Completed tab
+2. Find the quiz you want to retake
+3. Click "Retake Quiz" button
+4. Take the quiz again
+5. New attempt is recorded
 
-### School Quiz Page
-- **URL**: `/school/quizzes`
-- **Who can access**: School admins only
-- **What shows**: School admin's quizzes (published + drafts)
-- **Features**: Create, edit, schedule, view analytics
+### Student Dashboard Tabs
+- **Available** - All quizzes you can take (with bookmark option)
+- **Saved** - Quizzes you bookmarked for later
+- **Completed** - Your quiz history with retake option
 
-### Admin Quiz Management
-- **URL**: `/admin/manage-quizzes`
-- **Who can access**: Super admins only
-- **What shows**: ALL quizzes from all users
-- **Features**: View all, create, delete, statistics
+## For Teachers
 
-## 🔧 Creating a Quiz
+### How to Create and Publish a Quiz
+1. Go to Teacher Dashboard → Quizzes
+2. Click "Create Quiz"
+3. Fill in quiz details (Step 1)
+4. Add questions (Step 2)
+5. Configure settings (Step 3)
+   - Toggle "Publish Quiz" to ON
+   - Set other options
+6. Preview (Step 4)
+7. Click "Save Quiz"
 
-### Step 1: Quiz Details
-- Title
-- Description
-- Quiz Type (Practice/Scheduled)
-- Language (EN/FR/AR/SW)
-- Difficulty (Easy/Medium/Hard)
-- Time Limit (optional)
+### How to Publish a Draft Quiz
+1. Go to Teacher Dashboard → Quizzes
+2. Switch to "Drafts" tab
+3. Find your draft quiz
+4. Click "Publish" button
+5. Quiz immediately appears on public page
 
-### Step 2: Add Questions
-- MCQ (Multiple Choice)
-- True/False
-- Short Answer
-- Set points per question
-- Set time limit per question
+### How to Unpublish a Quiz
+1. Go to Teacher Dashboard → Quizzes
+2. Find the published quiz
+3. Click "Unpublish" button
+4. Quiz is removed from public page (saved as draft)
 
-### Step 3: Settings
-- **Publish Quiz** ← Important! Turn ON to make public
-- Shuffle Questions
-- Shuffle Options
-- Show Results
-- Passing Score (%)
+## Quick Links
 
-### Step 4: Preview & Save
-- Review all questions
-- Click "Save Quiz"
+### Student Routes
+- `/quizzes` - Browse all quizzes
+- `/quiz/:quizId` - Take a specific quiz
+- `/student/quizzes` - Your quiz dashboard
+- `/student/leaderboard` - See rankings
 
-## 🔍 Quiz Visibility
+### Teacher Routes
+- `/teacher/quizzes` - Manage your quizzes
+- `/teacher/analytics` - View quiz statistics
 
-| Creator Action | Public Sees | Creator Sees | Admin Sees |
-|---------------|-------------|--------------|------------|
-| Save as Draft | ❌ No       | ✅ Yes       | ✅ Yes     |
-| Publish Quiz  | ✅ Yes      | ✅ Yes       | ✅ Yes     |
+## Common Actions
 
-## 📊 Quiz Tabs (Teacher/School Pages)
-
-- **All**: All your quizzes
-- **Published**: Only published quizzes
-- **Drafts**: Only unpublished quizzes
-- **Scheduled**: Quizzes with scheduled times
-- **Completed**: Finished quizzes with results
-
-## 🔥 Firebase Structure
-
+### Save a Quiz
 ```
-Collection: quizzes
-├── quiz-id-1
-│   ├── title: "Math Quiz"
-│   ├── isPublished: true
-│   ├── teacherId: "user-123"
-│   ├── questions: [...]
-│   └── ...
-├── quiz-id-2
-└── quiz-id-3
+Click bookmark icon (📑) → Quiz saved
 ```
 
-## ⚡ Quick Actions
+### Unsave a Quiz
+```
+Click filled bookmark icon (📑✓) → Quiz removed from saved
+```
 
-### To make a quiz public:
-1. Edit quiz
-2. Go to Settings step
-3. Turn ON "Publish Quiz"
-4. Save
+### Start a Quiz
+```
+Click "Start Quiz" button → Navigate to quiz player
+```
 
-### To hide a quiz:
-1. Edit quiz
-2. Go to Settings step
-3. Turn OFF "Publish Quiz"
-4. Save
+### Retake a Quiz
+```
+Completed tab → Find quiz → Click "Retake Quiz"
+```
 
-### To delete a quiz:
-1. Go to Admin > Manage Quizzes
-2. Find the quiz
-3. Click trash icon
-4. Confirm deletion
+### Publish a Quiz
+```
+Settings step → Toggle "Publish Quiz" ON → Save
+OR
+Drafts tab → Click "Publish" button
+```
 
-## 🎨 Quiz Difficulty Colors
+## Tips
 
-- **Easy**: Green badge
-- **Medium**: Yellow badge
-- **Hard**: Red badge
+### For Students
+- Save quizzes you find interesting to take later
+- Retake quizzes to improve your score
+- Check the "Completed" tab to track your progress
+- Look for the pass/fail badge to see if you passed
 
-## 🌍 Supported Languages
+### For Teachers
+- Keep quizzes as drafts while editing
+- Publish when ready for students
+- Unpublish to make changes
+- Check analytics to see student performance
 
-- 🇬🇧 English (en)
-- 🇫🇷 French (fr)
-- 🇸🇦 Arabic (ar)
-- 🇹🇿 Swahili (sw)
+## Troubleshooting
 
-## 📝 Question Types
+### Quiz not appearing on public page?
+- Make sure "Publish Quiz" is toggled ON
+- Check if quiz is in "Published" tab in teacher dashboard
 
-### Multiple Choice (MCQ)
-- 2-4 options
-- One correct answer
-- Click radio button to mark correct
-
-### True/False
-- 2 options (True/False)
-- One correct answer
-
-### Short Answer
-- Text input
-- Specify correct answer
-- Case-sensitive matching
-
-## 💡 Tips
-
-1. **Always preview** before saving
-2. **Set appropriate time limits** for questions
-3. **Use clear, concise questions**
-4. **Test your quiz** before publishing
-5. **Check difficulty level** matches content
-6. **Add descriptions** to help students
-
-## 🐛 Troubleshooting
-
-**Quiz not showing on public page?**
-- Check if "Publish Quiz" is ON
-- Verify quiz was saved successfully
-- Check Firebase console
-
-**Can't see my quiz?**
+### Can't save a quiz?
 - Make sure you're logged in
-- Check you're on the right page (teacher/school)
-- Refresh the page
+- Check your internet connection
 
-**Quiz creation fails?**
-- Check internet connection
-- Verify Firebase is configured
-- Check browser console for errors
+### Retake button not working?
+- Make sure you completed the quiz first
+- Check if quiz is still published
 
-## 📞 Need Help?
+### Bookmark not persisting?
+- Make sure you're logged in
+- Check if you have a stable internet connection
 
-Check these files:
-- `QUIZ_FIREBASE_INTEGRATION_COMPLETE.md` - Full technical details
-- `QUIZ_SYSTEM_READY.md` - Complete overview
-- Firebase Console - View actual data
+## Keyboard Shortcuts
+- `Enter` - Submit answer (in quiz player)
+- `Esc` - Exit quiz (shows confirmation)
 
----
+## Status Indicators
 
-**Quick Start**: Login → Quiz Page → Create Quiz → Add Questions → Publish → Done! ✅
+### Quiz Badges
+- 🟢 Easy - Green badge
+- 🟡 Medium - Yellow badge
+- 🔴 Hard - Red badge
+- 🏆 Multiplayer - Trophy icon
+- 📑 Saved - Filled bookmark
+- ✓ Completed - Checkmark
+
+### Pass/Fail
+- Green badge - Passed (≥ passing score)
+- Gray badge - Failed (< passing score)
+
+## Data Persistence
+- Saved quizzes persist across sessions
+- Quiz attempts are permanently recorded
+- Can retake quizzes unlimited times
+- All attempts are tracked
+
+## Need Help?
+- Check the documentation files in the project root
+- Contact support
+- Report issues on GitHub

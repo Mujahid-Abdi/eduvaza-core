@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Download, Video, FileText, Trash2, Play, Eye, Search, Filter } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -11,99 +11,75 @@ import { Progress } from '@/components/ui/progress';
 import { DownloadViewer } from '@/components/content/DownloadViewer';
 import { useI18n } from '@/contexts/I18nContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { coursesService } from '@/services/courses';
 import { toast } from 'sonner';
 
 interface DownloadedItem {
   id: string;
-  title: string;
-  type: 'video' | 'document';
+  lessonTitle: string;
+  contentType: 'video' | 'document';
   courseName: string;
-  size: string;
+  fileSize: string;
   downloadedAt: Date;
-  duration?: string;
-  thumbnail?: string;
   fileUrl: string;
+  lessonId: string;
+  courseId: string;
 }
-
-// Mock downloaded items with real sample URLs
-const mockDownloads: DownloadedItem[] = [
-  {
-    id: 'dl-1',
-    title: 'Introduction to Algebra',
-    type: 'video',
-    courseName: 'Mathematics Grade 10',
-    size: '245 MB',
-    downloadedAt: new Date(Date.now() - 86400000),
-    duration: '15:30',
-    fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-  },
-  {
-    id: 'dl-2',
-    title: 'Algebra Practice Problems',
-    type: 'document',
-    courseName: 'Mathematics Grade 10',
-    size: '2.5 MB',
-    downloadedAt: new Date(Date.now() - 172800000),
-    fileUrl: 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/img/table-word.pdf',
-  },
-  {
-    id: 'dl-3',
-    title: 'Ecosystem Basics',
-    type: 'video',
-    courseName: 'Science - Biology',
-    size: '180 MB',
-    downloadedAt: new Date(Date.now() - 259200000),
-    duration: '12:45',
-    fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-  },
-  {
-    id: 'dl-4',
-    title: 'Cell Structure Diagram',
-    type: 'document',
-    courseName: 'Science - Biology',
-    size: '5.8 MB',
-    downloadedAt: new Date(Date.now() - 345600000),
-    fileUrl: 'https://www.africau.edu/images/default/sample.pdf',
-  },
-  {
-    id: 'dl-5',
-    title: 'Photosynthesis Process',
-    type: 'video',
-    courseName: 'Science - Biology',
-    size: '320 MB',
-    downloadedAt: new Date(Date.now() - 432000000),
-    duration: '20:15',
-    fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
-  },
-];
 
 export const StudentDownloads = () => {
   const { t } = useI18n();
   const { user } = useAuth();
-  const [downloads, setDownloads] = useState<DownloadedItem[]>(mockDownloads);
+  const [downloads, setDownloads] = useState<DownloadedItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'video' | 'document'>('all');
   const [viewerOpen, setViewerOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<DownloadedItem | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch downloads from Firebase
+  useEffect(() => {
+    const fetchDownloads = async () => {
+      if (!user?.id) return;
+
+      setLoading(true);
+      try {
+        const fetchedDownloads = await coursesService.getDownloads(user.id);
+        setDownloads(fetchedDownloads);
+      } catch (error) {
+        console.error('Error fetching downloads:', error);
+        toast.error('Failed to load downloads');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDownloads();
+  }, [user?.id]);
 
   // Filter downloads
   const filteredDownloads = downloads.filter(item => {
-    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = item.lessonTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          item.courseName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = filterType === 'all' || item.type === filterType;
+    const matchesType = filterType === 'all' || item.contentType === filterType;
     return matchesSearch && matchesType;
   });
 
   // Calculate total storage used
   const totalStorage = downloads.reduce((total, item) => {
-    const size = parseFloat(item.size);
-    const unit = item.size.includes('GB') ? 1024 : 1;
+    const size = parseFloat(item.fileSize);
+    const unit = item.fileSize.includes('GB') ? 1024 : 1;
     return total + (size * unit);
   }, 0);
 
-  const handleDelete = (id: string) => {
-    setDownloads(downloads.filter(item => item.id !== id));
-    toast.success('Download deleted successfully');
+  const handleDelete = async (id: string) => {
+    try {
+      await coursesService.deleteDownload(id);
+      setDownloads(downloads.filter(item => item.id !== id));
+      toast.success('Download deleted successfully');
+    } catch (error) {
+      console.error('Error deleting download:', error);
+      toast.error('Failed to delete download');
+    }
   };
 
   const handleOpen = (item: DownloadedItem) => {
@@ -197,7 +173,23 @@ export const StudentDownloads = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
         >
-          {filteredDownloads.length > 0 ? (
+          {loading ? (
+            <div className="grid gap-4">
+              {[1, 2, 3].map((i) => (
+                <Card key={i}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-lg bg-muted animate-pulse" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
+                        <div className="h-3 bg-muted rounded animate-pulse w-1/2" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : filteredDownloads.length > 0 ? (
             <div className="grid gap-4">
               {filteredDownloads.map((item) => (
                 <Card key={item.id} className="hover:shadow-md transition-shadow">
@@ -205,24 +197,19 @@ export const StudentDownloads = () => {
                     <div className="flex items-center gap-4">
                       {/* Icon */}
                       <div className={`p-3 rounded-lg ${
-                        item.type === 'video' ? 'bg-blue-500/10' : 'bg-green-500/10'
+                        item.contentType === 'video' ? 'bg-blue-500/10' : 'bg-green-500/10'
                       }`}>
-                        {getFileIcon(item.type)}
+                        {getFileIcon(item.contentType)}
                       </div>
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground truncate">{item.title}</h3>
+                        <h3 className="font-semibold text-foreground truncate">{item.lessonTitle}</h3>
                         <p className="text-sm text-muted-foreground truncate">{item.courseName}</p>
                         <div className="flex flex-wrap gap-2 mt-2">
                           <Badge variant="outline" className="text-xs">
-                            {item.size}
+                            {item.fileSize}
                           </Badge>
-                          {item.duration && (
-                            <Badge variant="outline" className="text-xs">
-                              {item.duration}
-                            </Badge>
-                          )}
                           <Badge variant="secondary" className="text-xs">
                             {new Date(item.downloadedAt).toLocaleDateString()}
                           </Badge>
@@ -236,7 +223,7 @@ export const StudentDownloads = () => {
                           size="sm"
                           onClick={() => handleOpen(item)}
                         >
-                          {item.type === 'video' ? (
+                          {item.contentType === 'video' ? (
                             <>
                               <Play className="h-4 w-4 mr-2" />
                               Play
@@ -308,8 +295,8 @@ export const StudentDownloads = () => {
               setViewerOpen(false);
               setSelectedItem(null);
             }}
-            title={selectedItem.title}
-            type={selectedItem.type}
+            title={selectedItem.lessonTitle}
+            type={selectedItem.contentType}
             src={selectedItem.fileUrl}
           />
         )}

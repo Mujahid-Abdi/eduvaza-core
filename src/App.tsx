@@ -49,6 +49,7 @@ import QuizExplorePage from "./pages/student/QuizExplorePage";
 import CourseDetailPage from "./pages/student/CourseDetailPage";
 import LessonViewerPage from "./pages/student/LessonViewerPage";
 import ContentTestPage from "./pages/test/ContentTestPage";
+import QuizTakePage from "./pages/QuizTakePage";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +71,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/courses" element={<CoursesPage />} />
               <Route path="/quizzes" element={<QuizzesPage />} />
+              <Route path="/quiz/:quizId" element={<QuizTakePage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/auth/login" element={<LoginPage />} />
