@@ -48,12 +48,16 @@ export const QuizBuilder = ({ initialQuiz, onSave, onCancel, onGenerateAI }: Qui
     title: '',
     description: '',
     language: 'en',
+    quizType: 'practice',
+    difficulty: 'medium',
     questions: [],
     timeLimit: 15,
     shuffleQuestions: false,
     shuffleOptions: true,
     showResults: true,
     passingScore: 60,
+    isPublished: false,
+    isMultiplayer: false,
   });
 
   const steps: Step[] = ['details', 'questions', 'settings', 'preview'];
@@ -329,7 +333,7 @@ export const QuizBuilder = ({ initialQuiz, onSave, onCancel, onGenerateAI }: Qui
                       <div className="space-y-2">
                         <Label>Options (click to mark correct)</Label>
                         <RadioGroup
-                          value={question.options.find(o => o.isCorrect)?.id}
+                          value={question.options.find(o => o.isCorrect)?.id || ''}
                           onValueChange={(value) => setCorrectOption(qIndex, value)}
                         >
                           {question.options.map((option, oIndex) => (

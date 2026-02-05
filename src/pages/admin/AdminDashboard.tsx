@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   School, Users, GraduationCap, BookOpen, TrendingUp, AlertCircle, 
   CheckCircle, Clock, Flag, Trash2, Eye, Edit, Ban, AlertTriangle,
@@ -13,11 +13,26 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { useI18n } from '@/contexts/I18nContext';
 import { mockSchools, mockStats, mockCourses, mockUsers } from '@/services/mockData';
-import { mockQuizzes } from '@/services/mockQuizData';
+import { quizService } from '@/services/quizzes';
 import { toast } from 'sonner';
+import type { Quiz } from '@/types/quiz';
 
 export const AdminDashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+
+  // Fetch quizzes from Firebase
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      try {
+        const allQuizzes = await quizService.getAllQuizzes();
+        setQuizzes(allQuizzes);
+      } catch (error) {
+        console.error('Error fetching quizzes:', error);
+      }
+    };
+    fetchQuizzes();
+  }, []);
 
   // Mock reported courses
   const reportedCourses = [
@@ -492,7 +507,7 @@ export const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {mockQuizzes.slice(0, 5).map((quiz) => (
+                    {quizzes.slice(0, 5).map((quiz) => (
                       <div key={quiz.id} className="flex items-center justify-between p-4 rounded-xl border border-border">
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-2xl">

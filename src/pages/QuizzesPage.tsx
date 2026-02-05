@@ -39,10 +39,13 @@ const QuizzesPage = () => {
     const fetchQuizzes = async () => {
       setLoading(true);
       try {
+        console.log('🔍 Fetching published quizzes from Firebase...');
         const fetchedQuizzes = await quizService.getQuizzes();
+        console.log('✅ Fetched', fetchedQuizzes.length, 'published quizzes');
         setQuizzes(fetchedQuizzes);
       } catch (error) {
-        console.error('Error fetching quizzes:', error);
+        console.error('❌ Error fetching quizzes:', error);
+        setQuizzes([]);
       } finally {
         setLoading(false);
       }
