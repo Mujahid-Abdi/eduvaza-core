@@ -50,6 +50,7 @@ import CourseDetailPage from "./pages/student/CourseDetailPage";
 import LessonViewerPage from "./pages/student/LessonViewerPage";
 import ContentTestPage from "./pages/test/ContentTestPage";
 import QuizTakePage from "./pages/QuizTakePage";
+import AIStudyAssistant from "./pages/shared/AIStudyAssistant";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +102,7 @@ const App = () => (
               <Route path="/teacher/learning" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherEnrolledCourses /></ProtectedRoute>} />
               <Route path="/teacher/questions" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherStudentQuestions /></ProtectedRoute>} />
               <Route path="/teacher/downloads" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherDownloads /></ProtectedRoute>} />
+              <Route path="/teacher/ai-assistant" element={<ProtectedRoute allowedRoles={['teacher']}><AIStudyAssistant /></ProtectedRoute>} />
               <Route path="/student/*" element={<ProtectedRoute allowedRoles={['student']}><StudentDashboard /></ProtectedRoute>} />
               <Route path="/student/quizzes" element={<ProtectedRoute allowedRoles={['student']}><StudentQuizPage /></ProtectedRoute>} />
               <Route path="/student/quiz-explore" element={<ProtectedRoute allowedRoles={['student']}><QuizExplorePage /></ProtectedRoute>} />
@@ -110,6 +112,8 @@ const App = () => (
               <Route path="/student/leaderboard" element={<ProtectedRoute allowedRoles={['student']}><StudentLeaderboard /></ProtectedRoute>} />
               <Route path="/student/downloads" element={<ProtectedRoute allowedRoles={['student']}><StudentDownloads /></ProtectedRoute>} />
               <Route path="/student/settings" element={<ProtectedRoute allowedRoles={['student']}><StudentSettings /></ProtectedRoute>} />
+              <Route path="/student/ai-assistant" element={<ProtectedRoute allowedRoles={['student']}><AIStudyAssistant /></ProtectedRoute>} />
+              <Route path="/school/ai-assistant" element={<ProtectedRoute allowedRoles={['school']}><AIStudyAssistant /></ProtectedRoute>} />
               <Route path="/test/content" element={<ContentTestPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
