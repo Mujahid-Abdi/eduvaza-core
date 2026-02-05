@@ -165,7 +165,14 @@
     "multiplayer": "ብዙ ተጫዋች",
     "scheduled": "የተመደበ",
     "completed": "የተጠናቀቀ",
-    "results": "ውጤቶች"
+    "results": "ውጤቶች",
+    "exploreQuizzes": "ጥያቄዎችን ይመርምሩ",
+    "testKnowledge": "ዕውቀትዎን በመስተጋብር ጥያቄዎች ይፈትኑ። ራስዎን ይፈታተኑ እና ከሌሎች ጋር ይወዳደሩ።",
+    "selfPractice": "ራስ-ልምምድ",
+    "multiplayerMode": "ብዙ ተጫዋች",
+    "joinGame": "ጨዋታ ይቀላቀሉ",
+    "noQuizzesFound": "ምንም ጥያቄዎች አልተገኙም",
+    "tryAdjusting": "ፍለጋዎን ወይም ማጣሪያዎችን ማስተካከል ይሞክሩ"
   },
   "gamification": {
     "leaderboard": "ደረጃ ሰንጠረዥ",
