@@ -19,6 +19,7 @@ const languages: { code: Language; name: string; flag: string }[] = [
   { code: 'fr', name: 'Français', flag: '🇫🇷' },
   { code: 'ar', name: 'العربية', flag: '🇸🇦' },
   { code: 'sw', name: 'Kiswahili', flag: '🇰🇪' },
+  { code: 'am', name: 'አማርኛ', flag: '🇪🇹' },
 ];
 
 export const Navbar = () => {
