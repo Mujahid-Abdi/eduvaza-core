@@ -23,6 +23,7 @@ import {
   Download,
   Moon,
   Sun,
+  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -63,6 +64,7 @@ const getNavItems = (role: UserRole, t: (key: string) => string): NavItem[] => {
         { icon: <BookOpen className="h-5 w-5" />, label: 'Courses', href: '/courses' },
         { icon: <FileQuestion className="h-5 w-5" />, label: 'Quizzes', href: '/quizzes' },
         { icon: <MessageSquare className="h-5 w-5" />, label: 'Student Questions', href: '/questions' },
+        { icon: <Sparkles className="h-5 w-5" />, label: 'AI Assistant', href: '/ai-assistant' },
         { icon: <BarChart3 className="h-5 w-5" />, label: 'Analytics', href: '/analytics' },
       ];
     case 'teacher':
@@ -71,6 +73,7 @@ const getNavItems = (role: UserRole, t: (key: string) => string): NavItem[] => {
         { icon: <BookOpen className="h-5 w-5" />, label: t('teacher.myCourses'), href: '/courses' },
         { icon: <FileQuestion className="h-5 w-5" />, label: t('quiz.myQuizzes'), href: '/quizzes' },
         { icon: <MessageSquare className="h-5 w-5" />, label: 'Student Questions', href: '/questions' },
+        { icon: <Sparkles className="h-5 w-5" />, label: 'AI Assistant', href: '/ai-assistant' },
         { icon: <BarChart3 className="h-5 w-5" />, label: t('quiz.analytics'), href: '/analytics' },
         { icon: <GraduationCap className="h-5 w-5" />, label: 'My Learning', href: '/learning' },
         { icon: <Download className="h-5 w-5" />, label: 'My Downloads', href: '/downloads' },
@@ -80,6 +83,7 @@ const getNavItems = (role: UserRole, t: (key: string) => string): NavItem[] => {
         ...baseItems,
         { icon: <BookOpen className="h-5 w-5" />, label: t('student.myCourses'), href: '/my-courses' },
         { icon: <FileQuestion className="h-5 w-5" />, label: t('quiz.quizzes'), href: '/quizzes' },
+        { icon: <Sparkles className="h-5 w-5" />, label: 'Study Helper', href: '/ai-assistant' },
         { icon: <Trophy className="h-5 w-5" />, label: t('gamification.leaderboard'), href: '/leaderboard' },
         { icon: <Layers className="h-5 w-5" />, label: 'My Downloads', href: '/downloads' },
       ];
