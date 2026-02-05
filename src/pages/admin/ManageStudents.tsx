@@ -210,51 +210,51 @@ export const ManageStudents = () => {
               {filteredStudents.map((student) => (
                 <div
                   key={student.id}
-                  className="flex items-center justify-between p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors gap-4"
                 >
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className="w-12 h-12 rounded-full bg-secondary/10 text-secondary flex items-center justify-center text-lg font-bold">
+                  <div className="flex items-start sm:items-center gap-3 flex-1 min-w-0">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-secondary/10 text-secondary flex items-center justify-center text-base sm:text-lg font-bold shrink-0">
                       {student.name[0]}
                     </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-foreground">{student.name}</p>
-                      <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Mail className="h-3 w-3" />
-                          {student.email}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-foreground truncate">{student.name}</p>
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-1 text-xs sm:text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1 truncate max-w-[150px] sm:max-w-none">
+                          <Mail className="h-3 w-3 shrink-0" />
+                          <span className="truncate">{student.email}</span>
                         </span>
                         <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
+                          <MapPin className="h-3 w-3 shrink-0" />
                           {student.country}
                         </span>
-                        <span className="flex items-center gap-1">
-                          <BookOpen className="h-3 w-3" />
+                        <span className="hidden sm:flex items-center gap-1">
+                          <BookOpen className="h-3 w-3 shrink-0" />
                           {student.educationLevel}
                         </span>
                       </div>
-                      <div className="flex items-center gap-3 mt-2">
-                        <Badge variant="outline">{student.grade}</Badge>
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2">
+                        <Badge variant="outline" className="text-xs">{student.grade}</Badge>
                         <span className="text-xs text-muted-foreground">
-                          {student.enrolledCourses} courses enrolled
+                          {student.enrolledCourses} courses
                         </span>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="hidden sm:inline text-xs text-muted-foreground">
                           {student.completedCourses} completed
                         </span>
                         <span className="flex items-center gap-1 text-xs">
                           <Award className="h-3 w-3 text-yellow-500" />
-                          {student.averageScore}% avg
+                          {student.averageScore}%
                         </span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => handleViewDetails(student.name)}>
+                  <div className="flex items-center gap-1 sm:gap-2 self-end sm:self-center">
+                    <Button variant="ghost" size="sm" onClick={() => handleViewDetails(student.name)} className="h-8 w-8 p-0">
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleWarnStudent(student.name)}>
+                    <Button variant="ghost" size="sm" onClick={() => handleWarnStudent(student.name)} className="h-8 w-8 p-0">
                       <AlertTriangle className="h-4 w-4 text-warning" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleSuspendStudent(student.name)}>
+                    <Button variant="ghost" size="sm" onClick={() => handleSuspendStudent(student.name)} className="h-8 w-8 p-0">
                       <Ban className="h-4 w-4 text-destructive" />
                     </Button>
                   </div>
