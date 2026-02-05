@@ -143,5 +143,39 @@
     "contact": "اتصل بنا",
     "faq": "الأسئلة الشائعة",
     "rights": "جميع الحقوق محفوظة"
+  },
+  "quiz": {
+    "title": "الاختبارات",
+    "myQuizzes": "اختباراتي",
+    "quizzes": "الاختبارات",
+    "createQuiz": "إنشاء اختبار",
+    "schedule": "جدولة",
+    "calendar": "تقويم الاختبارات",
+    "analytics": "التحليلات",
+    "joinLive": "انضم مباشرة",
+    "startQuiz": "ابدأ الاختبار",
+    "questions": "الأسئلة",
+    "points": "النقاط",
+    "timeLimit": "الحد الزمني",
+    "multiplayer": "متعدد اللاعبين",
+    "scheduled": "مجدول",
+    "completed": "مكتمل",
+    "results": "النتائج"
+  },
+  "gamification": {
+    "leaderboard": "لوحة المتصدرين",
+    "badges": "الشارات",
+    "achievements": "الإنجازات",
+    "points": "النقاط",
+    "level": "المستوى",
+    "streak": "السلسلة",
+    "rank": "الترتيب"
+  },
+  "auth": {
+    "registrationSuccess": "تم التسجيل بنجاح!",
+    "welcomeMessage": "مرحباً بك في إيدوفازا!",
+    "accountCreated": "تم إنشاء حسابك بنجاح.",
+    "redirectingToDashboard": "جاري التحويل إلى لوحة التحكم...",
+    "goToDashboard": "اذهب إلى لوحة التحكم"
   }
 }

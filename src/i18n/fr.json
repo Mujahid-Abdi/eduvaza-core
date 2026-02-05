@@ -148,5 +148,32 @@
     "contact": "Contactez-Nous",
     "faq": "FAQ",
     "rights": "Tous droits réservés"
+  },
+  "quiz": {
+    "title": "Quiz",
+    "myQuizzes": "Mes Quiz",
+    "quizzes": "Quiz",
+    "createQuiz": "Créer un Quiz",
+    "schedule": "Planifier",
+    "calendar": "Calendrier des Quiz",
+    "analytics": "Analytique",
+    "joinLive": "Rejoindre en Direct",
+    "startQuiz": "Démarrer le Quiz",
+    "questions": "Questions",
+    "points": "Points",
+    "timeLimit": "Limite de Temps",
+    "multiplayer": "Multijoueur",
+    "scheduled": "Programmé",
+    "completed": "Terminé",
+    "results": "Résultats"
+  },
+  "gamification": {
+    "leaderboard": "Classement",
+    "badges": "Badges",
+    "achievements": "Accomplissements",
+    "points": "Points",
+    "level": "Niveau",
+    "streak": "Série",
+    "rank": "Rang"
   }
 }

@@ -143,5 +143,39 @@
     "contact": "Wasiliana Nasi",
     "faq": "Maswali Yanayoulizwa Mara kwa Mara",
     "rights": "Haki zote zimehifadhiwa"
+  },
+  "quiz": {
+    "title": "Majaribio",
+    "myQuizzes": "Majaribio Yangu",
+    "quizzes": "Majaribio",
+    "createQuiz": "Unda Jaribio",
+    "schedule": "Ratiba",
+    "calendar": "Kalenda ya Majaribio",
+    "analytics": "Uchambuzi",
+    "joinLive": "Jiunge Moja kwa Moja",
+    "startQuiz": "Anza Jaribio",
+    "questions": "Maswali",
+    "points": "Pointi",
+    "timeLimit": "Kikomo cha Muda",
+    "multiplayer": "Wachezaji Wengi",
+    "scheduled": "Imepangwa",
+    "completed": "Imekamilika",
+    "results": "Matokeo"
+  },
+  "gamification": {
+    "leaderboard": "Orodha ya Viongozi",
+    "badges": "Beji",
+    "achievements": "Mafanikio",
+    "points": "Pointi",
+    "level": "Kiwango",
+    "streak": "Mfuatano",
+    "rank": "Nafasi"
+  },
+  "auth": {
+    "registrationSuccess": "Usajili Umefanikiwa!",
+    "welcomeMessage": "Karibu EduVaza!",
+    "accountCreated": "Akaunti yako imeundwa kwa mafanikio.",
+    "redirectingToDashboard": "Inaelekeza kwenye dashibodi yako...",
+    "goToDashboard": "Nenda kwa Dashibodi"
   }
 }
