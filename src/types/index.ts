@@ -159,3 +159,16 @@ export interface I18nContextType {
   t: (key: string, params?: Record<string, string>) => string;
   dir: 'ltr' | 'rtl';
 }
+
+export interface Opportunity {
+  id: string;
+  title: string;
+  description: string;
+  coverImage: string;
+  link: string;
+  category: 'scholarship' | 'university' | 'free_course' | 'other';
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy: string;
+}

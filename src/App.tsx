@@ -51,6 +51,8 @@ import LessonViewerPage from "./pages/student/LessonViewerPage";
 import ContentTestPage from "./pages/test/ContentTestPage";
 import QuizTakePage from "./pages/QuizTakePage";
 import AIStudyAssistant from "./pages/shared/AIStudyAssistant";
+import OpportunitiesPage from "./pages/OpportunitiesPage";
+import ManageOpportunities from "./pages/admin/ManageOpportunities";
 
 const queryClient = new QueryClient();
 
@@ -73,6 +75,7 @@ const App = () => (
               <Route path="/courses" element={<CoursesPage />} />
               <Route path="/quizzes" element={<QuizzesPage />} />
               <Route path="/quiz/:quizId" element={<QuizTakePage />} />
+              <Route path="/opportunities" element={<OpportunitiesPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/auth/login" element={<LoginPage />} />
@@ -87,6 +90,7 @@ const App = () => (
               <Route path="/admin/courses" element={<ProtectedRoute allowedRoles={['super_admin']}><ManageCourses /></ProtectedRoute>} />
               <Route path="/admin/quizzes" element={<ProtectedRoute allowedRoles={['super_admin']}><ManageQuizzes /></ProtectedRoute>} />
               <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={['super_admin']}><ManageReports /></ProtectedRoute>} />
+              <Route path="/admin/opportunities" element={<ProtectedRoute allowedRoles={['super_admin']}><ManageOpportunities /></ProtectedRoute>} />
               <Route path="/school" element={<ProtectedRoute allowedRoles={['school']}><SchoolDashboard /></ProtectedRoute>} />
               <Route path="/school/settings" element={<ProtectedRoute allowedRoles={['school']}><SchoolSettings /></ProtectedRoute>} />
               <Route path="/school/analytics" element={<ProtectedRoute allowedRoles={['school']}><SchoolAnalytics /></ProtectedRoute>} />

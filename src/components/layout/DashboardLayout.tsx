@@ -56,6 +56,7 @@ const getNavItems = (role: UserRole, t: (key: string) => string): NavItem[] => {
         { icon: <School className="h-5 w-5" />, label: 'Schools', href: '/schools' },
         { icon: <BookOpen className="h-5 w-5" />, label: 'Courses', href: '/courses' },
         { icon: <FileQuestion className="h-5 w-5" />, label: 'Quizzes', href: '/quizzes' },
+        { icon: <Sparkles className="h-5 w-5" />, label: 'Opportunities', href: '/opportunities' },
         { icon: <Flag className="h-5 w-5" />, label: 'Reports', href: '/reports' },
       ];
     case 'school':

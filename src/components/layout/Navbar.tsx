@@ -31,6 +31,7 @@ export const Navbar = () => {
     { href: '/', label: t('nav.home') },
     { href: '/courses', label: t('nav.courses') },
     { href: '/quizzes', label: 'Quizzes' },
+    { href: '/opportunities', label: 'Opportunities' },
     { href: '/about', label: t('nav.about') },
     { href: '/contact', label: t('nav.contact') },
   ];
