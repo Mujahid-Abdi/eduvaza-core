@@ -1,4 +1,5 @@
  import { supabase } from "@/integrations/supabase/client";
+ import { auth } from "@/lib/firebase";
  
  export interface AIStudyRequest {
    action: "summarize" | "generate_questions";
@@ -31,12 +32,13 @@
  
  export const aiStudyAssistantService = {
    async processDocument(request: AIStudyRequest): Promise<AIStudyResponse> {
-     const { data: sessionData } = await supabase.auth.getSession();
-     const token = sessionData?.session?.access_token;
- 
-     if (!token) {
+     // Get Firebase auth token instead of Supabase
+     const currentUser = auth.currentUser;
+     if (!currentUser) {
        throw new Error("You must be logged in to use AI features");
      }
+ 
+     const token = await currentUser.getIdToken();
  
      const response = await fetch(
        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-study-assistant`,
