@@ -97,30 +97,30 @@ export const ManageCourses = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid gap-4 md:grid-cols-4"
+          className="grid gap-3 grid-cols-2 lg:grid-cols-4"
         >
           <Card>
-            <CardContent className="p-6">
-              <div className="text-2xl font-bold">{stats.total}</div>
-              <p className="text-sm text-muted-foreground">Total Courses</p>
+            <CardContent className="p-4">
+              <div className="text-xl font-bold">{stats.total}</div>
+              <p className="text-xs text-muted-foreground">Total Courses</p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-6">
-              <div className="text-2xl font-bold text-green-600">{stats.published}</div>
-              <p className="text-sm text-muted-foreground">Published</p>
+            <CardContent className="p-4">
+              <div className="text-xl font-bold text-green-600">{stats.published}</div>
+              <p className="text-xs text-muted-foreground">Published</p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-6">
-              <div className="text-2xl font-bold text-blue-600">{stats.totalEnrollments}</div>
-              <p className="text-sm text-muted-foreground">Total Enrollments</p>
+            <CardContent className="p-4">
+              <div className="text-xl font-bold text-blue-600">{stats.totalEnrollments}</div>
+              <p className="text-xs text-muted-foreground">Total Enrollments</p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-6">
-              <div className="text-2xl font-bold text-purple-600">{stats.avgEnrollment}</div>
-              <p className="text-sm text-muted-foreground">Avg per Course</p>
+            <CardContent className="p-4">
+              <div className="text-xl font-bold text-purple-600">{stats.avgEnrollment}</div>
+              <p className="text-xs text-muted-foreground">Avg per Course</p>
             </CardContent>
           </Card>
         </motion.div>
@@ -185,26 +185,26 @@ export const ManageCourses = () => {
                 {filteredCourses.map((course) => (
                   <div
                     key={course.id}
-                    className="flex items-center justify-between p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors"
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors gap-3"
                   >
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className="w-20 h-20 rounded-lg bg-muted overflow-hidden">
+                    <div className="flex items-start gap-3 flex-1 w-full min-w-0">
+                      <div className="w-16 h-16 flex-shrink-0 rounded-lg bg-muted overflow-hidden">
                         {course.thumbnail ? (
                           <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-3xl">📚</div>
+                          <div className="w-full h-full flex items-center justify-center text-2xl">📚</div>
                         )}
                       </div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-foreground">{course.title}</p>
-                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{course.description}</p>
-                        <div className="flex items-center gap-3 mt-2">
-                          <Badge variant="outline">{course.category}</Badge>
-                          <Badge variant="secondary">{course.level}</Badge>
-                          <Badge variant={course.isPublished ? 'default' : 'secondary'}>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm text-foreground truncate">{course.title}</p>
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{course.description}</p>
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
+                          <Badge variant="outline" className="text-xs">{course.category}</Badge>
+                          <Badge variant="secondary" className="text-xs">{course.level}</Badge>
+                          <Badge variant={course.isPublished ? 'default' : 'secondary'} className="text-xs">
                             {course.isPublished ? 'Published' : 'Draft'}
                           </Badge>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-muted-foreground hidden sm:inline">
                             By {course.teacherName}
                           </span>
                           <span className="text-xs text-muted-foreground">
@@ -216,18 +216,18 @@ export const ManageCourses = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                       <Button 
                         variant="ghost" 
                         size="sm" 
                         onClick={() => setEditingCourse(course)}
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit className="h-3 w-3" />
                       </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="ghost" size="sm">
-                            <Trash2 className="h-4 w-4 text-destructive" />
+                            <Trash2 className="h-3 w-3 text-destructive" />
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>

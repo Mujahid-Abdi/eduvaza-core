@@ -1,18 +1,13 @@
 import { motion } from 'framer-motion';
 import { Target, Users, Award, Globe, Heart, Zap, CheckCircle2 } from 'lucide-react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/contexts/I18nContext';
 
 const AboutPage = () => {
-  const { isAuthenticated, user } = useAuth();
-
-  // Only redirect admin to dashboard, other users can see public pages
-  if (isAuthenticated && user?.role === 'super_admin') {
-    return <Navigate to="/admin" replace />;
-  }
+  const { t } = useI18n();
   const values = [
     {
       icon: <Target className="h-8 w-8" />,

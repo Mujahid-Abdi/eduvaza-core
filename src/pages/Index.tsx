@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { useI18n } from '@/contexts/I18nContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockCategories, mockCourses, mockStats } from '@/services/mockData';
-import { RoleChecker } from '@/components/dev/RoleChecker';
 
 const Index = () => {
   const { t } = useI18n();
@@ -146,9 +145,6 @@ const Index = () => {
           </div>
         </div>
       </section>
-
-      {/* Development Role Checker - Remove in production */}
-      {isAuthenticated && <RoleChecker />}
     </MainLayout>
   );
 };
