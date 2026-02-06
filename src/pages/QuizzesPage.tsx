@@ -724,9 +724,11 @@ const QuizzesPage = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-col gap-3 pt-4 border-t">
-                {/* Registration Button for Multiplayer */}
-                {selectedQuizDetail.isMultiplayer && selectedQuizDetail.registrationDeadline && 
-                 new Date() < new Date(selectedQuizDetail.registrationDeadline) && (
+                {/* Registration Button for Multiplayer - Only show if before deadline AND before start time */}
+                {selectedQuizDetail.isMultiplayer && 
+                 selectedQuizDetail.registrationDeadline && 
+                 new Date() < new Date(selectedQuizDetail.registrationDeadline) &&
+                 (!selectedQuizDetail.scheduledStartTime || new Date() < new Date(selectedQuizDetail.scheduledStartTime)) && (
                   <div className="flex gap-3">
                     {isAuthenticated ? (
                       registeredQuizIds.includes(selectedQuizDetail.id!) ? (
