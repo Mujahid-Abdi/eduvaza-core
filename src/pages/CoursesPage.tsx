@@ -653,9 +653,9 @@ const CoursesPage = () => {
                       <h3 className="font-semibold">Instructor</h3>
                     </div>
                     <p className="text-muted-foreground">{selectedCourse.teacherName}</p>
-                    {selectedCourse.schoolName && (
+                    {selectedCourse.schoolId && (
                       <p className="text-sm text-muted-foreground mt-1">
-                        School: {selectedCourse.schoolName}
+                        School ID: {selectedCourse.schoolId}
                       </p>
                     )}
                   </div>
@@ -663,9 +663,9 @@ const CoursesPage = () => {
                   <div className="p-4 rounded-lg bg-muted/50">
                     <div className="flex items-center gap-2 mb-2">
                       <MapPin className="h-5 w-5 text-primary" />
-                      <h3 className="font-semibold">Location</h3>
+                      <h3 className="font-semibold">Category</h3>
                     </div>
-                    <p className="text-muted-foreground">{selectedCourse.country || 'Not specified'}</p>
+                    <p className="text-muted-foreground">{selectedCourse.category || 'Not specified'}</p>
                   </div>
                 </div>
 
@@ -703,8 +703,8 @@ const CoursesPage = () => {
                             </div>
                             <div>
                               <p className="font-medium">{lesson.title}</p>
-                              {lesson.description && (
-                                <p className="text-sm text-muted-foreground line-clamp-1">{lesson.description}</p>
+                              {lesson.content && (
+                                <p className="text-sm text-muted-foreground line-clamp-1">{lesson.content.substring(0, 100)}</p>
                               )}
                             </div>
                           </div>

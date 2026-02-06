@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Phone, Lock, Eye, EyeOff, ArrowRight, User, School, GraduationCap, UserCog, CheckCircle, Clock, Home } from 'lucide-react';
+import { Mail, Phone, Lock, Eye, EyeOff, ArrowRight, User, School, GraduationCap, UserCog, CheckCircle, Clock, Home, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -142,7 +142,7 @@ type Step = 'role' | 'language' | 'school_level' | 'focus_areas' | 'education' |
 
 export const RegisterPage = () => {
   const { t, setLocale, locale } = useI18n();
-  const { register, isLoading, user } = useAuth();
+  const { register, isLoading, user, logout } = useAuth();
   const navigate = useNavigate();
 
   const [step, setStep] = useState<Step>('role');
