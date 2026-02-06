@@ -5,8 +5,9 @@ import fr from '@/i18n/fr.json';
 import ar from '@/i18n/ar.json';
 import sw from '@/i18n/sw.json';
 import am from '@/i18n/am.json';
+import ha from '@/i18n/ha.json';
 
-const translations: Record<Language, Translations> = { en, fr, ar, sw, am };
+const translations: Record<Language, Translations> = { en, fr, ar, sw, am, ha };
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
