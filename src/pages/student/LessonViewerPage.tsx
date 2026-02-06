@@ -133,133 +133,153 @@ export const LessonViewerPage = () => {
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Sidebar */}
+    <div className="flex h-screen bg-background overflow-hidden">
+      {/* Sidebar - Hidden on mobile by default */}
       <AnimatePresence>
         {showSidebar && (
-          <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 320, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            className="border-r bg-card flex flex-col overflow-hidden"
-          >
-            {/* Sidebar Header */}
-            <div className="p-4 border-b">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(`/student/courses/${courseId}`)}
-                className="mb-3"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Course
-              </Button>
-              <h2 className="font-semibold text-lg truncate">{course.title}</h2>
-              <div className="flex items-center gap-2 mt-2">
-                <Progress value={overallProgress} className="flex-1 h-2" />
-                <span className="text-xs text-muted-foreground">
-                  {Math.round(overallProgress)}%
-                </span>
+          <>
+            {/* Mobile Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              onClick={() => setShowSidebar(false)}
+            />
+            
+            {/* Sidebar */}
+            <motion.div
+              initial={{ x: -320 }}
+              animate={{ x: 0 }}
+              exit={{ x: -320 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed md:relative inset-y-0 left-0 z-50 w-80 md:w-80 border-r bg-card flex flex-col overflow-hidden"
+            >
+              {/* Sidebar Header */}
+              <div className="p-4 border-b">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate(`/student/courses/${courseId}`)}
+                  className="mb-3 w-full justify-start"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Course
+                </Button>
+                <h2 className="font-semibold text-lg truncate">{course.title}</h2>
+                <div className="flex items-center gap-2 mt-2">
+                  <Progress value={overallProgress} className="flex-1 h-2" />
+                  <span className="text-xs text-muted-foreground">
+                    {Math.round(overallProgress)}%
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {completedLessons.length} of {totalLessons} lessons completed
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {completedLessons.length} of {totalLessons} lessons completed
-              </p>
-            </div>
 
-            {/* Lesson List */}
-            <ScrollArea className="flex-1">
-              <div className="p-2">
-                {course.lessons.map((lesson, index) => {
-                  const isCompleted = completedLessons.includes(lesson.id);
-                  const isCurrent = index === lessonIndex;
-                  const progress = lessonProgress[lesson.id] || 0;
+              {/* Lesson List */}
+              <ScrollArea className="flex-1">
+                <div className="p-2">
+                  {course.lessons.map((lesson, index) => {
+                    const isCompleted = completedLessons.includes(lesson.id);
+                    const isCurrent = index === lessonIndex;
+                    const progress = lessonProgress[lesson.id] || 0;
 
-                  return (
-                    <button
-                      key={lesson.id}
-                      onClick={() => goToLesson(index)}
-                      className={cn(
-                        'w-full text-left p-3 rounded-lg mb-1 transition-colors',
-                        isCurrent
-                          ? 'bg-primary/10 border border-primary/30'
-                          : 'hover:bg-muted'
-                      )}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div
-                          className={cn(
-                            'flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium flex-shrink-0',
-                            isCompleted
-                              ? 'bg-green-500 text-white'
-                              : isCurrent
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-muted text-muted-foreground'
-                          )}
-                        >
-                          {isCompleted ? (
-                            <CheckCircle2 className="h-4 w-4" />
-                          ) : (
-                            index + 1
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p
+                    return (
+                      <button
+                        key={lesson.id}
+                        onClick={() => {
+                          goToLesson(index);
+                          // Close sidebar on mobile after selection
+                          if (window.innerWidth < 768) {
+                            setShowSidebar(false);
+                          }
+                        }}
+                        className={cn(
+                          'w-full text-left p-3 rounded-lg mb-1 transition-colors',
+                          isCurrent
+                            ? 'bg-primary/10 border border-primary/30'
+                            : 'hover:bg-muted'
+                        )}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
                             className={cn(
-                              'font-medium text-sm truncate',
-                              isCurrent && 'text-primary'
+                              'flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium flex-shrink-0',
+                              isCompleted
+                                ? 'bg-green-500 text-white'
+                                : isCurrent
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted text-muted-foreground'
                             )}
                           >
-                            {lesson.title}
-                          </p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline" className="text-xs py-0">
-                              {getContentIcon(lesson.contentType)}
-                              <span className="ml-1">{lesson.contentType}</span>
-                            </Badge>
-                            {lesson.duration && (
-                              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {lesson.duration}m
-                              </span>
+                            {isCompleted ? (
+                              <CheckCircle2 className="h-4 w-4" />
+                            ) : (
+                              index + 1
                             )}
                           </div>
-                          {progress > 0 && !isCompleted && (
-                            <Progress value={progress} className="h-1 mt-2" />
-                          )}
+                          <div className="flex-1 min-w-0">
+                            <p
+                              className={cn(
+                                'font-medium text-sm truncate',
+                                isCurrent && 'text-primary'
+                              )}
+                            >
+                              {lesson.title}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant="outline" className="text-xs py-0">
+                                {getContentIcon(lesson.contentType)}
+                                <span className="ml-1">{lesson.contentType}</span>
+                              </Badge>
+                              {lesson.duration && (
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {lesson.duration}m
+                                </span>
+                              )}
+                            </div>
+                            {progress > 0 && !isCompleted && (
+                              <Progress value={progress} className="h-1 mt-2" />
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </ScrollArea>
-          </motion.div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden w-full">
         {/* Top Bar */}
-        <div className="flex items-center justify-between px-4 py-3 border-b bg-card">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 border-b bg-card">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
             <Button
               variant="ghost"
               size="iconSm"
               onClick={() => setShowSidebar(!showSidebar)}
+              className="flex-shrink-0"
             >
               {showSidebar ? <X className="h-4 w-4" /> : <List className="h-4 w-4" />}
             </Button>
-            <div>
-              <p className="text-sm text-muted-foreground">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Lesson {lessonIndex + 1} of {totalLessons}
               </p>
-              <h1 className="font-semibold truncate max-w-[300px] md:max-w-none">
+              <h1 className="font-semibold text-sm sm:text-base truncate">
                 {currentLesson?.title}
               </h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             {/* Ask Question */}
             <AskQuestionDialog
               type="course"
@@ -272,22 +292,28 @@ export const LessonViewerPage = () => {
 
             {/* Mark Complete */}
             {currentLesson && !completedLessons.includes(currentLesson.id) && (
-              <Button variant="outline" size="sm" onClick={markAsComplete}>
+              <Button variant="outline" size="sm" onClick={markAsComplete} className="hidden sm:flex">
                 <CheckCircle2 className="h-4 w-4 mr-2" />
                 Mark Complete
+              </Button>
+            )}
+            {/* Mobile version - icon only */}
+            {currentLesson && !completedLessons.includes(currentLesson.id) && (
+              <Button variant="outline" size="iconSm" onClick={markAsComplete} className="sm:hidden">
+                <CheckCircle2 className="h-4 w-4" />
               </Button>
             )}
           </div>
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-auto p-4 md:p-6">
+        <div className="flex-1 overflow-auto p-2 sm:p-4 md:p-6">
           {currentLesson ? (
             <motion.div
               key={currentLesson.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="max-w-5xl mx-auto"
+              className="max-w-5xl mx-auto w-full"
             >
               {/* Content based on type */}
               {currentLesson.contentType === 'pdf' && currentLesson.pdfUrl ? (
@@ -298,10 +324,10 @@ export const LessonViewerPage = () => {
                   onProgress={(page, total) =>
                     handleProgress(currentLesson.id, (page / total) * 100)
                   }
-                  className="h-[calc(100vh-200px)]"
+                  className="h-[calc(100vh-180px)] sm:h-[calc(100vh-200px)]"
                 />
               ) : currentLesson.contentType === 'video' && currentLesson.videoUrl ? (
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   <VideoPlayer
                     src={currentLesson.videoUrl}
                     title={currentLesson.title}
@@ -310,15 +336,15 @@ export const LessonViewerPage = () => {
                       handleProgress(currentLesson.id, (time / duration) * 100)
                     }
                     onComplete={() => handleComplete(currentLesson.id)}
-                    className="aspect-video rounded-lg overflow-hidden"
+                    className="w-full aspect-video rounded-lg overflow-hidden"
                   />
                   {/* Video description/notes area */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">Lesson Notes</CardTitle>
+                      <CardTitle className="text-base sm:text-lg">Lesson Notes</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-muted-foreground">
+                      <p className="text-sm sm:text-base text-muted-foreground">
                         {currentLesson.content || 'No additional notes for this lesson.'}
                       </p>
                     </CardContent>
@@ -327,7 +353,7 @@ export const LessonViewerPage = () => {
               ) : (
                 /* Text content */
                 <Card>
-                  <CardContent className="p-6 prose prose-sm md:prose-base max-w-none">
+                  <CardContent className="p-4 sm:p-6 prose prose-sm md:prose-base max-w-none">
                     <div
                       dangerouslySetInnerHTML={{
                         __html: currentLesson.content || '<p>No content available.</p>',
@@ -339,33 +365,39 @@ export const LessonViewerPage = () => {
             </motion.div>
           ) : (
             <div className="text-center py-12">
-              <BookOpen className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Select a lesson to begin</p>
+              <BookOpen className="h-12 sm:h-16 w-12 sm:w-16 mx-auto text-muted-foreground mb-4" />
+              <p className="text-sm sm:text-base text-muted-foreground">Select a lesson to begin</p>
             </div>
           )}
         </div>
 
         {/* Bottom Navigation */}
-        <div className="flex items-center justify-between px-4 py-3 border-t bg-card">
+        <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 border-t bg-card">
           <Button
             variant="outline"
+            size="sm"
             onClick={() => goToLesson(lessonIndex - 1)}
             disabled={lessonIndex === 0}
+            className="text-xs sm:text-sm"
           >
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Previous
+            <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Previous</span>
+            <span className="sm:hidden">Prev</span>
           </Button>
 
-          <div className="text-sm text-muted-foreground">
+          <div className="text-xs sm:text-sm text-muted-foreground font-medium">
             {lessonIndex + 1} / {totalLessons}
           </div>
 
           <Button
+            size="sm"
             onClick={() => goToLesson(lessonIndex + 1)}
             disabled={lessonIndex === totalLessons - 1}
+            className="text-xs sm:text-sm"
           >
-            Next
-            <ChevronRight className="h-4 w-4 ml-2" />
+            <span className="hidden sm:inline">Next</span>
+            <span className="sm:hidden">Next</span>
+            <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2" />
           </Button>
         </div>
       </div>
