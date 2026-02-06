@@ -410,6 +410,7 @@ export const TeacherQuizPage = () => {
             onSave={handleSaveQuiz}
             onCancel={() => setView('list')}
             onGenerateAI={() => {}}
+            userRole="teacher"
           />
         )}
 

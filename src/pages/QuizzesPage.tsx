@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Search, FileQuestion, Users, Clock, Star, X, Trophy, Bookmark, BookmarkCheck, UserPlus, Play, Swords } from 'lucide-react';
+import { Search, FileQuestion, Users, Clock, Star, X, Trophy, Bookmark, BookmarkCheck, UserPlus, Play, Swords, Eye, MapPin, GraduationCap } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,6 +42,10 @@ const QuizzesPage = () => {
   const [savedQuizIds, setSavedQuizIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingQuiz, setSavingQuiz] = useState<string | null>(null);
+  
+  // Quiz detail modal state
+  const [showQuizDetail, setShowQuizDetail] = useState(false);
+  const [selectedQuizDetail, setSelectedQuizDetail] = useState<Quiz | null>(null);
   
   // Multiplayer registration state
   const [showMultiplayerRegister, setShowMultiplayerRegister] = useState(false);
@@ -173,6 +177,12 @@ const QuizzesPage = () => {
     navigate(`/quiz/${quizId}`);
   };
 
+  const handleViewQuizDetail = (quiz: Quiz, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedQuizDetail(quiz);
+    setShowQuizDetail(true);
+  };
+
   const renderQuizCard = (quiz: Quiz, index: number) => {
     const isMultiplayer = activeMode === 'multiplayer';
     
@@ -184,33 +194,30 @@ const QuizzesPage = () => {
         transition={{ delay: index * 0.05 }}
       >
         <Card className="overflow-hidden hover:shadow-xl transition-shadow cursor-pointer group h-full flex flex-col">
-          <div className="aspect-video bg-gradient-to-br from-primary/20 to-secondary/20 relative overflow-hidden flex items-center justify-center">
-            {isMultiplayer ? (
-              <Swords className="h-16 w-16 sm:h-20 sm:w-20 text-primary/40" />
-            ) : (
-              <FileQuestion className="h-16 w-16 sm:h-20 sm:w-20 text-primary/40" />
-            )}
-            <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
+          <CardContent className="p-4 sm:p-5 flex-1 flex flex-col">
+            <div className="flex flex-wrap items-center gap-2 mb-3">
               <Badge className={getDifficultyColor(quiz.difficulty)}>
                 {quiz.difficulty}
               </Badge>
-            </div>
-            {quiz.isMultiplayer && (
-              <div className="absolute top-2 left-2 sm:top-3 sm:left-3">
+              {quiz.isMultiplayer && (
                 <Badge variant="secondary">
                   <Trophy className="h-3 w-3 mr-1" />
                   Live
                 </Badge>
-              </div>
-            )}
-            {isAuthenticated && (
-              <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3">
+              )}
+              <Badge variant="outline" className="text-xs">
+                {quiz.language.toUpperCase()}
+              </Badge>
+              <Badge variant="secondary" className="text-xs">
+                {quiz.questions.length} questions
+              </Badge>
+              {isAuthenticated && (
                 <Button
-                  variant="secondary"
+                  variant="ghost"
                   size="sm"
                   onClick={(e) => handleToggleSaveQuiz(quiz.id!, e)}
                   disabled={savingQuiz === quiz.id}
-                  className="h-8 w-8 p-0"
+                  className="h-7 w-7 p-0 ml-auto"
                 >
                   {savedQuizIds.includes(quiz.id!) ? (
                     <BookmarkCheck className="h-4 w-4" />
@@ -218,34 +225,12 @@ const QuizzesPage = () => {
                     <Bookmark className="h-4 w-4" />
                   )}
                 </Button>
-              </div>
-            )}
-          </div>
-          <CardContent className="p-4 sm:p-5 flex-1 flex flex-col">
-            <div className="flex flex-wrap items-center gap-2 mb-3">
-              <Badge variant="outline" className="text-xs">
-                {quiz.language.toUpperCase()}
-              </Badge>
-              <Badge variant="secondary" className="text-xs">
-                {quiz.questions.length} questions
-              </Badge>
+              )}
             </div>
-            <h3 className="font-semibold text-base sm:text-lg text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+            <h3 className="font-semibold text-base sm:text-lg text-foreground mb-3 line-clamp-2 group-hover:text-primary transition-colors flex-1">
               {quiz.title}
             </h3>
-            <p className="text-sm text-muted-foreground mb-4 line-clamp-2 flex-1">
-              {quiz.description}
-            </p>
-            <div className="flex items-center gap-1 mb-4">
-              {[1,2,3,4,5].map((star) => (
-                <Star 
-                  key={star} 
-                  className={`h-4 w-4 ${star <= 4 ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-300 text-gray-300'}`} 
-                />
-              ))}
-              <span className="text-sm text-muted-foreground ml-2">4.0</span>
-            </div>
-            <div className="flex flex-wrap items-center justify-between text-xs sm:text-sm text-muted-foreground pt-4 border-t border-border gap-2">
+            <div className="flex flex-wrap items-center justify-between text-xs sm:text-sm text-muted-foreground pb-3 border-b border-border gap-2">
               <div className="flex items-center gap-1">
                 <FileQuestion className="h-4 w-4" />
                 <span>{quiz.totalPoints} pts</span>
@@ -256,25 +241,36 @@ const QuizzesPage = () => {
                   <span>{quiz.timeLimit}m</span>
                 </div>
               )}
-              <div className="flex items-center gap-1">
-                <Users className="h-4 w-4" />
-                <span className="truncate max-w-[80px]">{quiz.teacherName}</span>
-              </div>
             </div>
-            <Button 
-              className="w-full mt-4" 
-              variant={isMultiplayer ? "default" : "outline"}
-              onClick={() => isMultiplayer ? handleStartMultiplayerQuiz(quiz) : handleStartSelfPractice(quiz.id!)}
-            >
-              {isMultiplayer ? (
-                <>
-                  <Play className="h-4 w-4 mr-2" />
-                  Join Game
-                </>
-              ) : (
-                'Start Quiz'
-              )}
-            </Button>
+            <div className="flex gap-2 mt-3">
+              <Button 
+                className="flex-1" 
+                variant="outline"
+                size="sm"
+                onClick={(e) => handleViewQuizDetail(quiz, e)}
+              >
+                <Eye className="h-4 w-4 mr-1" />
+                View
+              </Button>
+              <Button 
+                className="flex-1" 
+                variant={isMultiplayer ? "default" : "default"}
+                size="sm"
+                onClick={() => isMultiplayer ? handleStartMultiplayerQuiz(quiz) : handleStartSelfPractice(quiz.id!)}
+              >
+                {isMultiplayer ? (
+                  <>
+                    <Play className="h-4 w-4 mr-1" />
+                    Join
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4 mr-1" />
+                    Start
+                  </>
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
@@ -423,10 +419,9 @@ const QuizzesPage = () => {
 
           {/* Quizzes Grid */}
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-6">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <Card key={i} className="overflow-hidden">
-                  <div className="aspect-video bg-muted animate-pulse" />
                   <CardContent className="p-5">
                     <div className="h-4 bg-muted rounded animate-pulse mb-2" />
                     <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
@@ -435,7 +430,7 @@ const QuizzesPage = () => {
               ))}
             </div>
           ) : filteredQuizzes.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-6">
               {filteredQuizzes.map((quiz, index) => renderQuizCard(quiz, index))}
             </div>
           ) : (
@@ -462,6 +457,187 @@ const QuizzesPage = () => {
           )}
         </div>
       </section>
+
+      {/* Quiz Detail Dialog */}
+      <Dialog open={showQuizDetail} onOpenChange={setShowQuizDetail}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">{selectedQuizDetail?.title}</DialogTitle>
+            <DialogDescription className="sr-only">
+              Detailed information about the quiz
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedQuizDetail && (
+            <div className="space-y-6 py-4">
+              {/* Badges */}
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className={getDifficultyColor(selectedQuizDetail.difficulty)}>
+                  {selectedQuizDetail.difficulty}
+                </Badge>
+                {selectedQuizDetail.isMultiplayer && (
+                  <Badge variant="secondary">
+                    <Trophy className="h-3 w-3 mr-1" />
+                    Multiplayer
+                  </Badge>
+                )}
+                <Badge variant="outline">
+                  {selectedQuizDetail.language.toUpperCase()}
+                </Badge>
+              </div>
+
+              {/* Description */}
+              <div>
+                <h3 className="font-semibold mb-2">Description</h3>
+                <p className="text-muted-foreground">
+                  {selectedQuizDetail.description || 'No description available'}
+                </p>
+              </div>
+
+              {/* Star Rating */}
+              <div>
+                <h3 className="font-semibold mb-2">Rating</h3>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    {[1,2,3,4,5].map((star) => (
+                      <Star 
+                        key={star} 
+                        className={`h-5 w-5 ${star <= 4 ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-300 text-gray-300'}`} 
+                      />
+                    ))}
+                  </div>
+                  <span className="text-lg font-semibold">4.0</span>
+                  <span className="text-sm text-muted-foreground">(245 reviews)</span>
+                </div>
+              </div>
+
+              {/* Quiz Stats */}
+              <div className="grid grid-cols-2 gap-4">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <FileQuestion className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">{selectedQuizDetail.questions.length}</p>
+                        <p className="text-xs text-muted-foreground">Questions</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-blue-500/10">
+                        <Clock className="h-5 w-5 text-blue-500" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">{selectedQuizDetail.timeLimit || 'No'}</p>
+                        <p className="text-xs text-muted-foreground">{selectedQuizDetail.timeLimit ? 'Minutes' : 'Limit'}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-green-500/10">
+                        <Trophy className="h-5 w-5 text-green-500" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">{selectedQuizDetail.totalPoints}</p>
+                        <p className="text-xs text-muted-foreground">Total Points</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-purple-500/10">
+                        <Users className="h-5 w-5 text-purple-500" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">1.2k</p>
+                        <p className="text-xs text-muted-foreground">Students</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Teacher/School Info */}
+              <div>
+                <h3 className="font-semibold mb-3">Created By</h3>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="p-3 rounded-full bg-primary/10">
+                        <GraduationCap className="h-6 w-6 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold">{selectedQuizDetail.teacherName}</p>
+                        <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                          <MapPin className="h-4 w-4" />
+                          <span>United States 🇺🇸</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Professional educator with 5+ years of experience
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4 border-t">
+                {isAuthenticated && (
+                  <Button
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleSaveQuiz(selectedQuizDetail.id!, e);
+                    }}
+                    disabled={savingQuiz === selectedQuizDetail.id}
+                    className="flex-1"
+                  >
+                    {savedQuizIds.includes(selectedQuizDetail.id!) ? (
+                      <>
+                        <BookmarkCheck className="h-4 w-4 mr-2" />
+                        Saved
+                      </>
+                    ) : (
+                      <>
+                        <Bookmark className="h-4 w-4 mr-2" />
+                        Save for Later
+                      </>
+                    )}
+                  </Button>
+                )}
+                <Button 
+                  className="flex-1" 
+                  onClick={() => {
+                    setShowQuizDetail(false);
+                    if (selectedQuizDetail.isMultiplayer) {
+                      handleStartMultiplayerQuiz(selectedQuizDetail);
+                    } else {
+                      handleStartSelfPractice(selectedQuizDetail.id!);
+                    }
+                  }}
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  {selectedQuizDetail.isMultiplayer ? 'Join Game' : 'Start Quiz'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Multiplayer Registration Dialog */}
       <Dialog open={showMultiplayerRegister} onOpenChange={setShowMultiplayerRegister}>

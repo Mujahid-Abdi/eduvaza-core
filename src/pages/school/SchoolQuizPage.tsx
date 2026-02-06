@@ -350,6 +350,7 @@ export const SchoolQuizPage = () => {
             onSave={handleSaveQuiz}
             onCancel={() => setView('list')}
             onGenerateAI={() => {}}
+            userRole="school"
           />
         )}
 

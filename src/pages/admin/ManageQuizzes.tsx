@@ -241,6 +241,7 @@ export const ManageQuizzes = () => {
             onSave={handleSaveQuiz}
             onCancel={() => setView('list')}
             onGenerateAI={() => {}}
+            userRole="super_admin"
           />
         )}
       </div>

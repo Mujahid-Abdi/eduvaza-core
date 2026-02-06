@@ -1,13 +1,14 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Filter, BookOpen, Users, Clock, Star, X, CheckCircle } from 'lucide-react';
+import { Search, Filter, BookOpen, Users, Clock, Star, X, CheckCircle, MapPin, GraduationCap } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { mockCategories } from '@/services/mockData';
 import { coursesService } from '@/services/courses';
 import { useI18n } from '@/contexts/I18nContext';
@@ -34,6 +35,8 @@ const CoursesPage = () => {
   const [loading, setLoading] = useState(true);
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>([]);
   const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Fetch courses and enrollments from Firebase
   useEffect(() => {
@@ -104,6 +107,11 @@ const CoursesPage = () => {
     } finally {
       setEnrollingCourseId(null);
     }
+  };
+
+  const handleViewCourse = (course: Course) => {
+    setSelectedCourse(course);
+    setIsDialogOpen(true);
   };
 
   const isEnrolled = (courseId: string) => enrolledCourseIds.includes(courseId);
@@ -266,7 +274,7 @@ const CoursesPage = () => {
 
             <TabsContent value="all">
               {loading ? (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-6">
                   {[1, 2, 3, 4, 5, 6].map((i) => (
                     <Card key={i} className="overflow-hidden">
                       <div className="aspect-video bg-muted animate-pulse" />
@@ -278,7 +286,7 @@ const CoursesPage = () => {
                   ))}
                 </div>
               ) : filteredCourses.length > 0 ? (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-6">
                   {filteredCourses.map((course, index) => (
                     <motion.div
                       key={course.id}
@@ -314,21 +322,10 @@ const CoursesPage = () => {
                               {course.language.toUpperCase()}
                             </Badge>
                           </div>
-                          <h3 className="font-semibold text-lg text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                          <h3 className="font-semibold text-lg text-foreground mb-4 line-clamp-2 group-hover:text-primary transition-colors">
                             {course.title}
                           </h3>
-                          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                            {course.description}
-                          </p>
-                          <div className="flex items-center gap-1 mb-4">
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <Star className="h-4 w-4 fill-gray-300 text-gray-300" />
-                            <span className="text-sm text-muted-foreground ml-2">4.0</span>
-                          </div>
-                          <div className="flex items-center justify-between text-sm text-muted-foreground pt-4 border-t border-border">
+                          <div className="flex items-center justify-between text-sm text-muted-foreground pt-4 border-t border-border mb-4">
                             <div className="flex items-center gap-1">
                               <BookOpen className="h-4 w-4" />
                               <span>{course.lessons.length} lessons</span>
@@ -342,27 +339,36 @@ const CoursesPage = () => {
                               <span>{course.lessons.reduce((sum, l) => sum + (l.duration || 0), 0)}m</span>
                             </div>
                           </div>
-                          {isEnrolled(course.id) ? (
+                          <div className="flex gap-2">
                             <Button 
-                              className="w-full mt-4" 
-                              variant="default"
-                              asChild
-                            >
-                              <Link to={user?.role === 'student' ? '/student/dashboard' : '/teacher/my-learning'}>
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                Enrolled
-                              </Link>
-                            </Button>
-                          ) : (
-                            <Button 
-                              className="w-full mt-4" 
+                              className="flex-1" 
                               variant="outline"
-                              onClick={() => handleEnroll(course.id)}
-                              disabled={enrollingCourseId === course.id}
+                              onClick={() => handleViewCourse(course)}
                             >
-                              {enrollingCourseId === course.id ? 'Enrolling...' : 'Enroll Now'}
+                              View Course
                             </Button>
-                          )}
+                            {isEnrolled(course.id) ? (
+                              <Button 
+                                className="flex-1" 
+                                variant="default"
+                                asChild
+                              >
+                                <Link to={user?.role === 'student' ? '/student/dashboard' : '/teacher/my-learning'}>
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Enrolled
+                                </Link>
+                              </Button>
+                            ) : (
+                              <Button 
+                                className="flex-1" 
+                                variant="default"
+                                onClick={() => handleEnroll(course.id)}
+                                disabled={enrollingCourseId === course.id}
+                              >
+                                {enrollingCourseId === course.id ? 'Enrolling...' : 'Enroll Now'}
+                              </Button>
+                            )}
+                          </div>
                         </CardContent>
                       </Card>
                     </motion.div>
@@ -445,7 +451,7 @@ const CoursesPage = () => {
             </TabsContent>
 
             <TabsContent value="popular">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-6">
                 {popularCourses.map((course, index) => (
                   <motion.div
                     key={course.id}
@@ -517,6 +523,173 @@ const CoursesPage = () => {
           </Button>
         </div>
       </section>
+
+      {/* Course Details Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          {selectedCourse && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-bold">{selectedCourse.title}</DialogTitle>
+              </DialogHeader>
+              
+              <div className="space-y-6">
+                {/* Course Image */}
+                <div className="aspect-video bg-muted relative overflow-hidden rounded-lg">
+                  {selectedCourse.thumbnail ? (
+                    <img
+                      src={selectedCourse.thumbnail}
+                      alt={selectedCourse.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-6xl">
+                      📚
+                    </div>
+                  )}
+                </div>
+
+                {/* Badges */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="secondary">{selectedCourse.category}</Badge>
+                  <Badge variant="outline">{selectedCourse.level}</Badge>
+                  <Badge variant="outline">{selectedCourse.language.toUpperCase()}</Badge>
+                  {selectedCourse.isPublished && <Badge variant="default">Published</Badge>}
+                </div>
+
+                {/* Description */}
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">Description</h3>
+                  <p className="text-muted-foreground">{selectedCourse.description}</p>
+                </div>
+
+                {/* Star Rating */}
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">Rating</h3>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                      <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                      <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                      <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                      <Star className="h-5 w-5 fill-gray-300 text-gray-300" />
+                    </div>
+                    <span className="text-lg font-semibold">4.0</span>
+                    <span className="text-muted-foreground">({selectedCourse.enrolledCount} students)</span>
+                  </div>
+                </div>
+
+                {/* Teacher/School Info */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-2 mb-2">
+                      <GraduationCap className="h-5 w-5 text-primary" />
+                      <h3 className="font-semibold">Instructor</h3>
+                    </div>
+                    <p className="text-muted-foreground">{selectedCourse.teacherName}</p>
+                    {selectedCourse.schoolName && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        School: {selectedCourse.schoolName}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="p-4 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-2 mb-2">
+                      <MapPin className="h-5 w-5 text-primary" />
+                      <h3 className="font-semibold">Location</h3>
+                    </div>
+                    <p className="text-muted-foreground">{selectedCourse.country || 'Not specified'}</p>
+                  </div>
+                </div>
+
+                {/* Course Stats */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center p-4 rounded-lg bg-muted/50">
+                    <BookOpen className="h-6 w-6 mx-auto mb-2 text-primary" />
+                    <p className="text-2xl font-bold">{selectedCourse.lessons.length}</p>
+                    <p className="text-sm text-muted-foreground">Lessons</p>
+                  </div>
+                  <div className="text-center p-4 rounded-lg bg-muted/50">
+                    <Users className="h-6 w-6 mx-auto mb-2 text-primary" />
+                    <p className="text-2xl font-bold">{selectedCourse.enrolledCount}</p>
+                    <p className="text-sm text-muted-foreground">Students</p>
+                  </div>
+                  <div className="text-center p-4 rounded-lg bg-muted/50">
+                    <Clock className="h-6 w-6 mx-auto mb-2 text-primary" />
+                    <p className="text-2xl font-bold">
+                      {selectedCourse.lessons.reduce((sum, l) => sum + (l.duration || 0), 0)}m
+                    </p>
+                    <p className="text-sm text-muted-foreground">Duration</p>
+                  </div>
+                </div>
+
+                {/* Lessons List */}
+                {selectedCourse.lessons.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-lg mb-3">Course Content</h3>
+                    <div className="space-y-2">
+                      {selectedCourse.lessons.map((lesson, index) => (
+                        <div key={lesson.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
+                              {index + 1}
+                            </div>
+                            <div>
+                              <p className="font-medium">{lesson.title}</p>
+                              {lesson.description && (
+                                <p className="text-sm text-muted-foreground line-clamp-1">{lesson.description}</p>
+                              )}
+                            </div>
+                          </div>
+                          {lesson.duration && (
+                            <Badge variant="outline">{lesson.duration}m</Badge>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4 border-t">
+                  {isEnrolled(selectedCourse.id) ? (
+                    <Button 
+                      className="flex-1" 
+                      size="lg"
+                      asChild
+                    >
+                      <Link to={user?.role === 'student' ? '/student/dashboard' : '/teacher/my-learning'}>
+                        <CheckCircle className="h-5 w-5 mr-2" />
+                        Go to Course
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button 
+                      className="flex-1" 
+                      size="lg"
+                      onClick={() => {
+                        handleEnroll(selectedCourse.id);
+                        setIsDialogOpen(false);
+                      }}
+                      disabled={enrollingCourseId === selectedCourse.id}
+                    >
+                      {enrollingCourseId === selectedCourse.id ? 'Enrolling...' : 'Enroll Now'}
+                    </Button>
+                  )}
+                  <Button 
+                    variant="outline" 
+                    size="lg"
+                    onClick={() => setIsDialogOpen(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };
