@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Trophy, Medal, ChevronDown, ChevronUp, Calendar, TrendingUp, Award, Target } from 'lucide-react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { StudentLayout } from '@/components/layout/StudentLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -203,7 +203,7 @@ export const StudentLeaderboard = () => {
   const topRanks = calculateTopRanks();
 
   return (
-    <DashboardLayout>
+    <StudentLayout>
       <div className="space-y-6">
         {/* Header */}
         <motion.div
@@ -462,7 +462,7 @@ export const StudentLeaderboard = () => {
           </Tabs>
         </motion.div>
       </div>
-    </DashboardLayout>
+    </StudentLayout>
   );
 };
 

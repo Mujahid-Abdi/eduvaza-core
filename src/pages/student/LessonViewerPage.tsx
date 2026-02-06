@@ -15,7 +15,7 @@ import {
   MessageSquare,
   Loader2,
 } from 'lucide-react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { StudentLayout } from '@/components/layout/StudentLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -66,24 +66,24 @@ export const LessonViewerPage = () => {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      <StudentLayout>
         <div className="flex items-center justify-center h-96">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
         </div>
-      </DashboardLayout>
+      </StudentLayout>
     );
   }
 
   if (!course) {
     return (
-      <DashboardLayout>
+      <StudentLayout>
         <div className="text-center py-12">
           <p className="text-muted-foreground">Course not found</p>
           <Button onClick={() => navigate(-1)} className="mt-4">
             Go Back
           </Button>
         </div>
-      </DashboardLayout>
+      </StudentLayout>
     );
   }
 

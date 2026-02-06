@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { BookOpen, Clock, TrendingUp, Play, ChevronRight, Trophy, Medal, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { StudentLayout } from '@/components/layout/StudentLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -124,7 +124,7 @@ export const StudentDashboard = () => {
   };
 
   return (
-    <DashboardLayout>
+    <StudentLayout>
       <div className="space-y-6">
         {/* Header */}
         <motion.div
@@ -427,7 +427,7 @@ export const StudentDashboard = () => {
           </Card>
         </motion.div>
       </div>
-    </DashboardLayout>
+    </StudentLayout>
   );
 };
 

@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Clock, Trophy, Users, Play, Star, TrendingUp, Award, ChevronRight } from 'lucide-react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { StudentLayout } from '@/components/layout/StudentLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,7 +38,7 @@ export const QuizExplorePage = () => {
   };
 
   return (
-    <DashboardLayout>
+    <StudentLayout>
       <div className="space-y-6">
         {/* Header */}
         <motion.div
@@ -330,7 +330,7 @@ export const QuizExplorePage = () => {
           </Card>
         </motion.div>
       </div>
-    </DashboardLayout>
+    </StudentLayout>
   );
 };
 

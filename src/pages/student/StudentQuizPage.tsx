@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Play, Trophy, CheckCircle, Medal, Clock, Bookmark, BookmarkCheck, RotateCcw, ExternalLink, AlertCircle, Trash2 } from 'lucide-react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { StudentLayout } from '@/components/layout/StudentLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -214,7 +214,7 @@ export const StudentQuizPage = () => {
   };
 
   return (
-    <DashboardLayout>
+    <StudentLayout>
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
           <GamificationCard profile={mockGamificationProfile} compact />
@@ -460,7 +460,7 @@ export const StudentQuizPage = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </StudentLayout>
   );
 };
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { StudentLayout } from '@/components/layout/StudentLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -151,7 +151,7 @@ export const StudentSettings = () => {
   };
 
   return (
-    <DashboardLayout>
+    <StudentLayout>
       <div className="space-y-6 max-w-4xl">
         {/* Header */}
         <motion.div
@@ -739,7 +739,7 @@ export const StudentSettings = () => {
           </Accordion>
         </motion.div>
       </div>
-    </DashboardLayout>
+    </StudentLayout>
   );
 };
 
