@@ -330,7 +330,7 @@ const CoursesPage = () => {
 
             <TabsContent value="all">
               {loading ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {[1, 2, 3, 4, 5, 6].map((i) => (
                     <Card key={i} className="overflow-hidden">
                       <div className="aspect-video bg-muted animate-pulse" />
@@ -342,7 +342,7 @@ const CoursesPage = () => {
                   ))}
                 </div>
               ) : filteredCourses.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {filteredCourses.map((course, index) => (
                     <motion.div
                       key={course.id}
@@ -519,7 +519,7 @@ const CoursesPage = () => {
             </TabsContent>
 
             <TabsContent value="popular">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {popularCourses.map((course, index) => (
                   <motion.div
                     key={course.id}

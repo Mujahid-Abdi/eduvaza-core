@@ -28,7 +28,7 @@ export interface ChatHistory {
 }
 
 class GeminiAIService {
-  private model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+  private model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
   private chat: any = null;
 
   async startChat(history: ChatMessage[] = []) {
@@ -87,6 +87,12 @@ class GeminiAIService {
         status: error.status,
         statusText: error.statusText,
       });
+      
+      // Check for quota exceeded error
+      if (error.message && (error.message.includes('quota') || error.message.includes('429'))) {
+        throw new Error('Daily API quota exceeded. Please try again tomorrow or upgrade your Gemini API plan at https://ai.google.dev/pricing');
+      }
+      
       throw new Error(error.message || 'Failed to get response from AI');
     }
   }
