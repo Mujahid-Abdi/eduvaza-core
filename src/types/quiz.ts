@@ -49,6 +49,14 @@ export interface Quiz {
   shuffleOptions: boolean;
   showResults: boolean;
   passingScore: number; // Percentage
+  
+  // Multiplayer scheduling fields
+  scheduledStartTime?: Date; // When multiplayer quiz starts
+  scheduledEndTime?: Date; // When multiplayer quiz ends
+  registrationDeadline?: Date; // Last date to register
+  registeredStudents?: string[]; // Array of student IDs who registered
+  maxParticipants?: number; // Maximum number of participants
+  
   createdAt: Date;
   updatedAt: Date;
   postedAt?: Date; // When the quiz was made available (for practice quizzes)

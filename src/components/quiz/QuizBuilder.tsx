@@ -61,6 +61,7 @@ export const QuizBuilder = ({ initialQuiz, onSave, onCancel, onGenerateAI, userR
     passingScore: 60,
     isPublished: false,
     isMultiplayer: false,
+    maxParticipants: 100,
   });
 
   const steps: Step[] = ['details', 'questions', 'settings', 'preview'];
@@ -219,6 +220,140 @@ export const QuizBuilder = ({ initialQuiz, onSave, onCancel, onGenerateAI, userR
                     rows={3}
                   />
                 </div>
+                
+                {/* Quiz Type Selection */}
+                <div className="space-y-2">
+                  <Label>Quiz Type</Label>
+                  <Select
+                    value={quiz.isMultiplayer ? 'multiplayer' : 'self-practice'}
+                    onValueChange={(value) => {
+                      const isMultiplayer = value === 'multiplayer';
+                      setQuiz(prev => ({ 
+                        ...prev, 
+                        isMultiplayer,
+                        quizType: isMultiplayer ? 'scheduled' : 'practice'
+                      }));
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="self-practice">
+                        <div className="flex flex-col items-start">
+                          <span className="font-medium">Self Practice</span>
+                          <span className="text-xs text-muted-foreground">Students can take anytime</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="multiplayer">
+                        <div className="flex flex-col items-start">
+                          <span className="font-medium">Multiplayer (Scheduled)</span>
+                          <span className="text-xs text-muted-foreground">Live competitive quiz with registration</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Multiplayer Scheduling Fields */}
+                {quiz.isMultiplayer && (
+                  <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+                    <h4 className="font-semibold text-sm">Multiplayer Schedule</h4>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="startDate">Start Date *</Label>
+                        <Input
+                          id="startDate"
+                          type="date"
+                          value={quiz.scheduledStartTime ? new Date(quiz.scheduledStartTime).toISOString().split('T')[0] : ''}
+                          onChange={(e) => {
+                            const date = e.target.value;
+                            const time = quiz.scheduledStartTime ? new Date(quiz.scheduledStartTime).toTimeString().split(' ')[0].slice(0, 5) : '00:00';
+                            setQuiz(prev => ({ ...prev, scheduledStartTime: new Date(`${date}T${time}`) }));
+                          }}
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="startTime">Start Time *</Label>
+                        <Input
+                          id="startTime"
+                          type="time"
+                          value={quiz.scheduledStartTime ? new Date(quiz.scheduledStartTime).toTimeString().split(' ')[0].slice(0, 5) : ''}
+                          onChange={(e) => {
+                            const time = e.target.value;
+                            const date = quiz.scheduledStartTime ? new Date(quiz.scheduledStartTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+                            setQuiz(prev => ({ ...prev, scheduledStartTime: new Date(`${date}T${time}`) }));
+                          }}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="endDate">End Date *</Label>
+                        <Input
+                          id="endDate"
+                          type="date"
+                          value={quiz.scheduledEndTime ? new Date(quiz.scheduledEndTime).toISOString().split('T')[0] : ''}
+                          onChange={(e) => {
+                            const date = e.target.value;
+                            const time = quiz.scheduledEndTime ? new Date(quiz.scheduledEndTime).toTimeString().split(' ')[0].slice(0, 5) : '23:59';
+                            setQuiz(prev => ({ ...prev, scheduledEndTime: new Date(`${date}T${time}`) }));
+                          }}
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="endTime">End Time *</Label>
+                        <Input
+                          id="endTime"
+                          type="time"
+                          value={quiz.scheduledEndTime ? new Date(quiz.scheduledEndTime).toTimeString().split(' ')[0].slice(0, 5) : ''}
+                          onChange={(e) => {
+                            const time = e.target.value;
+                            const date = quiz.scheduledEndTime ? new Date(quiz.scheduledEndTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+                            setQuiz(prev => ({ ...prev, scheduledEndTime: new Date(`${date}T${time}`) }));
+                          }}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="registrationDeadline">Registration Deadline *</Label>
+                        <Input
+                          id="registrationDeadline"
+                          type="datetime-local"
+                          value={quiz.registrationDeadline ? new Date(quiz.registrationDeadline).toISOString().slice(0, 16) : ''}
+                          onChange={(e) => setQuiz(prev => ({ ...prev, registrationDeadline: new Date(e.target.value) }))}
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="maxParticipants">Max Participants</Label>
+                        <Input
+                          id="maxParticipants"
+                          type="number"
+                          min={1}
+                          value={quiz.maxParticipants || 100}
+                          onChange={(e) => setQuiz(prev => ({ ...prev, maxParticipants: parseInt(e.target.value) || 100 }))}
+                        />
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground">
+                      Students must register before the deadline. The quiz will automatically convert to self-practice after the end time.
+                    </p>
+                  </div>
+                )}
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Language</Label>
