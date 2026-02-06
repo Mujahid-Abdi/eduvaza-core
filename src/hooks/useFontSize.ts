@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 export type FontSize = 'small' | 'medium' | 'large' | 'extra-large';
 
-const FONT_SIZE_KEY = 'eduvaza-font-size';
+const FONT_SIZE_KEY = 'afedulight-font-size';
 
 export const useFontSize = () => {
   const [fontSize, setFontSizeState] = useState<FontSize>(() => {

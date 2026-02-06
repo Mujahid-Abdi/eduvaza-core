@@ -1,9 +1,9 @@
-import type { User, School, Course, CourseCategory, DashboardStats, Class, Enrollment } from '@/types';
+import type { User, School, Course, CourseCategory, DashboardStats, Class, Enrollment, Opportunity } from '@/types';
 
 export const mockUsers: User[] = [
   {
     id: 'admin-1',
-    email: 'admin@eduvaza.com',
+    email: 'admin@afedulight.com',
     name: 'Super Admin',
     role: 'super_admin',
     createdAt: new Date('2024-01-01'),
@@ -20,7 +20,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'teacher-1',
-    email: 'teacher@eduvaza.com',
+    email: 'teacher@afedulight.com',
     name: 'John Mwamba',
     role: 'teacher',
     schoolId: 'sch-1',
@@ -29,7 +29,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'student-1',
-    email: 'student@eduvaza.com',
+    email: 'student@afedulight.com',
     name: 'Amara Diallo',
     role: 'student',
     schoolId: 'sch-1',
@@ -244,3 +244,79 @@ export const mockStats: DashboardStats = {
   activeUsers: 12450,
   pendingApprovals: 24,
 };
+
+
+export const mockOpportunities: Opportunity[] = [
+  {
+    id: 'opp-1',
+    title: 'African Union Scholarship 2026',
+    description: 'Full scholarship for undergraduate and postgraduate studies in African universities. Covers tuition, accommodation, and living expenses.',
+    coverImage: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800',
+    link: 'https://au.int/scholarships',
+    category: 'scholarship',
+    isActive: true,
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-01'),
+    createdBy: 'admin-1',
+  },
+  {
+    id: 'opp-2',
+    title: 'University of Nairobi Open Day',
+    description: 'Join us for an open day to explore our programs, meet faculty, and tour our campus. Learn about admission requirements and scholarships.',
+    coverImage: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800',
+    link: 'https://uonbi.ac.ke',
+    category: 'university',
+    isActive: true,
+    createdAt: new Date('2026-01-15'),
+    updatedAt: new Date('2026-01-15'),
+    createdBy: 'admin-1',
+  },
+  {
+    id: 'opp-3',
+    title: 'Free Python Programming Course',
+    description: 'Learn Python programming from scratch. This free course covers basics to advanced topics including web development and data science.',
+    coverImage: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800',
+    link: 'https://python.org/courses',
+    category: 'free_course',
+    isActive: true,
+    createdAt: new Date('2026-01-20'),
+    updatedAt: new Date('2026-01-20'),
+    createdBy: 'admin-1',
+  },
+  {
+    id: 'opp-4',
+    title: 'Mastercard Foundation Scholars Program',
+    description: 'Comprehensive scholarship program for academically talented yet economically disadvantaged young people from Africa.',
+    coverImage: 'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=800',
+    link: 'https://mastercardfdn.org/scholars',
+    category: 'scholarship',
+    isActive: true,
+    createdAt: new Date('2026-02-01'),
+    updatedAt: new Date('2026-02-01'),
+    createdBy: 'admin-1',
+  },
+  {
+    id: 'opp-5',
+    title: 'Kenyatta University Virtual Tour',
+    description: 'Experience our campus virtually! Explore facilities, programs, and student life from the comfort of your home.',
+    coverImage: 'https://images.unsplash.com/photo-1562774053-701939374585?w=800',
+    link: 'https://ku.ac.ke',
+    category: 'university',
+    isActive: true,
+    createdAt: new Date('2026-02-05'),
+    updatedAt: new Date('2026-02-05'),
+    createdBy: 'admin-1',
+  },
+  {
+    id: 'opp-6',
+    title: 'Free Digital Marketing Certification',
+    description: 'Get certified in digital marketing with this comprehensive free course. Learn SEO, social media marketing, and analytics.',
+    coverImage: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800',
+    link: 'https://digitalmarketing.org',
+    category: 'free_course',
+    isActive: true,
+    createdAt: new Date('2026-02-10'),
+    updatedAt: new Date('2026-02-10'),
+    createdBy: 'admin-1',
+  },
+];

@@ -69,7 +69,7 @@ const AboutPage = () => {
             className="text-center max-w-4xl mx-auto"
           >
             <h1 className="text-4xl lg:text-6xl font-bold text-foreground mb-6">
-              About EduVaza
+              About AfEdulight
             </h1>
             <p className="text-xl text-muted-foreground mb-8">
               Empowering learners worldwide with accessible, quality education through innovative technology and passionate educators.
@@ -119,7 +119,7 @@ const AboutPage = () => {
               </h2>
               <div className="space-y-4 text-muted-foreground">
                 <p>
-                  Founded in 2020, EduVaza was born from a simple yet powerful idea: education should be accessible to everyone, regardless of their location or circumstances.
+                  Founded in 2020, AfEdulight was born from a simple yet powerful idea: education should be accessible to everyone, regardless of their location or circumstances.
                 </p>
                 <p>
                   What started as a small initiative to connect teachers and students in underserved communities has grown into a comprehensive learning platform serving thousands of students across multiple countries.
@@ -149,8 +149,12 @@ const AboutPage = () => {
               viewport={{ once: true }}
               className="relative"
             >
-              <div className="aspect-square rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-9xl">
-                🎓
+              <div className="aspect-square rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center p-8 shadow-lg">
+                <img 
+                  src="/afedulight-logo.jpg" 
+                  alt="AfEdulight Logo" 
+                  className="w-full h-full object-contain rounded-xl"
+                />
               </div>
             </motion.div>
           </div>
@@ -188,7 +192,7 @@ const AboutPage = () => {
             className="text-center mb-12"
           >
             <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
-              Why Choose EduVaza?
+              Why Choose AfEdulight?
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               We're committed to providing the best learning experience through innovative features and dedicated support.

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AfEdulight Logo Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 60px 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo-section {
+            margin-bottom: 40px;
+        }
+        
+        .logo-large {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 30px;
+        }
+        
+        .brand-name {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .brand-name .af {
+            color: #1a1a1a;
+        }
+        
+        .brand-name .edu {
+            color: #c9a961;
+        }
+        
+        .brand-name .light {
+            color: #4a6fa5;
+        }
+        
+        .tagline {
+            font-size: 20px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+        
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 2px solid #eee;
+        }
+        
+        .color-box {
+            text-align: center;
+        }
+        
+        .color-swatch {
+            width: 100%;
+            height: 80px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .color-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .color-code {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .logo-variations {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 2px solid #eee;
+        }
+        
+        .logo-var {
+            text-align: center;
+        }
+        
+        .logo-var img {
+            margin-bottom: 10px;
+        }
+        
+        .logo-var-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 600;
+        }
+        
+        .dark-bg {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 40px 20px;
+            }
+            
+            .brand-name {
+                font-size: 36px;
+            }
+            
+            .tagline {
+                font-size: 16px;
+            }
+            
+            .logo-large {
+                width: 150px;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-section">
+            <img src="/afedulight-logo.svg" alt="AfEdulight Logo" class="logo-large">
+            <h1 class="brand-name">
+                <span class="af">Af</span><span class="edu">Edu</span><span class="light">light</span>
+            </h1>
+            <p class="tagline">African Education Light</p>
+            <p style="color: #888; font-size: 16px;">Illuminating African education with accessible, quality learning resources</p>
+        </div>
+        
+        <div class="color-palette">
+            <div class="color-box">
+                <div class="color-swatch" style="background: #1e3a5f;"></div>
+                <div class="color-name">Primary Navy</div>
+                <div class="color-code">#1e3a5f</div>
+            </div>
+            <div class="color-box">
+                <div class="color-swatch" style="background: #c9a961;"></div>
+                <div class="color-name">Gold</div>
+                <div class="color-code">#c9a961</div>
+            </div>
+            <div class="color-box">
+                <div class="color-swatch" style="background: #4a6fa5;"></div>
+                <div class="color-name">Light Blue</div>
+                <div class="color-code">#4a6fa5</div>
+            </div>
+            <div class="color-box">
+                <div class="color-swatch" style="background: #1a1a1a;"></div>
+                <div class="color-name">Dark Text</div>
+                <div class="color-code">#1a1a1a</div>
+            </div>
+        </div>
+        
+        <div class="logo-variations">
+            <div class="logo-var">
+                <img src="/afedulight-logo.svg" alt="Small" style="width: 64px; height: 64px;">
+                <div class="logo-var-label">64x64</div>
+            </div>
+            <div class="logo-var">
+                <img src="/afedulight-logo.svg" alt="Medium" style="width: 128px; height: 128px;">
+                <div class="logo-var-label">128x128</div>
+            </div>
+            <div class="logo-var dark-bg">
+                <img src="/afedulight-logo.svg" alt="Dark" style="width: 64px; height: 64px;">
+                <div class="logo-var-label" style="color: white;">On Dark</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

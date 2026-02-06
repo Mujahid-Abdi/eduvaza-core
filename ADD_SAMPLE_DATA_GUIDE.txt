@@ -1,0 +1,218 @@
+═══════════════════════════════════════════════════════════════
+  HOW TO ADD SAMPLE DATA TO FIREBASE
+═══════════════════════════════════════════════════════════════
+
+QUICK START
+-----------
+The easiest way to add data is through the admin dashboard:
+
+1. Login as admin or teacher
+2. Use the dashboard to create courses/quizzes
+3. Data automatically saved to Firebase
+4. Appears on public pages immediately
+
+
+METHOD 1: USE ADMIN DASHBOARD (EASIEST)
+----------------------------------------
+
+ADD COURSES:
+1. Login as admin or teacher
+2. Go to Dashboard
+3. Click "Courses" in sidebar
+4. Click "Create Course" or "Upload Course"
+5. Fill in:
+   - Title
+   - Description
+   - Category
+   - Level
+   - Language
+   - Add lessons
+6. Click "Publish"
+7. Course appears on /courses page
+
+ADD QUIZZES:
+1. Login as admin or teacher
+2. Go to Dashboard
+3. Click "Quizzes" in sidebar
+4. Click "Create Quiz"
+5. Fill in:
+   - Title
+   - Description
+   - Difficulty
+   - Time limit
+   - Add questions
+6. Click "Publish"
+7. Quiz appears on /quizzes page
+
+ADD OPPORTUNITIES:
+1. Login as admin
+2. Go to Admin Dashboard
+3. Click "Opportunities" in sidebar
+4. Click "Create Opportunity"
+5. Fill in:
+   - Title
+   - Description
+   - Category
+   - Link
+   - Cover image URL
+6. Click "Publish"
+7. Opportunity appears on /opportunities page
+
+
+METHOD 2: USE FIREBASE CONSOLE
+-------------------------------
+
+1. Go to: https://console.firebase.google.com
+2. Select your project
+3. Click "Firestore Database"
+4. Navigate to collection
+5. Click "Add Document"
+6. Enter data (see templates below)
+
+
+SAMPLE COURSE DATA
+------------------
+Collection: courses
+
+{
+  "title": "Introduction to Web Development",
+  "description": "Learn HTML, CSS, and JavaScript basics",
+  "category": "technology",
+  "level": "beginner",
+  "language": "en",
+  "isPaid": false,
+  "price": 0,
+  "isPublished": true,
+  "teacherId": "your-teacher-id",
+  "teacherName": "John Doe",
+  "thumbnail": "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+  "enrolledCount": 0,
+  "createdAt": "2026-02-06T00:00:00.000Z",
+  "updatedAt": "2026-02-06T00:00:00.000Z",
+  "lessons": []
+}
+
+
+SAMPLE QUIZ DATA
+----------------
+Collection: quizzes
+
+{
+  "title": "JavaScript Basics Quiz",
+  "description": "Test your JavaScript knowledge",
+  "difficulty": "medium",
+  "timeLimit": 30,
+  "totalPoints": 100,
+  "isPublished": true,
+  "isMultiplayer": false,
+  "createdBy": "your-teacher-id",
+  "createdAt": "2026-02-06T00:00:00.000Z",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "What is JavaScript?",
+      "options": [
+        "A programming language",
+        "A coffee brand",
+        "A game",
+        "A book"
+      ],
+      "correctAnswer": 0,
+      "points": 10
+    }
+  ]
+}
+
+
+SAMPLE OPPORTUNITY DATA
+-----------------------
+Collection: opportunities
+
+{
+  "title": "African Union Scholarship 2026",
+  "description": "Full scholarship for undergraduate studies",
+  "category": "scholarship",
+  "link": "https://au.int/scholarships",
+  "coverImage": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1",
+  "isActive": true,
+  "createdBy": "your-admin-id",
+  "createdAt": "2026-02-06T00:00:00.000Z",
+  "updatedAt": "2026-02-06T00:00:00.000Z"
+}
+
+
+CATEGORIES
+----------
+
+Course Categories:
+- technology
+- science
+- mathematics
+- business
+- arts
+- languages
+- health
+- engineering
+
+Quiz Difficulties:
+- easy
+- medium
+- hard
+
+Opportunity Categories:
+- scholarship
+- university
+- free_course
+- other
+
+
+TIPS
+----
+
+1. Start with 3-5 items in each category
+2. Use real images from Unsplash
+3. Make descriptions clear and helpful
+4. Set isPublished: true to make visible
+5. Test on public pages after adding
+
+
+VERIFY DATA
+-----------
+
+After adding data:
+
+1. Visit public pages:
+   - http://localhost:8081/courses
+   - http://localhost:8081/quizzes
+   - http://localhost:8081/opportunities
+
+2. Check data appears correctly
+
+3. Test as both guest and logged-in user
+
+4. Verify same data shows in both cases
+
+
+TROUBLESHOOTING
+---------------
+
+Data not showing?
+- Check isPublished: true
+- Check isActive: true (for opportunities)
+- Verify collection name is correct
+- Check Firebase rules allow read access
+- Refresh the page
+
+Empty pages?
+- This is normal if Firebase is empty
+- Add data using methods above
+- Check console for errors
+
+
+═══════════════════════════════════════════════════════════════
+  READY TO ADD DATA!
+═══════════════════════════════════════════════════════════════
+
+Recommended: Use admin dashboard to create content
+Alternative: Add directly in Firebase Console
+Result: Data appears on public pages for all users

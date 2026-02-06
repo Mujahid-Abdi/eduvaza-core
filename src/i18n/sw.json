@@ -1,7 +1,7 @@
 {
   "common": {
-    "appName": "EduVaza",
-    "tagline": "Jukwaa la Kujifunza Wazi la Afrika",
+    "appName": "AfEdulight",
+    "tagline": "Mwanga wa Elimu ya Afrika",
     "loading": "Inapakia...",
     "save": "Hifadhi",
     "cancel": "Ghairi",
@@ -133,8 +133,8 @@
     "continueWhere": "Endelea ulipoishia"
   },
   "footer": {
-    "about": "Kuhusu EduVaza",
-    "aboutText": "EduVaza ni jukwaa la elimu la chanzo wazi la Afrika, lililobuniwa kufanya elimu bora kupatikana kwa wote.",
+    "about": "Kuhusu AfEdulight",
+    "aboutText": "AfEdulight inaangaza elimu ya Afrika kwa rasilimali za kujifunza zinazoweza kupatikana na za ubora kwa wote.",
     "quickLinks": "Viungo vya Haraka",
     "support": "Msaada",
     "legal": "Kisheria",
@@ -180,7 +180,7 @@
   },
   "auth": {
     "registrationSuccess": "Usajili Umefanikiwa!",
-    "welcomeMessage": "Karibu EduVaza!",
+    "welcomeMessage": "Karibu AfEdulight!",
     "accountCreated": "Akaunti yako imeundwa kwa mafanikio.",
     "redirectingToDashboard": "Inaelekeza kwenye dashibodi yako...",
     "goToDashboard": "Nenda kwa Dashibodi"

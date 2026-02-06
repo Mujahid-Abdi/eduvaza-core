@@ -33,7 +33,7 @@ export interface UploadOptions {
 
 class CloudinaryService {
   private cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-  private uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'eduvaza_uploads';
+  private uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'afedulight_uploads';
 
   // Get upload URL based on resource type
   private getUploadUrl(resourceType: 'image' | 'video' | 'raw' | 'auto' = 'auto'): string {
@@ -79,7 +79,7 @@ class CloudinaryService {
     options: UploadOptions = {}
   ): Promise<CloudinaryUploadResult> {
     const {
-      folder = 'eduvaza',
+      folder = 'afedulight',
       resourceType = 'auto',
       onProgress
     } = options;
@@ -119,15 +119,37 @@ class CloudinaryService {
           }
         } else {
           let errorMessage = `Upload failed with status: ${xhr.status}`;
+          let errorDetails = '';
+          
           try {
             const errorResponse = JSON.parse(xhr.responseText);
             if (errorResponse.error && errorResponse.error.message) {
               errorMessage = errorResponse.error.message;
             }
+            
+            // Add specific error handling for common issues
+            if (xhr.status === 400) {
+              errorDetails = ' - Check that your Cloudinary upload preset "afedulight_uploads" exists and is set to unsigned mode.';
+            } else if (xhr.status === 401) {
+              errorDetails = ' - Authentication failed. Verify your Cloudinary credentials.';
+            } else if (xhr.status === 403) {
+              errorDetails = ' - Access forbidden. Check your Cloudinary account permissions.';
+            } else if (xhr.status === 413) {
+              errorDetails = ' - File too large. Try compressing the file or uploading a smaller version.';
+            }
           } catch (e) {
             // Use default error message
           }
-          reject(new Error(errorMessage));
+          
+          console.error('Cloudinary upload error:', {
+            status: xhr.status,
+            statusText: xhr.statusText,
+            response: xhr.responseText,
+            uploadPreset: this.uploadPreset,
+            cloudName: this.cloudName
+          });
+          
+          reject(new Error(errorMessage + errorDetails));
         }
       });
 
@@ -152,7 +174,7 @@ class CloudinaryService {
   // Upload user avatar
   async uploadAvatar(file: File, userId: string, onProgress?: (progress: UploadProgress) => void): Promise<CloudinaryUploadResult> {
     return this.uploadFile(file, {
-      folder: `eduvaza/avatars/${userId}`,
+      folder: `afedulight/avatars/${userId}`,
       resourceType: 'image',
       onProgress
     });
@@ -161,7 +183,7 @@ class CloudinaryService {
   // Upload course thumbnail
   async uploadCourseThumbnail(file: File, courseId: string, onProgress?: (progress: UploadProgress) => void): Promise<CloudinaryUploadResult> {
     return this.uploadFile(file, {
-      folder: `eduvaza/courses/${courseId}/thumbnails`,
+      folder: `afedulight/courses/${courseId}/thumbnails`,
       resourceType: 'image',
       onProgress
     });
@@ -171,7 +193,7 @@ class CloudinaryService {
   async uploadCourseContent(file: File, courseId: string, lessonId: string, onProgress?: (progress: UploadProgress) => void): Promise<CloudinaryUploadResult> {
     const resourceType = this.getResourceType(file);
     return this.uploadFile(file, {
-      folder: `eduvaza/courses/${courseId}/lessons/${lessonId}`,
+      folder: `afedulight/courses/${courseId}/lessons/${lessonId}`,
       resourceType,
       onProgress
     });
@@ -180,7 +202,7 @@ class CloudinaryService {
   // Upload school logo
   async uploadSchoolLogo(file: File, schoolId: string, onProgress?: (progress: UploadProgress) => void): Promise<CloudinaryUploadResult> {
     return this.uploadFile(file, {
-      folder: `eduvaza/schools/${schoolId}`,
+      folder: `afedulight/schools/${schoolId}`,
       resourceType: 'image',
       onProgress
     });

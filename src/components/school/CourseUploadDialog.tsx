@@ -5,34 +5,34 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Upload, Trash2, FileVideo, FileText, Loader2, Image as ImageIcon, Link as LinkIcon } from 'lucide-react';
+import { Plus, Upload, Trash2, FileVideo, Loader2, Image as ImageIcon, Link as LinkIcon, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import { cloudinaryService } from '@/services/cloudinary';
 import { coursesService } from '@/services/courses';
 import { mockCategories } from '@/services/mockData';
-import type { Course, Language } from '@/types';
+import type { Language } from '@/types';
 
 interface CourseUploadDialogProps {
   onCourseCreated?: () => void;
 }
 
-interface CoursePart {
+interface Lesson {
   id: string;
-  partNumber: number;
+  lessonNumber: number;
   title: string;
   description: string;
-  contentType: 'video' | 'document';
-  file: File | null;
+  videoFile: File | null;
   uploadProgress: number;
+  duration: number;
 }
 
-const MAX_VIDEO_SIZE = 500 * 1024 * 1024; // 500MB in bytes
-const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024; // 10MB in bytes
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+const MAX_VIDEO_SIZE = 500 * 1024 * 1024; // 500MB
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps) => {
   const { user } = useAuth();
@@ -53,72 +53,46 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
     coverImageUrl: '',
     coverImageFile: null as File | null,
     coverImageProgress: 0,
-    videoFile: null as File | null,
-    videoProgress: 0,
-    pdfFile: null as File | null,
-    pdfProgress: 0,
-    duration: 0, // in minutes
+    isPaid: false,
+    price: 0,
+    currency: 'USD',
+    bankName: '',
+    accountNumber: '',
+    accountName: '',
+    mobileMoneyNumber: '',
+    mobileMoneyProvider: '',
   });
-  const [courseParts, setCourseParts] = useState<CoursePart[]>([]);
+  const [lessons, setLessons] = useState<Lesson[]>([]);
 
-  const addCoursePart = () => {
-    const newPart: CoursePart = {
-      id: `part-${Date.now()}`,
-      partNumber: courseParts.length + 1,
+  const addLesson = () => {
+    const newLesson: Lesson = {
+      id: `lesson-${Date.now()}`,
+      lessonNumber: lessons.length + 1,
       title: '',
       description: '',
-      contentType: 'video',
-      file: null,
+      videoFile: null,
       uploadProgress: 0,
+      duration: 0,
     };
-    setCourseParts([...courseParts, newPart]);
+    setLessons([...lessons, newLesson]);
   };
 
-  const removeCoursePart = (id: string) => {
-    const updatedParts = courseParts.filter(part => part.id !== id);
-    // Renumber the parts
-    const renumberedParts = updatedParts.map((part, index) => ({
-      ...part,
-      partNumber: index + 1,
+  const removeLesson = (id: string) => {
+    const updatedLessons = lessons.filter(lesson => lesson.id !== id);
+    const renumberedLessons = updatedLessons.map((lesson, index) => ({
+      ...lesson,
+      lessonNumber: index + 1,
     }));
-    setCourseParts(renumberedParts);
+    setLessons(renumberedLessons);
   };
 
-  const updateCoursePart = (id: string, updates: Partial<CoursePart>) => {
-    setCourseParts(courseParts.map(part => 
-      part.id === id ? { ...part, ...updates } : part
+  const updateLesson = (id: string, updates: Partial<Lesson>) => {
+    setLessons(lessons.map(lesson => 
+      lesson.id === id ? { ...lesson, ...updates } : lesson
     ));
   };
 
-  const handleFileSelect = (partId: string, file: File, contentType: 'video' | 'document') => {
-    const maxSize = contentType === 'video' ? MAX_VIDEO_SIZE : MAX_DOCUMENT_SIZE;
-    const maxSizeLabel = contentType === 'video' ? '500MB' : '10MB';
-
-    if (file.size > maxSize) {
-      toast.error(`File size exceeds ${maxSizeLabel}. Please select a smaller file.`);
-      return;
-    }
-
-    // Validate file type
-    if (contentType === 'video') {
-      const validVideoTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
-      if (!validVideoTypes.includes(file.type)) {
-        toast.error('Please select a valid video file (MP4, WebM, OGG, MOV)');
-        return;
-      }
-    } else {
-      const validDocTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-      if (!validDocTypes.includes(file.type)) {
-        toast.error('Please select a valid document file (PDF, DOC, DOCX)');
-        return;
-      }
-    }
-
-    updateCoursePart(partId, { file });
-    toast.success(`File selected: ${file.name}`);
-  };
-
-  const handleVideoFileSelect = (file: File) => {
+  const handleVideoFileSelect = (lessonId: string, file: File) => {
     if (file.size > MAX_VIDEO_SIZE) {
       toast.error('Video size exceeds 500MB. Please select a smaller file.');
       return;
@@ -130,24 +104,8 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
       return;
     }
 
-    setFormData({ ...formData, videoFile: file });
+    updateLesson(lessonId, { videoFile: file });
     toast.success(`Video selected: ${file.name}`);
-  };
-
-  const handlePdfFileSelect = (file: File) => {
-    if (file.size > MAX_DOCUMENT_SIZE) {
-      toast.error('PDF size exceeds 10MB. Please select a smaller file.');
-      return;
-    }
-
-    const validDocTypes = ['application/pdf'];
-    if (!validDocTypes.includes(file.type)) {
-      toast.error('Please select a valid PDF file');
-      return;
-    }
-
-    setFormData({ ...formData, pdfFile: file });
-    toast.success(`PDF selected: ${file.name}`);
   };
 
   const handleCoverImageFileSelect = (file: File) => {
@@ -172,13 +130,11 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
       return false;
     }
 
-    // Validate teacher info for school users
     if (user?.role === 'school') {
       if (!teacherInfo.name || !teacherInfo.email || !teacherInfo.educationLevel) {
-        toast.error('Please fill in all teacher information (name, email, and education level)');
+        toast.error('Please fill in all teacher information');
         return false;
       }
-      // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(teacherInfo.email)) {
         toast.error('Please enter a valid email address');
@@ -186,7 +142,6 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
       }
     }
 
-    // Validate cover image
     if (coverImageMode === 'url' && !formData.coverImageUrl) {
       toast.error('Please provide a cover image URL');
       return false;
@@ -196,23 +151,30 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
       return false;
     }
 
-    // Validate course content - at least one file is required
-    if (!formData.videoFile && !formData.pdfFile) {
-      toast.error('Please upload at least a video or PDF file for the course content');
+    if (lessons.length === 0) {
+      toast.error('Please add at least one lesson with a video');
       return false;
     }
 
-    // Course parts are optional, but if added, they must be complete
-    if (courseParts.length > 0) {
-      for (const part of courseParts) {
-        if (!part.title) {
-          toast.error(`Please provide a title for Part ${part.partNumber}`);
-          return false;
-        }
-        if (!part.file) {
-          toast.error(`Please upload a file for Part ${part.partNumber}`);
-          return false;
-        }
+    for (const lesson of lessons) {
+      if (!lesson.title) {
+        toast.error(`Please provide a title for Lesson ${lesson.lessonNumber}`);
+        return false;
+      }
+      if (!lesson.videoFile) {
+        toast.error(`Please upload a video for Lesson ${lesson.lessonNumber}`);
+        return false;
+      }
+    }
+
+    if (formData.isPaid) {
+      if (!formData.price || formData.price <= 0) {
+        toast.error('Please enter a valid price for the paid course');
+        return false;
+      }
+      if (!formData.bankName && !formData.mobileMoneyNumber) {
+        toast.error('Please provide at least one payment method (bank or mobile money)');
+        return false;
       }
     }
 
@@ -226,120 +188,84 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
       return;
     }
 
+    // Check authentication first
+    if (!user || !user.id) {
+      toast.error('You must be logged in to upload a course. Please log in and try again.');
+      console.error('Upload failed: User not authenticated', { user });
+      return;
+    }
+
+    console.log('User authenticated:', {
+      id: user.id,
+      role: user.role,
+      email: user.email,
+      name: user.name
+    });
+
     setLoading(true);
 
     try {
+      console.log('Starting course upload...');
       const courseId = `course-${Date.now()}`;
       let coverImageUrl = formData.coverImageUrl;
 
-      // Upload cover image to Cloudinary if file mode
+      // Upload cover image
       if (coverImageMode === 'file' && formData.coverImageFile) {
-        const uploadResult = await cloudinaryService.uploadCourseThumbnail(
-          formData.coverImageFile,
-          courseId,
-          (progress) => {
-            setFormData(prev => ({ ...prev, coverImageProgress: progress.percentage }));
-          }
-        );
-        coverImageUrl = uploadResult.secure_url;
-      }
-
-      // Upload video to Cloudinary (if exists)
-      let videoUrl = null;
-      if (formData.videoFile) {
-        const uploadResult = await cloudinaryService.uploadCourseContent(
-          formData.videoFile,
-          courseId,
-          'main-video',
-          (progress) => {
-            setFormData(prev => ({ ...prev, videoProgress: progress.percentage }));
-          }
-        );
-        videoUrl = uploadResult.secure_url;
-      }
-
-      // Upload PDF to Cloudinary (if exists)
-      let pdfUrl = null;
-      if (formData.pdfFile) {
-        const uploadResult = await cloudinaryService.uploadCourseContent(
-          formData.pdfFile,
-          courseId,
-          'main-pdf',
-          (progress) => {
-            setFormData(prev => ({ ...prev, pdfProgress: progress.percentage }));
-          }
-        );
-        pdfUrl = uploadResult.secure_url;
-      }
-
-      // Upload course parts to Cloudinary
-      const uploadedParts = [];
-      for (let i = 0; i < courseParts.length; i++) {
-        const part = courseParts[i];
-        if (part.file) {
-          const uploadResult = await cloudinaryService.uploadCourseContent(
-            part.file,
+        console.log('Uploading cover image...');
+        toast.info('Uploading cover image...');
+        try {
+          const uploadResult = await cloudinaryService.uploadCourseThumbnail(
+            formData.coverImageFile,
             courseId,
-            `part-${part.partNumber}`,
             (progress) => {
-              updateCoursePart(part.id, { uploadProgress: progress.percentage });
+              setFormData(prev => ({ ...prev, coverImageProgress: progress.percentage }));
             }
           );
-          uploadedParts.push({
-            partNumber: part.partNumber,
-            title: part.title,
-            description: part.description,
-            contentType: part.contentType,
-            fileUrl: uploadResult.secure_url,
-          });
+          coverImageUrl = uploadResult.secure_url;
+          console.log('Cover image uploaded:', coverImageUrl);
+        } catch (error: any) {
+          console.error('Cover image upload failed:', error);
+          throw new Error(`Cover image upload failed: ${error.message}`);
         }
       }
 
-      // Create lessons array with main content
-      const lessons = [];
-      
-      // Add video lesson if exists
-      if (videoUrl) {
-        lessons.push({
-          id: `lesson-video-${Date.now()}`,
-          courseId,
-          title: 'Course Video',
-          content: formData.description,
-          contentType: 'video',
-          videoUrl,
-          order: 1,
-          duration: formData.duration,
-        });
+      // Upload lesson videos
+      console.log(`Uploading ${lessons.length} lesson videos...`);
+      const uploadedLessons = [];
+      for (let i = 0; i < lessons.length; i++) {
+        const lesson = lessons[i];
+        if (lesson.videoFile) {
+          console.log(`Uploading lesson ${lesson.lessonNumber}...`);
+          toast.info(`Uploading lesson ${lesson.lessonNumber} of ${lessons.length}...`);
+          try {
+            const uploadResult = await cloudinaryService.uploadCourseContent(
+              lesson.videoFile,
+              courseId,
+              `lesson-${lesson.lessonNumber}`,
+              (progress) => {
+                updateLesson(lesson.id, { uploadProgress: progress.percentage });
+              }
+            );
+            uploadedLessons.push({
+              id: `lesson-${lesson.lessonNumber}-${Date.now()}`,
+              courseId,
+              title: lesson.title,
+              content: lesson.description,
+              contentType: 'video' as const,
+              videoUrl: uploadResult.secure_url,
+              order: lesson.lessonNumber,
+              duration: lesson.duration,
+            });
+            console.log(`Lesson ${lesson.lessonNumber} uploaded successfully`);
+          } catch (error: any) {
+            console.error(`Lesson ${lesson.lessonNumber} upload failed:`, error);
+            throw new Error(`Lesson ${lesson.lessonNumber} upload failed: ${error.message}`);
+          }
+        }
       }
 
-      // Add PDF lesson if exists
-      if (pdfUrl) {
-        lessons.push({
-          id: `lesson-pdf-${Date.now()}`,
-          courseId,
-          title: 'Course Materials',
-          content: formData.description,
-          contentType: 'pdf',
-          pdfUrl,
-          order: videoUrl ? 2 : 1,
-        });
-      }
-
-      // Add additional parts as lessons
-      uploadedParts.forEach((part, index) => {
-        lessons.push({
-          id: `lesson-part-${part.partNumber}-${Date.now()}`,
-          courseId,
-          title: part.title,
-          content: part.description,
-          contentType: part.contentType === 'video' ? 'video' : 'pdf',
-          videoUrl: part.contentType === 'video' ? part.fileUrl : undefined,
-          pdfUrl: part.contentType === 'document' ? part.fileUrl : undefined,
-          order: lessons.length + 1,
-        });
-      });
-
-      // Save course data to Firebase
+      // Prepare course data
+      console.log('Preparing course data...');
       const courseData: any = {
         title: formData.title,
         description: formData.description,
@@ -350,59 +276,108 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
         teacherId: user?.role === 'school' ? `manual-${Date.now()}` : (user?.id || ''),
         teacherName: user?.role === 'school' ? teacherInfo.name : (user?.name || 'Unknown Teacher'),
         teacherEmail: user?.role === 'school' ? teacherInfo.email : user?.email,
-        schoolId: user?.role === 'school' ? user?.id : user?.schoolId,
-        lessons,
+        schoolId: user?.role === 'school' ? user?.id : (user?.schoolId || null),
+        lessons: uploadedLessons,
         enrolledCount: 0,
         isPublished: true,
+        isPaid: formData.isPaid || false,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
-      // Add teacherEducationLevel only if it exists (for school users)
       if (user?.role === 'school' && teacherInfo.educationLevel) {
         courseData.teacherEducationLevel = teacherInfo.educationLevel;
       }
 
-      // Remove any undefined fields to prevent Firebase errors
-      Object.keys(courseData).forEach(key => {
-        if (courseData[key] === undefined) {
-          delete courseData[key];
+      if (formData.isPaid) {
+        courseData.price = formData.price || 0;
+        courseData.currency = formData.currency || 'USD';
+        
+        // Only add payment details if at least one method is provided
+        const hasPaymentDetails = formData.bankName || formData.mobileMoneyNumber;
+        if (hasPaymentDetails) {
+          courseData.paymentDetails = {};
+          
+          if (formData.bankName) {
+            courseData.paymentDetails.bankName = formData.bankName;
+            courseData.paymentDetails.accountNumber = formData.accountNumber || '';
+            courseData.paymentDetails.accountName = formData.accountName || '';
+          }
+          
+          if (formData.mobileMoneyNumber) {
+            courseData.paymentDetails.mobileMoneyNumber = formData.mobileMoneyNumber;
+            courseData.paymentDetails.mobileMoneyProvider = formData.mobileMoneyProvider || '';
+          }
         }
-      });
+      }
 
-      console.log('Saving course to Firebase:', courseData);
-      await coursesService.createCourse(courseData);
+      // Remove undefined and null values (Firebase doesn't like them)
+      const cleanCourseData = JSON.parse(JSON.stringify(courseData, (key, value) => {
+        // Keep false and 0, but remove undefined and null
+        if (value === undefined || value === null) {
+          return undefined;
+        }
+        return value;
+      }));
+
+      console.log('Saving course to Firebase...', {
+        title: cleanCourseData.title,
+        teacherId: cleanCourseData.teacherId,
+        schoolId: cleanCourseData.schoolId,
+        lessonsCount: cleanCourseData.lessons?.length || 0,
+        isPaid: cleanCourseData.isPaid,
+        hasPaymentDetails: !!cleanCourseData.paymentDetails,
+        allFields: Object.keys(cleanCourseData)
+      });
+      
+      toast.info('Saving course to database...');
+      try {
+        await coursesService.createCourse(cleanCourseData);
+        console.log('Course saved successfully');
+      } catch (error: any) {
+        console.error('Firebase save failed:', error);
+        throw new Error(`Failed to save course: ${error.message}`);
+      }
 
       toast.success('Course uploaded successfully!');
       setOpen(false);
-      setFormData({
-        title: '',
-        description: '',
-        category: '',
-        level: 'beginner',
-        language: 'en',
-        coverImageUrl: '',
-        coverImageFile: null,
-        coverImageProgress: 0,
-        videoFile: null,
-        videoProgress: 0,
-        pdfFile: null,
-        pdfProgress: 0,
-        duration: 0,
-      });
-      setCourseParts([]);
-      setTeacherInfo({
-        name: '',
-        email: '',
-        educationLevel: '',
-      });
+      resetForm();
       onCourseCreated?.();
     } catch (error: any) {
       console.error('Upload error:', error);
-      toast.error(error.message || 'Failed to upload course');
+      // Show more detailed error message
+      const errorMessage = error.message || 'Failed to upload course. Please check the console for details.';
+      toast.error(errorMessage, { duration: 5000 });
     } finally {
       setLoading(false);
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      category: '',
+      level: 'beginner',
+      language: 'en',
+      coverImageUrl: '',
+      coverImageFile: null,
+      coverImageProgress: 0,
+      isPaid: false,
+      price: 0,
+      currency: 'USD',
+      bankName: '',
+      accountNumber: '',
+      accountName: '',
+      mobileMoneyNumber: '',
+      mobileMoneyProvider: '',
+    });
+    setLessons([]);
+    setTeacherInfo({
+      name: '',
+      email: '',
+      educationLevel: '',
+    });
   };
 
   return (
@@ -417,7 +392,7 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
         <DialogHeader>
           <DialogTitle>Upload New Course</DialogTitle>
           <DialogDescription>
-            Fill in the course details and upload content to create a new course.
+            Fill in the course details and upload video lessons to create a new course.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6 pb-4">
@@ -518,9 +493,6 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
                     />
                   </div>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  Enter a direct link to an image (must be publicly accessible)
-                </p>
               </TabsContent>
             </Tabs>
           </div>
@@ -584,7 +556,7 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
             </Select>
           </div>
 
-          {/* Teacher Information Input (for school users) or Teacher Info Display (for teachers) */}
+          {/* Teacher Information */}
           {user?.role === 'school' ? (
             <div className="space-y-4 border rounded-lg p-4 bg-primary/5">
               <Label className="text-sm font-medium">Teacher Information *</Label>
@@ -601,7 +573,6 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
                     onChange={(e) => setTeacherInfo({ ...teacherInfo, name: e.target.value })}
                     placeholder="e.g., John Doe"
                     disabled={loading}
-                    className="w-full"
                   />
                 </div>
 
@@ -614,7 +585,6 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
                     onChange={(e) => setTeacherInfo({ ...teacherInfo, email: e.target.value })}
                     placeholder="e.g., john.doe@school.com"
                     disabled={loading}
-                    className="w-full"
                   />
                 </div>
 
@@ -639,26 +609,6 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
                   </Select>
                 </div>
               </div>
-
-              {teacherInfo.name && teacherInfo.email && teacherInfo.educationLevel && (
-                <div className="flex items-start gap-3 p-3 bg-background rounded-md border mt-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg">{teacherInfo.name.charAt(0).toUpperCase()}</span>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium truncate">{teacherInfo.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{teacherInfo.email}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {teacherInfo.educationLevel === 'bachelor' && "Bachelor's Degree"}
-                      {teacherInfo.educationLevel === 'master' && "Master's Degree"}
-                      {teacherInfo.educationLevel === 'phd' && "PhD / Doctorate"}
-                      {teacherInfo.educationLevel === 'diploma' && "Diploma"}
-                      {teacherInfo.educationLevel === 'certificate' && "Certificate"}
-                      {teacherInfo.educationLevel === 'other' && "Other"}
-                    </p>
-                  </div>
-                </div>
-              )}
             </div>
           ) : (
             <div className="space-y-3 border rounded-lg p-4 bg-primary/5">
@@ -672,289 +622,272 @@ export const CourseUploadDialog = ({ onCourseCreated }: CourseUploadDialogProps)
                   <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                You will be automatically assigned as the teacher for this course
-              </p>
             </div>
           )}
 
-          {/* Direct File Upload Section */}
-          <div className="border-t pt-6 mt-6">
-            <div className="mb-5">
-              <Label className="text-base font-semibold block">Course Content (Required) *</Label>
-              <p className="text-xs text-muted-foreground mt-1">
-                Upload video and/or PDF materials for this course. At least one is required.
-              </p>
+          {/* Payment Section */}
+          <div className="border rounded-lg p-5 bg-muted/30 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Label className="text-base font-semibold flex items-center gap-2">
+                  <DollarSign className="h-5 w-5" />
+                  Course Pricing
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Set whether this course is free or paid
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="isPaid" className="text-sm">Paid Course</Label>
+                <Switch
+                  id="isPaid"
+                  checked={formData.isPaid}
+                  onCheckedChange={(checked) => setFormData({ ...formData, isPaid: checked })}
+                  disabled={loading}
+                />
+              </div>
             </div>
 
-            <div className="space-y-5">
-              {/* Video Upload */}
-              <div className="border rounded-lg p-4 bg-muted/20">
-                <div className="flex items-center gap-2 mb-3">
-                  <FileVideo className="h-5 w-5 text-primary flex-shrink-0" />
-                  <Label htmlFor="videoFile" className="font-semibold text-sm">Course Video</Label>
+            {formData.isPaid && (
+              <div className="space-y-4 pt-4 border-t">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="price">Price *</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.price || ''}
+                      onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                      placeholder="e.g., 29.99"
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="currency">Currency *</Label>
+                    <Select
+                      value={formData.currency}
+                      onValueChange={(value) => setFormData({ ...formData, currency: value })}
+                      disabled={loading}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="USD">USD ($)</SelectItem>
+                        <SelectItem value="EUR">EUR (€)</SelectItem>
+                        <SelectItem value="GBP">GBP (£)</SelectItem>
+                        <SelectItem value="KES">KES (KSh)</SelectItem>
+                        <SelectItem value="TZS">TZS (TSh)</SelectItem>
+                        <SelectItem value="UGX">UGX (USh)</SelectItem>
+                        <SelectItem value="RWF">RWF (FRw)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+
                 <div className="space-y-3">
-                  <Input
-                    id="videoFile"
-                    type="file"
-                    accept="video/mp4,video/webm,video/ogg,video/quicktime"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleVideoFileSelect(file);
-                    }}
-                    disabled={loading}
-                    className="w-full h-12 cursor-pointer"
-                  />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Max 500MB • Formats: MP4, WebM, OGG, MOV
+                  <Label className="text-sm font-medium">Payment Details (Demo)</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Provide at least one payment method for students to pay
                   </p>
-                  {formData.videoFile && (
-                    <div className="flex items-center gap-3 p-3 bg-background rounded-md border">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium truncate">Selected: {formData.videoFile.name}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Size: {(formData.videoFile.size / (1024 * 1024)).toFixed(2)} MB
-                        </p>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setFormData({ ...formData, videoFile: null })}
+
+                  <div className="space-y-3 p-3 bg-background rounded-md border">
+                    <Label className="text-sm">Bank Transfer</Label>
+                    <div className="grid gap-3">
+                      <Input
+                        placeholder="Bank Name"
+                        value={formData.bankName}
+                        onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
                         disabled={loading}
-                        className="flex-shrink-0"
+                      />
+                      <Input
+                        placeholder="Account Number"
+                        value={formData.accountNumber}
+                        onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                        disabled={loading}
+                      />
+                      <Input
+                        placeholder="Account Name"
+                        value={formData.accountName}
+                        onChange={(e) => setFormData({ ...formData, accountName: e.target.value })}
+                        disabled={loading}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 p-3 bg-background rounded-md border">
+                    <Label className="text-sm">Mobile Money</Label>
+                    <div className="grid gap-3">
+                      <Select
+                        value={formData.mobileMoneyProvider}
+                        onValueChange={(value) => setFormData({ ...formData, mobileMoneyProvider: value })}
+                        disabled={loading}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Provider" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="M-Pesa">M-Pesa</SelectItem>
+                          <SelectItem value="Airtel Money">Airtel Money</SelectItem>
+                          <SelectItem value="MTN Mobile Money">MTN Mobile Money</SelectItem>
+                          <SelectItem value="Tigo Pesa">Tigo Pesa</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        placeholder="Mobile Money Number"
+                        value={formData.mobileMoneyNumber}
+                        onChange={(e) => setFormData({ ...formData, mobileMoneyNumber: e.target.value })}
+                        disabled={loading}
+                      />
                     </div>
-                  )}
-                  {loading && formData.videoProgress > 0 && (
-                    <div className="space-y-2 p-3 bg-background rounded-md border">
-                      <Progress value={formData.videoProgress} className="h-2" />
-                      <p className="text-xs text-muted-foreground">
-                        Uploading video... {formData.videoProgress}%
-                      </p>
-                    </div>
-                  )}
+                  </div>
                 </div>
               </div>
-
-              {/* Video Duration (optional) */}
-              {formData.videoFile && (
-                <div className="pl-4 border-l-2 border-primary/20">
-                  <Label htmlFor="duration" className="text-sm block mb-2">Video Duration (minutes)</Label>
-                  <Input
-                    id="duration"
-                    type="number"
-                    min="0"
-                    value={formData.duration || ''}
-                    onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })}
-                    placeholder="e.g., 45"
-                    disabled={loading}
-                    className="max-w-xs"
-                  />
-                </div>
-              )}
-
-              {/* PDF Upload */}
-              <div className="border rounded-lg p-4 bg-muted/20">
-                <div className="flex items-center gap-2 mb-3">
-                  <FileText className="h-5 w-5 text-primary flex-shrink-0" />
-                  <Label htmlFor="pdfFile" className="font-semibold text-sm">Course PDF Materials</Label>
-                </div>
-                <div className="space-y-3">
-                  <Input
-                    id="pdfFile"
-                    type="file"
-                    accept="application/pdf"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handlePdfFileSelect(file);
-                    }}
-                    disabled={loading}
-                    className="w-full h-12 cursor-pointer"
-                  />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Max 10MB • Format: PDF only
-                  </p>
-                  {formData.pdfFile && (
-                    <div className="flex items-center gap-3 p-3 bg-background rounded-md border">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium truncate">Selected: {formData.pdfFile.name}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Size: {(formData.pdfFile.size / (1024 * 1024)).toFixed(2)} MB
-                        </p>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setFormData({ ...formData, pdfFile: null })}
-                        disabled={loading}
-                        className="flex-shrink-0"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                  {loading && formData.pdfProgress > 0 && (
-                    <div className="space-y-2 p-3 bg-background rounded-md border">
-                      <Progress value={formData.pdfProgress} className="h-2" />
-                      <p className="text-xs text-muted-foreground">
-                        Uploading PDF... {formData.pdfProgress}%
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {!formData.videoFile && !formData.pdfFile && (
-                <div className="text-center py-8 border-2 border-dashed rounded-lg bg-muted/10">
-                  <Upload className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Upload at least one file (video or PDF) to continue
-                  </p>
-                </div>
-              )}
-            </div>
+            )}
           </div>
 
-          {/* Course Parts Section */}
+          {/* Lessons Section */}
           <div className="space-y-5 border-t pt-6">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 space-y-1">
-                <Label className="text-base font-semibold">Additional Parts/Lessons (Optional)</Label>
+                <Label className="text-base font-semibold">Course Lessons (Video Only) *</Label>
                 <p className="text-xs text-muted-foreground">
-                  Add more videos or documents if your course has multiple parts
+                  Add video lessons for your course. At least one lesson is required.
                 </p>
               </div>
               <Button 
                 type="button" 
                 variant="outline" 
                 size="sm" 
-                onClick={addCoursePart} 
+                onClick={addLesson} 
                 className="flex-shrink-0 mt-1"
+                disabled={loading}
               >
                 <Plus className="h-4 w-4 mr-1" />
-                Add Part
+                Add Lesson
               </Button>
             </div>
 
-            {courseParts.length === 0 && (
+            {lessons.length === 0 && (
               <Card className="border-dashed">
                 <CardContent className="p-8 text-center">
-                  <Upload className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">
-                    No additional parts. Click "Add Part" if your course has multiple lessons.
+                  <FileVideo className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground mb-4">
+                    No lessons added yet. Click "Add Lesson" to start adding video lessons.
                   </p>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={addLesson}
+                    disabled={loading}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add First Lesson
+                  </Button>
                 </CardContent>
               </Card>
             )}
 
             <div className="space-y-4">
-              {courseParts.map((part, index) => (
-                <Card key={part.id} className="overflow-hidden">
+              {lessons.map((lesson) => (
+                <Card key={lesson.id} className="overflow-hidden">
                   <CardContent className="p-5 space-y-4">
                     <div className="flex items-center justify-between pb-3 border-b">
-                      <h4 className="font-semibold">Part {part.partNumber}</h4>
+                      <h4 className="font-semibold flex items-center gap-2">
+                        <FileVideo className="h-4 w-4" />
+                        Lesson {lesson.lessonNumber}
+                      </h4>
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeCoursePart(part.id)}
+                        onClick={() => removeLesson(lesson.id)}
                         className="text-destructive hover:text-destructive"
+                        disabled={loading}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor={`part-title-${part.id}`} className="text-sm">Part Title *</Label>
+                      <Label htmlFor={`lesson-title-${lesson.id}`} className="text-sm">Lesson Title *</Label>
                       <Input
-                        id={`part-title-${part.id}`}
-                        value={part.title}
-                        onChange={(e) => updateCoursePart(part.id, { title: e.target.value })}
-                        placeholder="e.g., Introduction to Algebra"
-                        className="w-full"
+                        id={`lesson-title-${lesson.id}`}
+                        value={lesson.title}
+                        onChange={(e) => updateLesson(lesson.id, { title: e.target.value })}
+                        placeholder="e.g., Introduction to the Topic"
+                        disabled={loading}
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor={`part-desc-${part.id}`} className="text-sm">Part Description</Label>
+                      <Label htmlFor={`lesson-desc-${lesson.id}`} className="text-sm">Lesson Description</Label>
                       <Textarea
-                        id={`part-desc-${part.id}`}
-                        value={part.description}
-                        onChange={(e) => updateCoursePart(part.id, { description: e.target.value })}
-                        placeholder="Brief description of this part"
+                        id={`lesson-desc-${lesson.id}`}
+                        value={lesson.description}
+                        onChange={(e) => updateLesson(lesson.id, { description: e.target.value })}
+                        placeholder="Brief description of this lesson"
                         rows={2}
-                        className="w-full resize-none"
+                        disabled={loading}
                       />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor={`part-type-${part.id}`} className="text-sm">Content Type *</Label>
-                      <Select
-                        value={part.contentType}
-                        onValueChange={(value: 'video' | 'document') => 
-                          updateCoursePart(part.id, { contentType: value, file: null })
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="video">
-                            <div className="flex items-center gap-2">
-                              <FileVideo className="h-4 w-4" />
-                              <span>Video (Max 500MB)</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="document">
-                            <div className="flex items-center gap-2">
-                              <FileText className="h-4 w-4" />
-                              <span>Document (Max 10MB)</span>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
                     </div>
 
                     <div className="space-y-3">
-                      <Label htmlFor={`part-file-${part.id}`} className="text-sm">
-                        Upload {part.contentType === 'video' ? 'Video' : 'Document'} *
+                      <Label htmlFor={`lesson-video-${lesson.id}`} className="text-sm">
+                        Upload Video *
                       </Label>
                       <Input
-                        id={`part-file-${part.id}`}
+                        id={`lesson-video-${lesson.id}`}
                         type="file"
-                        accept={part.contentType === 'video' 
-                          ? 'video/mp4,video/webm,video/ogg,video/quicktime' 
-                          : 'application/pdf,.doc,.docx'
-                        }
+                        accept="video/mp4,video/webm,video/ogg,video/quicktime"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            handleFileSelect(part.id, file, part.contentType);
+                            handleVideoFileSelect(lesson.id, file);
                           }
                         }}
+                        disabled={loading}
                         className="w-full h-12 cursor-pointer"
                       />
-                      {part.file && (
+                      <p className="text-xs text-muted-foreground">
+                        Max 500MB • Formats: MP4, WebM, OGG, MOV
+                      </p>
+                      {lesson.videoFile && (
                         <div className="text-xs p-3 bg-muted/50 rounded-md border">
-                          <p className="font-medium truncate">Selected: {part.file.name}</p>
+                          <p className="font-medium truncate">Selected: {lesson.videoFile.name}</p>
                           <p className="text-muted-foreground mt-1">
-                            Size: {(part.file.size / (1024 * 1024)).toFixed(2)} MB
+                            Size: {(lesson.videoFile.size / (1024 * 1024)).toFixed(2)} MB
                           </p>
                         </div>
                       )}
-                      {loading && part.uploadProgress > 0 && (
+                      {loading && lesson.uploadProgress > 0 && (
                         <div className="space-y-2 p-3 bg-background rounded-md border">
-                          <Progress value={part.uploadProgress} className="h-2" />
+                          <Progress value={lesson.uploadProgress} className="h-2" />
                           <p className="text-xs text-muted-foreground">
-                            Uploading... {part.uploadProgress}%
+                            Uploading... {lesson.uploadProgress}%
                           </p>
                         </div>
                       )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor={`lesson-duration-${lesson.id}`} className="text-sm">
+                        Duration (minutes)
+                      </Label>
+                      <Input
+                        id={`lesson-duration-${lesson.id}`}
+                        type="number"
+                        min="0"
+                        value={lesson.duration || ''}
+                        onChange={(e) => updateLesson(lesson.id, { duration: parseInt(e.target.value) || 0 })}
+                        placeholder="e.g., 15"
+                        disabled={loading}
+                        className="max-w-xs"
+                      />
                     </div>
                   </CardContent>
                 </Card>

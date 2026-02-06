@@ -1,0 +1,68 @@
+═══════════════════════════════════════════════════════════════
+  AFEDULIGHT LOGO - QUICK TEST GUIDE
+═══════════════════════════════════════════════════════════════
+
+✅ ALL FILES ARE READY!
+
+STEP 1: CLEAR BROWSER CACHE
+----------------------------
+Windows: Ctrl + Shift + Delete
+Mac:     Cmd + Shift + Delete
+
+Select: "Cached images and files"
+Click:  "Clear data"
+
+
+STEP 2: START SERVER
+---------------------
+cd eduvaza-core
+npm run dev
+
+
+STEP 3: OPEN BROWSER
+--------------------
+http://localhost:8081
+
+
+STEP 4: CHECK THESE LOCATIONS
+------------------------------
+✓ Browser Tab        → Favicon should show
+✓ Top Navigation     → Logo on left side
+✓ Footer             → Logo in "About" section
+✓ Loading Screen     → Refresh page to see
+✓ Dashboard Sidebar  → Login to see
+
+
+VERIFICATION COMMAND
+--------------------
+cd eduvaza-core
+node check-logo.js
+
+Expected:
+  ✅ afedulight-logo.jpg
+  ✅ favicon.ico
+  ✅ pwa-192x192.png
+  ✅ pwa-512x512.png
+
+
+TROUBLESHOOTING
+---------------
+Problem: Favicon not showing
+Solution: Clear cache + Hard refresh (Ctrl+F5)
+
+Problem: Old logo appears
+Solution: Close all tabs + Clear cache + Reopen
+
+Problem: Logo not loading
+Solution: Check DevTools (F12) → Console for errors
+
+
+FILES LOCATION
+--------------
+Logo:    eduvaza-core/public/afedulight-logo.jpg
+Favicon: eduvaza-core/public/favicon.ico
+
+
+═══════════════════════════════════════════════════════════════
+  STATUS: ✅ READY TO TEST!
+═══════════════════════════════════════════════════════════════

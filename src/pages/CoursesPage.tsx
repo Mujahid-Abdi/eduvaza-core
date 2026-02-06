@@ -31,12 +31,15 @@ const CoursesPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
+  const [selectedPricing, setSelectedPricing] = useState<string>('all');
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>([]);
   const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [courseToEnroll, setCourseToEnroll] = useState<Course | null>(null);
 
   // Fetch courses and enrollments from Firebase
   useEffect(() => {
@@ -53,6 +56,7 @@ const CoursesPage = () => {
         }
       } catch (error) {
         console.error('Error fetching courses:', error);
+        setCourses([]);
       } finally {
         setLoading(false);
       }
@@ -68,7 +72,7 @@ const CoursesPage = () => {
         description: 'Please login to enroll in courses',
         variant: 'destructive',
       });
-      navigate('/login');
+      navigate('/auth/login');
       return;
     }
 
@@ -81,9 +85,24 @@ const CoursesPage = () => {
       return;
     }
 
+    const course = courses.find(c => c.id === courseId);
+    if (!course) return;
+
+    // Check if course is paid
+    if (course.isPaid) {
+      setCourseToEnroll(course);
+      setIsPaymentDialogOpen(true);
+      return;
+    }
+
+    // Free course - enroll directly
+    await enrollInCourse(courseId);
+  };
+
+  const enrollInCourse = async (courseId: string) => {
     setEnrollingCourseId(courseId);
     try {
-      await coursesService.enrollStudent(user.id, courseId);
+      await coursesService.enrollStudent(user!.id, courseId);
       setEnrolledCourseIds([...enrolledCourseIds, courseId]);
       
       toast({
@@ -92,9 +111,9 @@ const CoursesPage = () => {
       });
 
       // Navigate to appropriate dashboard
-      if (user.role === 'student') {
+      if (user!.role === 'student') {
         navigate('/student/dashboard');
-      } else if (user.role === 'teacher') {
+      } else if (user!.role === 'teacher') {
         navigate('/teacher/my-learning');
       }
     } catch (error) {
@@ -107,6 +126,19 @@ const CoursesPage = () => {
     } finally {
       setEnrollingCourseId(null);
     }
+  };
+
+  const handlePaymentConfirm = async () => {
+    if (!courseToEnroll) return;
+    
+    toast({
+      title: 'Payment Confirmed (Demo)',
+      description: 'In a real system, payment would be processed here.',
+    });
+    
+    setIsPaymentDialogOpen(false);
+    await enrollInCourse(courseToEnroll.id);
+    setCourseToEnroll(null);
   };
 
   const handleViewCourse = (course: Course) => {
@@ -123,16 +155,20 @@ const CoursesPage = () => {
       const matchesCategory = selectedCategory === 'all' || course.category === selectedCategory;
       const matchesLevel = selectedLevel === 'all' || course.level === selectedLevel;
       const matchesLanguage = selectedLanguage === 'all' || course.language === selectedLanguage;
-      return matchesSearch && matchesCategory && matchesLevel && matchesLanguage;
+      const matchesPricing = selectedPricing === 'all' || 
+                            (selectedPricing === 'free' && !course.isPaid) ||
+                            (selectedPricing === 'paid' && course.isPaid);
+      return matchesSearch && matchesCategory && matchesLevel && matchesLanguage && matchesPricing;
     });
-  }, [courses, searchQuery, selectedCategory, selectedLevel, selectedLanguage]);
+  }, [courses, searchQuery, selectedCategory, selectedLevel, selectedLanguage, selectedPricing]);
 
-  const hasActiveFilters = selectedCategory !== 'all' || selectedLevel !== 'all' || selectedLanguage !== 'all';
+  const hasActiveFilters = selectedCategory !== 'all' || selectedLevel !== 'all' || selectedLanguage !== 'all' || selectedPricing !== 'all';
 
   const clearFilters = () => {
     setSelectedCategory('all');
     setSelectedLevel('all');
     setSelectedLanguage('all');
+    setSelectedPricing('all');
   };
 
   const featuredCourses = filteredCourses.slice(0, 3);
@@ -187,6 +223,12 @@ const CoursesPage = () => {
                   <Badge variant="secondary" className="gap-1">
                     {selectedLanguage.toUpperCase()}
                     <X className="h-3 w-3 cursor-pointer" onClick={() => setSelectedLanguage('all')} />
+                  </Badge>
+                )}
+                {selectedPricing !== 'all' && (
+                  <Badge variant="secondary" className="gap-1">
+                    {selectedPricing === 'free' ? 'Free' : 'Paid'}
+                    <X className="h-3 w-3 cursor-pointer" onClick={() => setSelectedPricing('all')} />
                   </Badge>
                 )}
                 <Button variant="ghost" size="sm" onClick={clearFilters}>
@@ -253,6 +295,18 @@ const CoursesPage = () => {
                 </SelectContent>
               </Select>
 
+              {/* Pricing Filter */}
+              <Select value={selectedPricing} onValueChange={setSelectedPricing}>
+                <SelectTrigger className="w-[140px] transition-all hover:shadow-md hover:border-primary">
+                  <SelectValue placeholder="Pricing" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Courses</SelectItem>
+                  <SelectItem value="free">Free</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                </SelectContent>
+              </Select>
+
               {/* Clear Filters Button */}
               {hasActiveFilters && (
                 <Button 
@@ -294,7 +348,7 @@ const CoursesPage = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
                     >
-                      <Card className="overflow-hidden hover:shadow-xl transition-shadow cursor-pointer group">
+                      <Card className="overflow-hidden hover:shadow-xl transition-shadow cursor-pointer group h-full flex flex-col">
                         <div className="aspect-video bg-muted relative overflow-hidden">
                           {course.thumbnail ? (
                             <img
@@ -307,13 +361,22 @@ const CoursesPage = () => {
                               📚
                             </div>
                           )}
-                          <div className="absolute top-3 right-3">
+                          <div className="absolute top-3 right-3 flex flex-col gap-2">
                             <Badge className="bg-primary text-primary-foreground">
                               {course.level}
                             </Badge>
+                            {course.isPaid ? (
+                              <Badge className="bg-green-600 text-white">
+                                {course.currency} {course.price}
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-blue-600 text-white">
+                                FREE
+                              </Badge>
+                            )}
                           </div>
                         </div>
-                        <CardContent className="p-5">
+                        <CardContent className="p-5 flex flex-col flex-1">
                           <div className="flex items-center gap-2 mb-3">
                             <Badge variant="secondary" className="text-xs">
                               {course.category}
@@ -339,22 +402,24 @@ const CoursesPage = () => {
                               <span>{course.lessons.reduce((sum, l) => sum + (l.duration || 0), 0)}m</span>
                             </div>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 mt-auto">
                             <Button 
                               className="flex-1" 
                               variant="outline"
+                              size="sm"
                               onClick={() => handleViewCourse(course)}
                             >
-                              View Course
+                              View
                             </Button>
                             {isEnrolled(course.id) ? (
                               <Button 
                                 className="flex-1" 
                                 variant="default"
+                                size="sm"
                                 asChild
                               >
                                 <Link to={user?.role === 'student' ? '/student/dashboard' : '/teacher/my-learning'}>
-                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  <CheckCircle className="h-4 w-4 mr-1" />
                                   Enrolled
                                 </Link>
                               </Button>
@@ -362,10 +427,11 @@ const CoursesPage = () => {
                               <Button 
                                 className="flex-1" 
                                 variant="default"
+                                size="sm"
                                 onClick={() => handleEnroll(course.id)}
                                 disabled={enrollingCourseId === course.id}
                               >
-                                {enrollingCourseId === course.id ? 'Enrolling...' : 'Enroll Now'}
+                                {enrollingCourseId === course.id ? 'Enrolling...' : 'Enroll'}
                               </Button>
                             )}
                           </div>
@@ -398,7 +464,7 @@ const CoursesPage = () => {
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <Card className="overflow-hidden hover:shadow-xl transition-shadow cursor-pointer group">
+                    <Card className="overflow-hidden hover:shadow-xl transition-shadow cursor-pointer group h-full flex flex-col">
                       <div className="aspect-video bg-muted relative overflow-hidden">
                         {course.thumbnail ? (
                           <img
@@ -415,11 +481,11 @@ const CoursesPage = () => {
                           <Badge className="bg-yellow-500 text-white">Featured</Badge>
                         </div>
                       </div>
-                      <CardContent className="p-5">
+                      <CardContent className="p-5 flex flex-col flex-1">
                         <h3 className="font-semibold text-lg text-foreground mb-2 line-clamp-2">
                           {course.title}
                         </h3>
-                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2 flex-1">
                           {course.description}
                         </p>
                         {isEnrolled(course.id) ? (
@@ -517,7 +583,7 @@ const CoursesPage = () => {
       <section className="py-16 bg-gradient-primary text-primary-foreground">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Start Learning?</h2>
-          <p className="text-lg mb-8 opacity-90">Join thousands of students already learning on EduVaza</p>
+          <p className="text-lg mb-8 opacity-90">Join thousands of students already learning on AfEdulight</p>
           <Button variant="secondary" size="lg">
             Get Started Today
           </Button>
@@ -687,6 +753,76 @@ const CoursesPage = () => {
                 </div>
               </div>
             </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Dialog */}
+      <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Course Payment (Demo)</DialogTitle>
+          </DialogHeader>
+          {courseToEnroll && (
+            <div className="space-y-4">
+              <div className="p-4 bg-muted rounded-lg">
+                <h3 className="font-semibold mb-2">{courseToEnroll.title}</h3>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Price:</span>
+                  <span className="text-2xl font-bold text-primary">
+                    {courseToEnroll.currency} {courseToEnroll.price}
+                  </span>
+                </div>
+              </div>
+
+              {courseToEnroll.paymentDetails && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-sm">Payment Methods:</h4>
+                  
+                  {courseToEnroll.paymentDetails.bankName && (
+                    <div className="p-3 bg-muted/50 rounded-md space-y-1">
+                      <p className="font-medium text-sm">Bank Transfer</p>
+                      <p className="text-xs text-muted-foreground">Bank: {courseToEnroll.paymentDetails.bankName}</p>
+                      <p className="text-xs text-muted-foreground">Account: {courseToEnroll.paymentDetails.accountNumber}</p>
+                      <p className="text-xs text-muted-foreground">Name: {courseToEnroll.paymentDetails.accountName}</p>
+                    </div>
+                  )}
+
+                  {courseToEnroll.paymentDetails.mobileMoneyNumber && (
+                    <div className="p-3 bg-muted/50 rounded-md space-y-1">
+                      <p className="font-medium text-sm">Mobile Money</p>
+                      <p className="text-xs text-muted-foreground">Provider: {courseToEnroll.paymentDetails.mobileMoneyProvider}</p>
+                      <p className="text-xs text-muted-foreground">Number: {courseToEnroll.paymentDetails.mobileMoneyNumber}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md border border-yellow-200 dark:border-yellow-800">
+                <p className="text-xs text-yellow-800 dark:text-yellow-200">
+                  <strong>Demo Mode:</strong> This is a demonstration. In a real system, you would complete the payment through your preferred method, then the instructor would verify and grant access.
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => {
+                    setIsPaymentDialogOpen(false);
+                    setCourseToEnroll(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  className="flex-1"
+                  onClick={handlePaymentConfirm}
+                >
+                  Confirm Payment (Demo)
+                </Button>
+              </div>
+            </div>
           )}
         </DialogContent>
       </Dialog>

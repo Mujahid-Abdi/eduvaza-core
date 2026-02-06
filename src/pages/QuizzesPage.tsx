@@ -192,6 +192,11 @@ const QuizzesPage = () => {
   };
 
   const handleStartSelfPractice = (quizId: string) => {
+    if (!isAuthenticated) {
+      toast.error('Please login or register to take quizzes');
+      navigate('/auth/login');
+      return;
+    }
     navigate(`/quiz/${quizId}`);
   };
 

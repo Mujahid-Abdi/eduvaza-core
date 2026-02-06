@@ -1,0 +1,107 @@
+═══════════════════════════════════════════════════════════════
+  QUICK DEPLOY FIRESTORE RULES
+═══════════════════════════════════════════════════════════════
+
+ISSUE
+-----
+✗ Courses/Quizzes not visible when logged out
+✗ Firebase blocking unauthenticated read access
+
+SOLUTION
+--------
+✅ Updated firestore.rules to allow public read
+✅ Need to deploy rules to Firebase
+
+
+QUICK DEPLOY (EASIEST METHOD)
+------------------------------
+
+Option 1: Firebase Console
+---------------------------
+1. Go to: https://console.firebase.google.com
+2. Select your project
+3. Click "Firestore Database" → "Rules" tab
+4. Copy content from: eduvaza-core/firestore.rules
+5. Paste into editor
+6. Click "Publish"
+7. Done! ✅
+
+
+Option 2: Firebase CLI
+-----------------------
+cd eduvaza-core
+firebase deploy --only firestore:rules
+
+
+WHAT CHANGED IN RULES
+----------------------
+
+Courses:
+  Before: allow read: if request.auth != null
+  After:  allow read: if true  ← Public access
+
+Quizzes:
+  Before: allow read: if request.auth != null
+  After:  allow read: if true  ← Public access
+
+Opportunities:
+  Already: allow read: if true  ← Already public
+
+
+VERIFY DEPLOYMENT
+-----------------
+
+1. Check Firebase Console:
+   - Firestore Database → Rules
+   - Verify timestamp is recent
+   - Check rules show "allow read: if true"
+
+2. Test in browser:
+   - Logout or use incognito
+   - Visit: http://localhost:8081/courses
+   - Should see courses ✅
+   - Visit: http://localhost:8081/quizzes
+   - Should see quizzes ✅
+
+
+SECURITY
+--------
+
+✅ Public can READ:
+   - Courses
+   - Quizzes
+   - Opportunities
+
+🔒 Only authenticated can WRITE:
+   - Create/edit courses
+   - Create/edit quizzes
+   - Create/edit opportunities
+
+🔒 Always protected:
+   - User data
+   - Enrollments
+   - Quiz attempts
+   - Saved quizzes
+
+
+TROUBLESHOOTING
+---------------
+
+Rules not working?
+→ Wait 1-2 minutes for propagation
+→ Clear browser cache
+→ Try incognito window
+
+Still can't see data?
+→ Check Firebase Console rules
+→ Verify rules are published
+→ Check browser console for errors
+
+
+═══════════════════════════════════════════════════════════════
+  DEPLOY NOW!
+═══════════════════════════════════════════════════════════════
+
+Easiest: Use Firebase Console (copy/paste rules)
+Alternative: firebase deploy --only firestore:rules
+Result: Public pages work for everyone!

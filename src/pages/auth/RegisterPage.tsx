@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Phone, Lock, Eye, EyeOff, ArrowRight, User, School, GraduationCap, UserCog, CheckCircle } from 'lucide-react';
+import { Mail, Phone, Lock, Eye, EyeOff, ArrowRight, User, School, GraduationCap, UserCog, CheckCircle, Clock, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { toast } from 'sonner';
 import { getRoleBasedRoute } from '@/lib/roleRedirect';
 import type { UserRole } from '@/types';
 import { mockSchools } from '@/services/mockData';
+import { DocumentUpload } from '@/components/auth/DocumentUpload';
 
 const roleOptions: { role: UserRole; icon: React.ReactNode; labelKey: string; description: string }[] = [
   { role: 'student', icon: <GraduationCap className="h-6 w-6" />, labelKey: 'auth.roleStudent', description: 'Learn and explore courses' },
@@ -136,7 +138,7 @@ const africanCountries = [
   { code: 'ZW', name: 'Zimbabwe' },
 ];
 
-type Step = 'role' | 'language' | 'school_level' | 'focus_areas' | 'education' | 'teacher_details' | 'details' | 'success';
+type Step = 'role' | 'language' | 'school_level' | 'focus_areas' | 'education' | 'teacher_details' | 'teacher_documents' | 'school_documents' | 'details' | 'success' | 'pending_approval';
 
 export const RegisterPage = () => {
   const { t, setLocale, locale } = useI18n();
@@ -165,12 +167,23 @@ export const RegisterPage = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Document upload state
+  const [documents, setDocuments] = useState({
+    educationCertificate: null as File | null,
+    experienceDocument: null as File | null,
+    motivationLetter: null as File | null,
+    governmentLicense: null as File | null,
+    schoolExperienceDocument: null as File | null,
+    schoolMotivationLetter: null as File | null,
+  });
+  const [uploadingDocuments, setUploadingDocuments] = useState(false);
 
   // Auto-redirect when user is registered and logged in
   useEffect(() => {
     if (user?.role && step === 'success') {
       const timer = setTimeout(() => {
-        navigate(getRoleBasedRoute(user.role), { replace: true });
+        navigate('/home', { replace: true });
       }, 3000);
       return () => clearTimeout(timer);
     }
@@ -203,7 +216,7 @@ export const RegisterPage = () => {
     if (level === 'private_college' || level === 'government_university' || level === 'private_university') {
       setStep('focus_areas');
     } else {
-      setStep('details');
+      setStep('school_documents');
     }
   };
 
@@ -220,7 +233,7 @@ export const RegisterPage = () => {
       toast.error('Please select at least one focus area');
       return;
     }
-    setStep('details');
+    setStep('school_documents');
   };
 
   const handleEducationLevelSelect = (level: string) => {
@@ -237,7 +250,7 @@ export const RegisterPage = () => {
       toast.error('Please select your major course');
       return;
     }
-    setStep('details');
+    setStep('teacher_documents');
   };
 
   const handleSchoolSelect = (schoolId: string) => {
@@ -316,13 +329,20 @@ export const RegisterPage = () => {
           transition={{ duration: 0.5 }}
           className="w-full max-w-md space-y-8"
         >
+          {/* Back to Home Button */}
+          <Link 
+            to="/home" 
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+          >
+            <Home className="h-4 w-4" />
+            Back to Home
+          </Link>
+
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 mb-8">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-primary">
-              <span className="text-2xl font-bold text-primary-foreground">E</span>
-            </div>
+            <img src="/afedulight-logo.jpg" alt="AfEdulight" className="h-12 w-12" />
             <span className="text-2xl font-bold">
-              Edu<span className="text-gradient-primary">Vaza</span>
+              Af<span className="text-[#c9a961]">Edu</span><span className="text-[#6b8cbb]">light</span>
             </span>
           </Link>
 
@@ -635,6 +655,130 @@ export const RegisterPage = () => {
             </motion.div>
           )}
 
+          {/* Step: Teacher Document Upload */}
+          {step === 'teacher_documents' && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="space-y-4"
+            >
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setStep('teacher_details')}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  ← Back
+                </button>
+              </div>
+              <h2 className="text-lg font-semibold text-foreground">Upload Required Documents</h2>
+              <p className="text-sm text-muted-foreground">
+                Please upload the following documents for verification. All documents are required for approval.
+              </p>
+
+              <DocumentUpload
+                label="Education Certificate"
+                description="Upload your highest education certificate or degree"
+                file={documents.educationCertificate}
+                onChange={(file) => setDocuments({...documents, educationCertificate: file})}
+              />
+
+              <DocumentUpload
+                label="Experience Document"
+                description="Upload proof of teaching experience (employment letter, certificate, etc.)"
+                file={documents.experienceDocument}
+                onChange={(file) => setDocuments({...documents, experienceDocument: file})}
+              />
+
+              <DocumentUpload
+                label="Motivation Letter"
+                description="Upload your motivation letter explaining why you want to teach on our platform"
+                file={documents.motivationLetter}
+                onChange={(file) => setDocuments({...documents, motivationLetter: file})}
+              />
+
+              <Button 
+                onClick={() => {
+                  if (!documents.educationCertificate || !documents.experienceDocument || !documents.motivationLetter) {
+                    toast.error('Please upload all required documents');
+                    return;
+                  }
+                  setStep('details');
+                }}
+                variant="hero" 
+                size="lg" 
+                className="w-full"
+              >
+                Continue
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </motion.div>
+          )}
+
+          {/* Step: School Document Upload */}
+          {step === 'school_documents' && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="space-y-4"
+            >
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    if (selectedSchoolLevel === 'private_college' || selectedSchoolLevel === 'government_university' || selectedSchoolLevel === 'private_university') {
+                      setStep('focus_areas');
+                    } else {
+                      setStep('school_level');
+                    }
+                  }}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  ← Back
+                </button>
+              </div>
+              <h2 className="text-lg font-semibold text-foreground">Upload Required Documents</h2>
+              <p className="text-sm text-muted-foreground">
+                Please upload the following documents for verification. All documents are required for approval.
+              </p>
+
+              <DocumentUpload
+                label="Government License"
+                description="Upload your school's official registration or license from the government"
+                file={documents.governmentLicense}
+                onChange={(file) => setDocuments({...documents, governmentLicense: file})}
+              />
+
+              <DocumentUpload
+                label="Experience Document"
+                description="Upload documents showing your school's operation history and achievements"
+                file={documents.schoolExperienceDocument}
+                onChange={(file) => setDocuments({...documents, schoolExperienceDocument: file})}
+              />
+
+              <DocumentUpload
+                label="Motivation Letter"
+                description="Upload a letter explaining why your school wants to join our platform"
+                file={documents.schoolMotivationLetter}
+                onChange={(file) => setDocuments({...documents, schoolMotivationLetter: file})}
+              />
+
+              <Button 
+                onClick={() => {
+                  if (!documents.governmentLicense || !documents.schoolExperienceDocument || !documents.schoolMotivationLetter) {
+                    toast.error('Please upload all required documents');
+                    return;
+                  }
+                  setStep('details');
+                }}
+                variant="hero" 
+                size="lg" 
+                className="w-full"
+              >
+                Continue
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </motion.div>
+          )}
+
           {/* Step: Details Form */}
           {step === 'details' && (
             <motion.form
@@ -847,7 +991,7 @@ export const RegisterPage = () => {
               </div>
               
               <div className="space-y-2">
-                <h2 className="text-2xl font-bold text-foreground">Welcome to EduVaza!</h2>
+                <h2 className="text-2xl font-bold text-foreground">Welcome to AfEdulight!</h2>
                 <p className="text-muted-foreground">
                   Hi {registeredUser.name}, your account has been created and you are now logged in!
                 </p>
@@ -869,7 +1013,7 @@ export const RegisterPage = () => {
 
               <div className="flex gap-3">
                 <Button 
-                  onClick={() => user?.role && navigate(getRoleBasedRoute(user.role), { replace: true })} 
+                  onClick={() => user?.role && navigate('/home', { replace: true })} 
                   variant="hero" 
                   size="lg" 
                   className="flex-1"
@@ -885,8 +1029,67 @@ export const RegisterPage = () => {
             </motion.div>
           )}
 
-          {/* Login Link - Only show when not on success step */}
-          {step !== 'success' && (
+          {/* Step: Pending Approval */}
+          {step === 'pending_approval' && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="text-center space-y-6"
+            >
+              <div className="flex justify-center">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-warning/10">
+                  <Clock className="h-10 w-10 text-warning animate-pulse" />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold text-foreground">Application Submitted!</h2>
+                <p className="text-muted-foreground">
+                  Thank you, {formData.name}! Your documents have been uploaded successfully.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Our admin team will review your application within 1-3 business days.
+                </p>
+              </div>
+
+              <Card className="bg-muted/50 border">
+                <CardContent className="p-4">
+                  <p className="text-sm text-muted-foreground">
+                    You'll receive an email at <span className="font-medium text-foreground">{formData.email}</span> once your application is reviewed.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <div className="flex flex-col gap-3">
+                <Button 
+                  onClick={() => navigate('/auth/pending-approval')} 
+                  variant="hero" 
+                  size="lg" 
+                  className="w-full"
+                >
+                  View Application Status
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+
+                <Button 
+                  onClick={logout} 
+                  variant="outline" 
+                  size="lg" 
+                  className="w-full"
+                >
+                  Logout
+                </Button>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                Check your email for updates on your application status.
+              </p>
+            </motion.div>
+          )}
+
+          {/* Login Link - Only show when not on success or pending approval step */}
+          {step !== 'success' && step !== 'pending_approval' && (
             <p className="text-center text-muted-foreground">
               {t('auth.hasAccount')}{' '}
               <Link to="/auth/login" className="text-primary font-semibold hover:underline">

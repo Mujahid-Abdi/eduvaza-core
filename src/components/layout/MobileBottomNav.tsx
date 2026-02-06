@@ -24,7 +24,7 @@ interface NavItem {
 }
 
 const publicNavItems: NavItem[] = [
-  { href: '/', label: 'Home', icon: Home },
+  { href: '/home', label: 'Home', icon: Home },
   { href: '/courses', label: 'Courses', icon: BookOpen },
   { href: '/quizzes', label: 'Quizzes', icon: FileQuestion },
   { href: '/opportunities', label: 'Jobs', icon: Briefcase },
@@ -60,7 +60,7 @@ const adminNavItems: NavItem[] = [
   { href: '/admin/students', label: 'Students', icon: GraduationCap },
   { href: '/admin/schools', label: 'Schools', icon: School },
   { href: '/admin/courses', label: 'Courses', icon: BookOpen },
-  { href: '/admin/settings', label: 'Settings', icon: Settings },
+  { href: '/admin/ai-assistant', label: 'AI', icon: Sparkles },
 ];
 
 export const MobileBottomNav = () => {
@@ -91,7 +91,7 @@ export const MobileBottomNav = () => {
     if (isAuthenticated && user) {
       const dashboardPath = getDashboardPath(user.role);
       return [
-        { href: '/', label: 'Home', icon: Home },
+        { href: '/home', label: 'Home', icon: Home },
         { href: '/courses', label: 'Courses', icon: BookOpen },
         { href: '/quizzes', label: 'Quizzes', icon: FileQuestion },
         { href: '/opportunities', label: 'Jobs', icon: Briefcase },
@@ -108,7 +108,7 @@ export const MobileBottomNav = () => {
       case 'teacher': return '/teacher';
       case 'school': return '/school';
       case 'super_admin': return '/admin';
-      default: return '/';
+      default: return '/home';
     }
   };
 
@@ -120,8 +120,8 @@ export const MobileBottomNav = () => {
     if (dashboardPaths.includes(href)) {
       return location.pathname === href;
     }
-    if (href === '/') {
-      return location.pathname === '/';
+    if (href === '/home') {
+      return location.pathname === '/home';
     }
     return location.pathname.startsWith(href);
   };

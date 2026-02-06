@@ -1,7 +1,7 @@
 {
   "common": {
-    "appName": "EduVaza",
-    "tagline": "Africa's Open Learning Platform",
+    "appName": "AfEdulight",
+    "tagline": "African Education Light",
     "loading": "Loading...",
     "save": "Save",
     "cancel": "Cancel",
@@ -57,7 +57,7 @@
     "sendCode": "Send Code",
     "resendCode": "Resend Code",
     "registrationSuccess": "Registration Successful!",
-    "welcomeMessage": "Welcome to EduVaza!",
+    "welcomeMessage": "Welcome to AfEdulight!",
     "accountCreated": "Your account has been created successfully.",
     "redirectingToDashboard": "Redirecting to your dashboard...",
     "goToDashboard": "Go to Dashboard"
@@ -138,8 +138,8 @@
     "continueWhere": "Continue where you left off"
   },
   "footer": {
-    "about": "About EduVaza",
-    "aboutText": "EduVaza is Africa's open-source educational platform, designed to make quality education accessible to all.",
+    "about": "About AfEdulight",
+    "aboutText": "AfEdulight is illuminating African education with accessible, quality learning resources for all.",
     "quickLinks": "Quick Links",
     "support": "Support",
     "legal": "Legal",

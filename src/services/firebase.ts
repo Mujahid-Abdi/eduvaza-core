@@ -84,12 +84,64 @@ export const firebaseService = {
 
   // Courses
   async createCourse(courseData: Omit<Course, 'id'>): Promise<string> {
-    const docRef = await addDoc(collection(db, 'courses'), {
-      ...courseData,
-      createdAt: Timestamp.fromDate(courseData.createdAt),
-      updatedAt: Timestamp.fromDate(courseData.updatedAt)
-    });
-    return docRef.id;
+    try {
+      console.log('Firebase: Creating course with data:', {
+        title: courseData.title,
+        teacherId: courseData.teacherId,
+        schoolId: courseData.schoolId,
+        lessonsCount: courseData.lessons?.length || 0,
+        isPaid: courseData.isPaid
+      });
+      
+      // Validate and prepare data for Firebase
+      const preparedData: any = {
+        ...courseData
+      };
+      
+      // Convert Date objects to Timestamps
+      if (courseData.createdAt instanceof Date) {
+        preparedData.createdAt = Timestamp.fromDate(courseData.createdAt);
+      } else {
+        preparedData.createdAt = Timestamp.now();
+      }
+      
+      if (courseData.updatedAt instanceof Date) {
+        preparedData.updatedAt = Timestamp.fromDate(courseData.updatedAt);
+      } else {
+        preparedData.updatedAt = Timestamp.now();
+      }
+      
+      // Log the exact data being sent
+      console.log('Firebase: Prepared data for Firestore:', JSON.stringify(preparedData, null, 2));
+      
+      const docRef = await addDoc(collection(db, 'courses'), preparedData);
+      
+      console.log('Firebase: Course created successfully with ID:', docRef.id);
+      return docRef.id;
+    } catch (error: any) {
+      console.error('Firebase: Error creating course:', {
+        code: error.code,
+        message: error.message,
+        fullError: error
+      });
+      
+      // Log the problematic data
+      console.error('Firebase: Data that failed:', courseData);
+      
+      // Provide more specific error messages
+      if (error.code === 'permission-denied') {
+        throw new Error('Permission denied. Please make sure you are logged in.');
+      } else if (error.code === 'unauthenticated') {
+        throw new Error('You must be logged in to create a course.');
+      } else if (error.code === 'invalid-argument') {
+        // Try to identify which field is problematic
+        const errorMsg = error.message || '';
+        console.error('Firebase: Invalid argument error details:', errorMsg);
+        throw new Error(`Invalid course data: ${errorMsg}. Check console for details.`);
+      } else {
+        throw new Error(`Failed to save course to database: ${error.message}`);
+      }
+    }
   },
 
   async getCourse(courseId: string): Promise<Course | null> {

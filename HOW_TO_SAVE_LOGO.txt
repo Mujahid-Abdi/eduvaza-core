@@ -1,0 +1,94 @@
+═══════════════════════════════════════════════════════════════
+  HOW TO SAVE THE AFEDULIGHT LOGO - STEP BY STEP GUIDE
+═══════════════════════════════════════════════════════════════
+
+STEP 1: LOCATE THE LOGO IMAGE IN CHAT
+--------------------------------------
+Look for the image in the chat that shows:
+- Africa continent outline
+- Open book with light rays
+- Text "AfEdulight" below
+
+STEP 2: SAVE THE IMAGE
+----------------------
+Windows:
+  1. Right-click on the logo image
+  2. Select "Save image as..."
+  3. Navigate to: eduvaza-core\public\
+  4. Name it: afedulight-logo.png
+  5. Click "Save"
+
+Mac:
+  1. Right-click (or Control+click) on the logo image
+  2. Select "Save Image As..."
+  3. Navigate to: eduvaza-core/public/
+  4. Name it: afedulight-logo.png
+  5. Click "Save"
+
+STEP 3: VERIFY THE FILE
+-----------------------
+Run this command in your terminal:
+
+  cd eduvaza-core
+  node check-logo.js
+
+You should see:
+  ✅ afedulight-logo.png
+
+STEP 4: TEST THE WEBSITE
+-------------------------
+1. Clear browser cache:
+   - Press Ctrl+Shift+Delete (Windows)
+   - Press Cmd+Shift+Delete (Mac)
+   - Select "Cached images and files"
+   - Click "Clear data"
+
+2. Start the development server:
+   npm run dev
+
+3. Open: http://localhost:8081
+
+4. Check these locations for the logo:
+   ✓ Browser tab (favicon)
+   ✓ Top navigation bar
+   ✓ Footer
+   ✓ Loading screen (when page first loads)
+   ✓ Dashboard sidebar (if logged in)
+
+ALTERNATIVE: DOWNLOAD FROM CHAT
+--------------------------------
+If right-click doesn't work:
+1. Click on the image to open it full size
+2. Look for a download button or icon
+3. Save as: afedulight-logo.png
+4. Move to: eduvaza-core\public\
+
+TROUBLESHOOTING
+---------------
+❌ Image not showing?
+   → Clear browser cache and hard refresh (Ctrl+F5)
+
+❌ File not found error?
+   → Check the file is named exactly: afedulight-logo.png
+   → Check it's in the correct folder: eduvaza-core\public\
+
+❌ Image looks wrong?
+   → Make sure you saved the correct image from chat
+   → The image should be the one with Africa + book + light rays
+
+WHAT'S ALREADY DONE
+-------------------
+✅ All code updated to use the new logo
+✅ Footer logo component updated
+✅ Loading screen logo updated
+✅ Navbar logo updated
+✅ Dashboard logo updated
+✅ Favicon configuration updated
+✅ PWA manifest updated
+✅ All "EduVaza" text changed to "AfEdulight"
+
+ONLY MISSING: The actual image file!
+
+═══════════════════════════════════════════════════════════════
+Once you save the image, everything will work perfectly! 🎉
+═══════════════════════════════════════════════════════════════
